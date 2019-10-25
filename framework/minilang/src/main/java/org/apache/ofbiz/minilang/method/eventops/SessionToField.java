@@ -29,72 +29,72 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;session-to-field&gt; element.
- * 
+ *
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBADMIN/Mini-language+Reference#Mini-languageReference-{{%3Csessiontofield%3E}}">Mini-language Reference</a>
  */
 public class SessionToField extends MethodOperation {
 
-    private final FlexibleStringExpander defaultFse;
-    private final FlexibleMapAccessor<Object> fieldFma;
-    private final FlexibleStringExpander attributeNameFse;
+	private final FlexibleStringExpander defaultFse;
+	private final FlexibleMapAccessor<Object> fieldFma;
+	private final FlexibleStringExpander attributeNameFse;
 
-    public SessionToField(Element element, SimpleMethod simpleMethod) throws MiniLangException {
-        super(element, simpleMethod);
-        if (MiniLangValidate.validationOn()) {
-            MiniLangValidate.attributeNames(simpleMethod, element, "field", "session-name", "default");
-            MiniLangValidate.requiredAttributes(simpleMethod, element, "field");
-            MiniLangValidate.expressionAttributes(simpleMethod, element, "field");
-            MiniLangValidate.noChildElements(simpleMethod, element);
-        }
-        this.fieldFma = FlexibleMapAccessor.getInstance(element.getAttribute("field"));
-        String attributeName = element.getAttribute("session-name");
-        if (!attributeName.isEmpty()) {
-            this.attributeNameFse = FlexibleStringExpander.getInstance(attributeName);
-        } else {
-            this.attributeNameFse = FlexibleStringExpander.getInstance(this.fieldFma.toString());
-        }
-        this.defaultFse = FlexibleStringExpander.getInstance(element.getAttribute("default"));
-    }
+	public SessionToField(Element element, SimpleMethod simpleMethod) throws MiniLangException {
+		super(element, simpleMethod);
+		if (MiniLangValidate.validationOn()) {
+			MiniLangValidate.attributeNames(simpleMethod, element, "field", "session-name", "default");
+			MiniLangValidate.requiredAttributes(simpleMethod, element, "field");
+			MiniLangValidate.expressionAttributes(simpleMethod, element, "field");
+			MiniLangValidate.noChildElements(simpleMethod, element);
+		}
+		this.fieldFma = FlexibleMapAccessor.getInstance(element.getAttribute("field"));
+		String attributeName = element.getAttribute("session-name");
+		if (!attributeName.isEmpty()) {
+			this.attributeNameFse = FlexibleStringExpander.getInstance(attributeName);
+		} else {
+			this.attributeNameFse = FlexibleStringExpander.getInstance(this.fieldFma.toString());
+		}
+		this.defaultFse = FlexibleStringExpander.getInstance(element.getAttribute("default"));
+	}
 
-    @Override
-    public boolean exec(MethodContext methodContext) throws MiniLangException {
-        if (methodContext.getMethodType() == MethodContext.EVENT) {
-            String attributeName = attributeNameFse.expandString(methodContext.getEnvMap());
-            Object value = methodContext.getRequest().getSession().getAttribute(attributeName);
-            if (value == null || (value instanceof String && ((String) value).isEmpty())) {
-                value = defaultFse.expandString(methodContext.getEnvMap());
-            }
-            fieldFma.put(methodContext.getEnvMap(), value);
-        }
-        return true;
-    }
+	@Override
+	public boolean exec(MethodContext methodContext) throws MiniLangException {
+		if (methodContext.getMethodType() == MethodContext.EVENT) {
+			String attributeName = attributeNameFse.expandString(methodContext.getEnvMap());
+			Object value = methodContext.getRequest().getSession().getAttribute(attributeName);
+			if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+				value = defaultFse.expandString(methodContext.getEnvMap());
+			}
+			fieldFma.put(methodContext.getEnvMap(), value);
+		}
+		return true;
+	}
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("<session-to-field ");
-        sb.append("field=\"").append(this.fieldFma).append("\" ");
-        if (!this.attributeNameFse.isEmpty()) {
-            sb.append("session-name=\"").append(this.attributeNameFse).append("\" ");
-        }
-        if (!this.defaultFse.isEmpty()) {
-            sb.append("default=\"").append(this.defaultFse).append("\" ");
-        }
-        sb.append("/>");
-        return sb.toString();
-    }
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("<session-to-field ");
+		sb.append("field=\"").append(this.fieldFma).append("\" ");
+		if (!this.attributeNameFse.isEmpty()) {
+			sb.append("session-name=\"").append(this.attributeNameFse).append("\" ");
+		}
+		if (!this.defaultFse.isEmpty()) {
+			sb.append("default=\"").append(this.defaultFse).append("\" ");
+		}
+		sb.append("/>");
+		return sb.toString();
+	}
 
-    /**
-     * A factory for the &lt;session-to-field&gt; element.
-     */
-    public static final class SessionToFieldFactory implements Factory<SessionToField> {
-        @Override
-        public SessionToField createMethodOperation(Element element, SimpleMethod simpleMethod) throws MiniLangException {
-            return new SessionToField(element, simpleMethod);
-        }
+	/**
+	 * A factory for the &lt;session-to-field&gt; element.
+	 */
+	public static final class SessionToFieldFactory implements Factory<SessionToField> {
+		@Override
+		public SessionToField createMethodOperation(Element element, SimpleMethod simpleMethod) throws MiniLangException {
+			return new SessionToField(element, simpleMethod);
+		}
 
-        @Override
-        public String getName() {
-            return "session-to-field";
-        }
-    }
+		@Override
+		public String getName() {
+			return "session-to-field";
+		}
+	}
 }

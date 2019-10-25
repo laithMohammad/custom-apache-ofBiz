@@ -22,9 +22,11 @@ package org.apache.ofbiz.product.config;
 @SuppressWarnings("serial")
 public class ProductConfigWrapperException extends Exception {
 
-    /** Creates a new instance of ProductConfigWrapperException */
-    public ProductConfigWrapperException(String message) {
-        super(message);
-    }
+	/**
+	 * Creates a new instance of ProductConfigWrapperException
+	 */
+	public ProductConfigWrapperException(String message) {
+		super(message);
+	}
 
 }

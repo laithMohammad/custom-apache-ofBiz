@@ -20,7 +20,6 @@
 package org.apache.ofbiz.party.party;
 
 import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
@@ -32,31 +31,34 @@ import org.apache.ofbiz.entity.util.EntityTypeUtil;
  */
 public final class PartyTypeHelper {
 
-    public static final String module = PartyTypeHelper.class.getName();
+	public static final String module = PartyTypeHelper.class.getName();
 
-    private PartyTypeHelper () {}
+	private PartyTypeHelper() {
+	}
 
-    /** Check if a related party is of the right party type (PERSON or PARTY_GROUP)
-     *@param delegator needed Delegator
-     *@param partyId a a valid Party Id string
-     *@param checkedPartyType a string in {PERSON, PARTY_GROUP}
-     *@return Boolean, false in case of error
-     */
-    public static Boolean checkPartyType(Delegator delegator, String partyId, String checkedPartyType) {
-        GenericValue party = null;
-        GenericValue partyType = null;
-        GenericValue checkedTypeOfParty = null;
-        try {
-            party = EntityQuery.use(delegator).from("Party").where("partyId", partyId).queryOne();
-            if (party != null) {
-                partyType = party.getRelatedOne("PartyType", true);
-                checkedTypeOfParty = EntityQuery.use(delegator).from("PartyType").where("partyTypeId", checkedPartyType).cache().queryOne();
-            } else {
-                return false;
-            }
-        } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
-        }
-        return EntityTypeUtil.isType(partyType, checkedTypeOfParty);
-    }
+	/**
+	 * Check if a related party is of the right party type (PERSON or PARTY_GROUP)
+	 *
+	 * @param delegator        needed Delegator
+	 * @param partyId          a a valid Party Id string
+	 * @param checkedPartyType a string in {PERSON, PARTY_GROUP}
+	 * @return Boolean, false in case of error
+	 */
+	public static Boolean checkPartyType(Delegator delegator, String partyId, String checkedPartyType) {
+		GenericValue party = null;
+		GenericValue partyType = null;
+		GenericValue checkedTypeOfParty = null;
+		try {
+			party = EntityQuery.use(delegator).from("Party").where("partyId", partyId).queryOne();
+			if (party != null) {
+				partyType = party.getRelatedOne("PartyType", true);
+				checkedTypeOfParty = EntityQuery.use(delegator).from("PartyType").where("partyTypeId", checkedPartyType).cache().queryOne();
+			} else {
+				return false;
+			}
+		} catch (GenericEntityException e) {
+			Debug.logWarning(e, module);
+		}
+		return EntityTypeUtil.isType(partyType, checkedTypeOfParty);
+	}
 }

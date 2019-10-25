@@ -18,114 +18,109 @@
  *******************************************************************************/
 package org.apache.ofbiz.common;
 
-import java.io.IOException;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.base.util.HttpClient;
-import org.apache.ofbiz.base.util.HttpClientException;
-import org.apache.ofbiz.base.util.UtilMisc;
-import org.apache.ofbiz.base.util.UtilProperties;
-import org.apache.ofbiz.base.util.UtilXml;
+import org.apache.ofbiz.base.util.*;
 import org.apache.ofbiz.service.DispatchContext;
 import org.apache.ofbiz.service.ServiceUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * OFBIZ CDyne Services: for info see http://www.cdyne.com/developers/overview.aspx
  */
 public class CdyneServices {
 
-    public final static String module = CdyneServices.class.getName();
-    public static final String resource = "CommonUiLabels";
-    public final static String licenseKey = UtilProperties.getPropertyValue("cdyne", "LicenseKey", "0");
+	public final static String module = CdyneServices.class.getName();
+	public static final String resource = "CommonUiLabels";
+	public final static String licenseKey = UtilProperties.getPropertyValue("cdyne", "LicenseKey", "0");
 
-    /**
-     * CDyne ReturnCityState Service
-     *@param dctx The DispatchContext that this service is operating in
-     *@param context Map containing the input parameters
-     *@return Map with the result of the service, the output parameters
-     */
-    public static Map<String, Object> cdyneReturnCityState(DispatchContext dctx, Map<String, ?> context) {
-        String zipcode = (String) context.get("zipcode");
-        Locale locale = (Locale) context.get("locale");
-        String serviceUrl = "http://ws.cdyne.com/psaddress/addresslookup.asmx/ReturnCityState?zipcode=" + zipcode + "&LicenseKey=" + licenseKey;
-        try {
-            String httpResponse = HttpClient.getUrlContent(serviceUrl);
+	/**
+	 * CDyne ReturnCityState Service
+	 *
+	 * @param dctx    The DispatchContext that this service is operating in
+	 * @param context Map containing the input parameters
+	 * @return Map with the result of the service, the output parameters
+	 */
+	public static Map<String, Object> cdyneReturnCityState(DispatchContext dctx, Map<String, ?> context) {
+		String zipcode = (String) context.get("zipcode");
+		Locale locale = (Locale) context.get("locale");
+		String serviceUrl = "http://ws.cdyne.com/psaddress/addresslookup.asmx/ReturnCityState?zipcode=" + zipcode + "&LicenseKey=" + licenseKey;
+		try {
+			String httpResponse = HttpClient.getUrlContent(serviceUrl);
 
-            Document addressDocument = UtilXml.readXmlDocument(httpResponse);
-            Element addressRootElement = addressDocument.getDocumentElement();
+			Document addressDocument = UtilXml.readXmlDocument(httpResponse);
+			Element addressRootElement = addressDocument.getDocumentElement();
 
-            Map<String, Object> response = ServiceUtil.returnSuccess();
-            populateCdyneAddress(addressRootElement, response);
+			Map<String, Object> response = ServiceUtil.returnSuccess();
+			populateCdyneAddress(addressRootElement, response);
 
-            if ("true".equals(response.get("ServiceError"))) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneServiceError", UtilMisc.toMap("zipcode", zipcode), locale));
-            }
-            if ("true".equals(response.get("AddressError"))) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneAddressError", UtilMisc.toMap("zipcode", zipcode), locale));
-            }
+			if ("true".equals(response.get("ServiceError"))) {
+				return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneServiceError", UtilMisc.toMap("zipcode", zipcode), locale));
+			}
+			if ("true".equals(response.get("AddressError"))) {
+				return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneAddressError", UtilMisc.toMap("zipcode", zipcode), locale));
+			}
 
-            return response;
-        } catch (HttpClientException e) {
-            Debug.logError(e, "Error calling CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneCallingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
-        } catch (SAXException e) {
-            Debug.logError(e, "Error parsing XML result from CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneParsingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
-        } catch (ParserConfigurationException e) {
-            Debug.logError(e, "Error parsing XML result from CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneParsingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
-        } catch (IOException e) {
-            Debug.logError(e, "Error parsing XML result from CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneParsingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
-        }
-    }
+			return response;
+		} catch (HttpClientException e) {
+			Debug.logError(e, "Error calling CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
+			return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneCallingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
+		} catch (SAXException e) {
+			Debug.logError(e, "Error parsing XML result from CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
+			return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneParsingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
+		} catch (ParserConfigurationException e) {
+			Debug.logError(e, "Error parsing XML result from CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
+			return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneParsingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
+		} catch (IOException e) {
+			Debug.logError(e, "Error parsing XML result from CDyne service at URL [" + serviceUrl + "]: " + e.toString(), module);
+			return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonCDyneParsingError", UtilMisc.toMap("serviceUrl", serviceUrl, "errorString", e.toString()), locale));
+		}
+	}
 
-    public static void populateCdyneAddress(Element addressRootElement, Map<String, Object> targetContext) {
-        targetContext.put("ServiceError", UtilXml.childElementValue(addressRootElement, "ServiceError"));
-        targetContext.put("AddressError", UtilXml.childElementValue(addressRootElement, "AddressError"));
-        targetContext.put("AddressFoundBeMoreSpecific", UtilXml.childElementValue(addressRootElement, "AddressFoundBeMoreSpecific"));
-        targetContext.put("NeededCorrection", UtilXml.childElementValue(addressRootElement, "NeededCorrection"));
+	public static void populateCdyneAddress(Element addressRootElement, Map<String, Object> targetContext) {
+		targetContext.put("ServiceError", UtilXml.childElementValue(addressRootElement, "ServiceError"));
+		targetContext.put("AddressError", UtilXml.childElementValue(addressRootElement, "AddressError"));
+		targetContext.put("AddressFoundBeMoreSpecific", UtilXml.childElementValue(addressRootElement, "AddressFoundBeMoreSpecific"));
+		targetContext.put("NeededCorrection", UtilXml.childElementValue(addressRootElement, "NeededCorrection"));
 
-        targetContext.put("DeliveryAddress", UtilXml.childElementValue(addressRootElement, "DeliveryAddress"));
-        targetContext.put("City", UtilXml.childElementValue(addressRootElement, "City"));
-        targetContext.put("StateAbbrev", UtilXml.childElementValue(addressRootElement, "StateAbbrev"));
-        targetContext.put("ZipCode", UtilXml.childElementValue(addressRootElement, "ZipCode"));
-        targetContext.put("County", UtilXml.childElementValue(addressRootElement, "County"));
-        targetContext.put("CountyNum", UtilXml.childElementValue(addressRootElement, "CountyNum"));
-        targetContext.put("PreferredCityName", UtilXml.childElementValue(addressRootElement, "PreferredCityName"));
+		targetContext.put("DeliveryAddress", UtilXml.childElementValue(addressRootElement, "DeliveryAddress"));
+		targetContext.put("City", UtilXml.childElementValue(addressRootElement, "City"));
+		targetContext.put("StateAbbrev", UtilXml.childElementValue(addressRootElement, "StateAbbrev"));
+		targetContext.put("ZipCode", UtilXml.childElementValue(addressRootElement, "ZipCode"));
+		targetContext.put("County", UtilXml.childElementValue(addressRootElement, "County"));
+		targetContext.put("CountyNum", UtilXml.childElementValue(addressRootElement, "CountyNum"));
+		targetContext.put("PreferredCityName", UtilXml.childElementValue(addressRootElement, "PreferredCityName"));
 
-        targetContext.put("DeliveryPoint", UtilXml.childElementValue(addressRootElement, "DeliveryPoint"));
-        targetContext.put("CheckDigit", UtilXml.childElementValue(addressRootElement, "CheckDigit"));
+		targetContext.put("DeliveryPoint", UtilXml.childElementValue(addressRootElement, "DeliveryPoint"));
+		targetContext.put("CheckDigit", UtilXml.childElementValue(addressRootElement, "CheckDigit"));
 
-        targetContext.put("CSKey", UtilXml.childElementValue(addressRootElement, "CSKey"));
-        targetContext.put("FIPS", UtilXml.childElementValue(addressRootElement, "FIPS"));
+		targetContext.put("CSKey", UtilXml.childElementValue(addressRootElement, "CSKey"));
+		targetContext.put("FIPS", UtilXml.childElementValue(addressRootElement, "FIPS"));
 
-        targetContext.put("FromLongitude", UtilXml.childElementValue(addressRootElement, "FromLongitude"));
-        targetContext.put("FromLatitude", UtilXml.childElementValue(addressRootElement, "FromLatitude"));
-        targetContext.put("ToLongitude", UtilXml.childElementValue(addressRootElement, "ToLongitude"));
-        targetContext.put("ToLatitude", UtilXml.childElementValue(addressRootElement, "ToLatitude"));
-        targetContext.put("AvgLongitude", UtilXml.childElementValue(addressRootElement, "AvgLongitude"));
-        targetContext.put("AvgLatitude", UtilXml.childElementValue(addressRootElement, "AvgLatitude"));
+		targetContext.put("FromLongitude", UtilXml.childElementValue(addressRootElement, "FromLongitude"));
+		targetContext.put("FromLatitude", UtilXml.childElementValue(addressRootElement, "FromLatitude"));
+		targetContext.put("ToLongitude", UtilXml.childElementValue(addressRootElement, "ToLongitude"));
+		targetContext.put("ToLatitude", UtilXml.childElementValue(addressRootElement, "ToLatitude"));
+		targetContext.put("AvgLongitude", UtilXml.childElementValue(addressRootElement, "AvgLongitude"));
+		targetContext.put("AvgLatitude", UtilXml.childElementValue(addressRootElement, "AvgLatitude"));
 
-        targetContext.put("CMSA", UtilXml.childElementValue(addressRootElement, "CMSA"));
-        targetContext.put("PMSA", UtilXml.childElementValue(addressRootElement, "PMSA"));
-        targetContext.put("MSA", UtilXml.childElementValue(addressRootElement, "MSA"));
-        targetContext.put("MA", UtilXml.childElementValue(addressRootElement, "MA"));
+		targetContext.put("CMSA", UtilXml.childElementValue(addressRootElement, "CMSA"));
+		targetContext.put("PMSA", UtilXml.childElementValue(addressRootElement, "PMSA"));
+		targetContext.put("MSA", UtilXml.childElementValue(addressRootElement, "MSA"));
+		targetContext.put("MA", UtilXml.childElementValue(addressRootElement, "MA"));
 
-        targetContext.put("TimeZone", UtilXml.childElementValue(addressRootElement, "TimeZone"));
-        targetContext.put("hasDaylightSavings", UtilXml.childElementValue(addressRootElement, "hasDaylightSavings"));
-        targetContext.put("AreaCode", UtilXml.childElementValue(addressRootElement, "AreaCode"));
-        targetContext.put("LLCertainty", UtilXml.childElementValue(addressRootElement, "LLCertainty"));
+		targetContext.put("TimeZone", UtilXml.childElementValue(addressRootElement, "TimeZone"));
+		targetContext.put("hasDaylightSavings", UtilXml.childElementValue(addressRootElement, "hasDaylightSavings"));
+		targetContext.put("AreaCode", UtilXml.childElementValue(addressRootElement, "AreaCode"));
+		targetContext.put("LLCertainty", UtilXml.childElementValue(addressRootElement, "LLCertainty"));
 
-        targetContext.put("CensusBlockNum", UtilXml.childElementValue(addressRootElement, "CensusBlockNum"));
-        targetContext.put("CensusTractNum", UtilXml.childElementValue(addressRootElement, "CensusTractNum"));
+		targetContext.put("CensusBlockNum", UtilXml.childElementValue(addressRootElement, "CensusBlockNum"));
+		targetContext.put("CensusTractNum", UtilXml.childElementValue(addressRootElement, "CensusTractNum"));
 
         /*
         Example URL: http://ws.cdyne.com/psaddress/addresslookup.asmx/ReturnCityState?zipcode=93940&LicenseKey=0
@@ -174,5 +169,5 @@ public class CdyneServices {
             <CensusTractNum>0134.00</CensusTractNum>
         </Address>
         */
-    }
+	}
 }

@@ -26,15 +26,15 @@ import org.apache.ofbiz.entity.GenericEntityException;
 @SuppressWarnings("serial")
 public class EntityEcaException extends GenericEntityException {
 
-    public EntityEcaException() {
-        super();
-    }
+	public EntityEcaException() {
+		super();
+	}
 
-    public EntityEcaException(String str) {
-        super(str);
-    }
+	public EntityEcaException(String str) {
+		super(str);
+	}
 
-    public EntityEcaException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public EntityEcaException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

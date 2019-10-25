@@ -21,23 +21,26 @@ package org.apache.ofbiz.base.util.cache;
 import org.apache.ofbiz.base.concurrent.ExecutionPool;
 
 public abstract class CacheLine<V> extends ExecutionPool.Pulse {
-    protected CacheLine(long loadTimeNanos, long expireTimeNanos) {
-        super(loadTimeNanos, expireTimeNanos);
-    }
+	protected CacheLine(long loadTimeNanos, long expireTimeNanos) {
+		super(loadTimeNanos, expireTimeNanos);
+	}
 
-    abstract CacheLine<V> changeLine(boolean useSoftReference, long expireTimeNanos);
-    abstract void remove();
-    boolean differentExpireTime(long expireTimeNanos) {
-        return this.expireTimeNanos - loadTimeNanos - expireTimeNanos != 0;
-    }
-    public abstract V getValue();
+	abstract CacheLine<V> changeLine(boolean useSoftReference, long expireTimeNanos);
 
-    void cancel() {
-    }
+	abstract void remove();
 
-    @Override
-    public void run() {
-        remove();
-    }
+	boolean differentExpireTime(long expireTimeNanos) {
+		return this.expireTimeNanos - loadTimeNanos - expireTimeNanos != 0;
+	}
+
+	public abstract V getValue();
+
+	void cancel() {
+	}
+
+	@Override
+	public void run() {
+		remove();
+	}
 }
 

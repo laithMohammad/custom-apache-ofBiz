@@ -18,11 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.ofbiz.base.container.Container;
 import org.apache.ofbiz.base.container.ContainerConfig;
 import org.apache.ofbiz.base.container.ContainerException;
@@ -32,84 +27,89 @@ import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.job.JobManager;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * A container for the service engine. 
+ * A container for the service engine.
  */
 public class ServiceContainer implements Container {
-    private static final String module = ServiceContainer.class.getName();
-    private static final ConcurrentHashMap<String, LocalDispatcher> dispatcherCache = new ConcurrentHashMap<String, LocalDispatcher>();
-    private static LocalDispatcherFactory dispatcherFactory;
+	private static final String module = ServiceContainer.class.getName();
+	private static final ConcurrentHashMap<String, LocalDispatcher> dispatcherCache = new ConcurrentHashMap<String, LocalDispatcher>();
+	private static LocalDispatcherFactory dispatcherFactory;
 
-    private String name;
+	private String name;
 
-    @Override
-    public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
-        this.name = name;
-        // initialize the LocalDispatcherFactory
-        ContainerConfig.Configuration cfg = ContainerConfig.getConfiguration(name, configFile);
-        ContainerConfig.Configuration.Property dispatcherFactoryProperty = cfg.getProperty("dispatcher-factory");
-        if (dispatcherFactoryProperty == null || UtilValidate.isEmpty(dispatcherFactoryProperty.value)) {
-            throw new ContainerException("Unable to initialize container " + name + ": dispatcher-factory property is not set");
-        }
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try {
-            Class<?> c = loader.loadClass(dispatcherFactoryProperty.value);
-            dispatcherFactory = (LocalDispatcherFactory) c.newInstance();
-        } catch (Exception e) {
-            throw new ContainerException(e);
-        }
-    }
+	public static LocalDispatcher getLocalDispatcher(String dispatcherName, Delegator delegator) {
+		if (dispatcherName == null) {
+			dispatcherName = delegator.getDelegatorName();
+			Debug.logWarning("ServiceContainer.getLocalDispatcher method called with a null dispatcherName, defaulting to delegator name.", module);
+		}
+		if (UtilValidate.isNotEmpty(delegator.getDelegatorTenantId())) {
+			dispatcherName = dispatcherName.concat("#").concat(delegator.getDelegatorTenantId());
+		}
+		LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
+		if (dispatcher == null) {
+			dispatcher = dispatcherFactory.createLocalDispatcher(dispatcherName, delegator);
+			dispatcherCache.putIfAbsent(dispatcherName, dispatcher);
+			dispatcher = dispatcherCache.get(dispatcherName);
+			if (Debug.infoOn()) Debug.logInfo("Created new dispatcher: " + dispatcherName, module);
+		}
+		return dispatcher;
+	}
 
-    @Override
-    public boolean start() throws ContainerException {
-        return true;
-    }
+	public static void deregister(String dispatcherName) {
+		LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
+		if (dispatcher != null) {
+			dispatcher.deregister();
+		}
+	}
 
-    @Override
-    public void stop() throws ContainerException {
-        JobManager.shutDown();
-        Set<String> dispatcherNames = getAllDispatcherNames();
-        for (String dispatcherName: dispatcherNames) {
-            deregister(dispatcherName);
-        }
-    }
+	public static LocalDispatcher removeFromCache(String dispatcherName) {
+		if (Debug.infoOn()) Debug.logInfo("Removing from cache dispatcher: " + dispatcherName, module);
+		return dispatcherCache.remove(dispatcherName);
+	}
 
-    @Override
-    public String getName() {
-        return name;
-    }
+	public static Set<String> getAllDispatcherNames() {
+		return Collections.unmodifiableSet(dispatcherCache.keySet());
+	}
 
-    public static LocalDispatcher getLocalDispatcher(String dispatcherName, Delegator delegator) {
-        if (dispatcherName == null) {
-            dispatcherName = delegator.getDelegatorName();
-            Debug.logWarning("ServiceContainer.getLocalDispatcher method called with a null dispatcherName, defaulting to delegator name.", module);
-        }
-        if (UtilValidate.isNotEmpty(delegator.getDelegatorTenantId())) {
-            dispatcherName = dispatcherName.concat("#").concat(delegator.getDelegatorTenantId());
-        }
-        LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
-        if (dispatcher == null) {
-            dispatcher = dispatcherFactory.createLocalDispatcher(dispatcherName, delegator);
-            dispatcherCache.putIfAbsent(dispatcherName, dispatcher);
-            dispatcher = dispatcherCache.get(dispatcherName);
-            if (Debug.infoOn()) Debug.logInfo("Created new dispatcher: " + dispatcherName, module);
-        }
-        return dispatcher;
-    }
+	@Override
+	public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
+		this.name = name;
+		// initialize the LocalDispatcherFactory
+		ContainerConfig.Configuration cfg = ContainerConfig.getConfiguration(name, configFile);
+		ContainerConfig.Configuration.Property dispatcherFactoryProperty = cfg.getProperty("dispatcher-factory");
+		if (dispatcherFactoryProperty == null || UtilValidate.isEmpty(dispatcherFactoryProperty.value)) {
+			throw new ContainerException("Unable to initialize container " + name + ": dispatcher-factory property is not set");
+		}
+		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		try {
+			Class<?> c = loader.loadClass(dispatcherFactoryProperty.value);
+			dispatcherFactory = (LocalDispatcherFactory) c.newInstance();
+		} catch (Exception e) {
+			throw new ContainerException(e);
+		}
+	}
 
-    public static void deregister(String dispatcherName) {
-        LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
-        if (dispatcher != null) {
-            dispatcher.deregister();
-        }
-    }
+	@Override
+	public boolean start() throws ContainerException {
+		return true;
+	}
 
-    public static LocalDispatcher removeFromCache(String dispatcherName) {
-        if (Debug.infoOn()) Debug.logInfo("Removing from cache dispatcher: " + dispatcherName, module);
-        return dispatcherCache.remove(dispatcherName);
-    }
+	@Override
+	public void stop() throws ContainerException {
+		JobManager.shutDown();
+		Set<String> dispatcherNames = getAllDispatcherNames();
+		for (String dispatcherName : dispatcherNames) {
+			deregister(dispatcherName);
+		}
+	}
 
-    public static Set<String> getAllDispatcherNames() {
-        return Collections.unmodifiableSet(dispatcherCache.keySet());
-    }
+	@Override
+	public String getName() {
+		return name;
+	}
 }

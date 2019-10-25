@@ -20,16 +20,16 @@ package org.apache.ofbiz.widget.cache;
 
 public class GenericWidgetOutput {
 
-    public static final String module = GenericWidgetOutput.class.getName();
+	public static final String module = GenericWidgetOutput.class.getName();
 
-    protected String output;
+	protected String output;
 
-    public GenericWidgetOutput(String output) {
-        this.output = output;
-    }
+	public GenericWidgetOutput(String output) {
+		this.output = output;
+	}
 
-    @Override
-    public String toString() {
-        return this.output;
-    }
+	@Override
+	public String toString() {
+		return this.output;
+	}
 }

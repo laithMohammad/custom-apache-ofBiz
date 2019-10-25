@@ -19,11 +19,11 @@
 
 package org.apache.ofbiz.service.xmlrpc;
 
+import org.apache.ofbiz.base.component.ComponentConfig;
+import org.apache.ofbiz.base.util.Debug;
+import org.apache.ofbiz.base.util.KeyStoreUtil;
 import org.apache.xmlrpc.client.XmlRpcClientConfig;
 import org.apache.xmlrpc.client.XmlRpcTransportFactory;
-import org.apache.ofbiz.base.component.ComponentConfig;
-import org.apache.ofbiz.base.util.KeyStoreUtil;
-import org.apache.ofbiz.base.util.Debug;
 
 import java.security.KeyStore;
 
@@ -32,38 +32,38 @@ import java.security.KeyStore;
  */
 public class XmlRpcClient extends org.apache.xmlrpc.client.XmlRpcClient {
 
-    public static final String module = XmlRpcClient.class.getName();
+	public static final String module = XmlRpcClient.class.getName();
 
-    protected String keyStoreComponent;
-    protected String keyStoreName;
-    protected String keyAlias;
+	protected String keyStoreComponent;
+	protected String keyStoreName;
+	protected String keyAlias;
 
-    public XmlRpcClient(XmlRpcClientConfig config, String keyStoreComponent, String keyStoreName, String keyAlias) {
-        this(config);
-        this.keyStoreComponent = keyStoreComponent;
-        this.keyStoreName = keyStoreName;
-        this.keyAlias = keyAlias;
-        this.setTransportFactory(this.getClientTransportFactory());
-    }
+	public XmlRpcClient(XmlRpcClientConfig config, String keyStoreComponent, String keyStoreName, String keyAlias) {
+		this(config);
+		this.keyStoreComponent = keyStoreComponent;
+		this.keyStoreName = keyStoreName;
+		this.keyAlias = keyAlias;
+		this.setTransportFactory(this.getClientTransportFactory());
+	}
 
-    public XmlRpcClient(XmlRpcClientConfig config) {
-        super();
-        this.setConfig(config);
-    }
+	public XmlRpcClient(XmlRpcClientConfig config) {
+		super();
+		this.setConfig(config);
+	}
 
-    public XmlRpcTransportFactory getClientTransportFactory() {
-        if (keyStoreComponent == null || keyStoreName == null || keyAlias == null) {
-            return this.getTransportFactory();
-        }
+	public XmlRpcTransportFactory getClientTransportFactory() {
+		if (keyStoreComponent == null || keyStoreName == null || keyAlias == null) {
+			return this.getTransportFactory();
+		}
 
-        ComponentConfig.KeystoreInfo ks = ComponentConfig.getKeystoreInfo(keyStoreComponent, keyStoreName);
-        KeyStore keyStore = null;
-        try {
-            keyStore = KeyStoreUtil.getStore(ks.createResourceHandler().getURL(), ks.getPassword(), ks.getType());
-        } catch (Exception e) {
-            Debug.logError(e, "Unable to load keystore: " + keyStoreName, module);
-        }
+		ComponentConfig.KeystoreInfo ks = ComponentConfig.getKeystoreInfo(keyStoreComponent, keyStoreName);
+		KeyStore keyStore = null;
+		try {
+			keyStore = KeyStoreUtil.getStore(ks.createResourceHandler().getURL(), ks.getPassword(), ks.getType());
+		} catch (Exception e) {
+			Debug.logError(e, "Unable to load keystore: " + keyStoreName, module);
+		}
 
-        return new AliasSupportedTransportFactory(this, keyStore, ks.getPassword(), keyAlias);
-    }
+		return new AliasSupportedTransportFactory(this, keyStore, ks.getPassword(), keyAlias);
+	}
 }

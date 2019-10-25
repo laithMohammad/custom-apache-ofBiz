@@ -28,17 +28,17 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class Authorization {
 
-    private final String serviceName;
+	private final String serviceName;
 
-    Authorization(Element authElement) throws ServiceConfigException {
-        String serviceName = authElement.getAttribute("service-name").intern();
-        if (serviceName.isEmpty()) {
-            throw new ServiceConfigException("<authorization> element service-name attribute is empty");
-        }
-        this.serviceName = serviceName;
-    }
+	Authorization(Element authElement) throws ServiceConfigException {
+		String serviceName = authElement.getAttribute("service-name").intern();
+		if (serviceName.isEmpty()) {
+			throw new ServiceConfigException("<authorization> element service-name attribute is empty");
+		}
+		this.serviceName = serviceName;
+	}
 
-    public String getServiceName() {
-        return serviceName;
-    }
+	public String getServiceName() {
+		return serviceName;
+	}
 }

@@ -28,16 +28,16 @@ import org.apache.ofbiz.service.ServiceContainer;
  */
 public class EntityServiceFactory {
 
-    public static final String module = EntityServiceFactory.class.getName();
+	public static final String module = EntityServiceFactory.class.getName();
 
-    public static LocalDispatcher getLocalDispatcher(Delegator delegator) {
-        LocalDispatcher dispatcher = ServiceContainer.getLocalDispatcher("entity-" + delegator.getDelegatorName(), delegator);
-        return dispatcher;
-    }
+	public static LocalDispatcher getLocalDispatcher(Delegator delegator) {
+		LocalDispatcher dispatcher = ServiceContainer.getLocalDispatcher("entity-" + delegator.getDelegatorName(), delegator);
+		return dispatcher;
+	}
 
-    public static DispatchContext getDispatchContext(Delegator delegator) {
-        LocalDispatcher dispatcher = getLocalDispatcher(delegator);
-        if (dispatcher == null) return null;
-        return dispatcher.getDispatchContext();
-    }
+	public static DispatchContext getDispatchContext(Delegator delegator) {
+		LocalDispatcher dispatcher = getLocalDispatcher(delegator);
+		if (dispatcher == null) return null;
+		return dispatcher.getDispatchContext();
+	}
 }

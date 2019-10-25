@@ -26,15 +26,15 @@ package org.apache.ofbiz.entity;
 @SuppressWarnings("serial")
 public class GenericEntityConfException extends GenericEntityException {
 
-    public GenericEntityConfException() {
-        super();
-    }
+	public GenericEntityConfException() {
+		super();
+	}
 
-    public GenericEntityConfException(String str) {
-        super(str);
-    }
+	public GenericEntityConfException(String str) {
+		super(str);
+	}
 
-    public GenericEntityConfException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public GenericEntityConfException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

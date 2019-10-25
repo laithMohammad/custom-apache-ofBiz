@@ -32,49 +32,49 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Native library class loader. This class is necessary because the
  * bootstrap ClassLoader caches the native library path - so any
  * changes to the library path are ignored (changes that might have
- * been made by loading OFBiz components). 
+ * been made by loading OFBiz components).
  */
 public class NativeLibClassLoader extends URLClassLoader {
 
-    private final CopyOnWriteArrayList<String> libPaths = new CopyOnWriteArrayList<String>();
+	private final CopyOnWriteArrayList<String> libPaths = new CopyOnWriteArrayList<String>();
 
-    NativeLibClassLoader(URL[] urls, ClassLoader parent) {
-        super(urls, parent);
-    }
+	NativeLibClassLoader(URL[] urls, ClassLoader parent) {
+		super(urls, parent);
+	}
 
-    public void addNativeClassPath(File path) throws IOException {
-        if (path != null) {
-            libPaths.addIfAbsent(path.getCanonicalPath());
-        }
-    }
+	public void addNativeClassPath(File path) throws IOException {
+		if (path != null) {
+			libPaths.addIfAbsent(path.getCanonicalPath());
+		}
+	}
 
-    public void addNativeClassPath(String path) {
-        if (path != null) {
-            StringTokenizer t = new StringTokenizer(path, File.pathSeparator);
-            while (t.hasMoreTokens()) {
-                libPaths.addIfAbsent(t.nextToken());
-            }
-        }
-    }
+	public void addNativeClassPath(String path) {
+		if (path != null) {
+			StringTokenizer t = new StringTokenizer(path, File.pathSeparator);
+			while (t.hasMoreTokens()) {
+				libPaths.addIfAbsent(t.nextToken());
+			}
+		}
+	}
 
-    @Override
-    public void addURL(URL url) {
-        super.addURL(url);
-    }
+	@Override
+	public void addURL(URL url) {
+		super.addURL(url);
+	}
 
-    @Override
-    protected String findLibrary(String libname) {
-        String libFileName = System.mapLibraryName(libname);
-        for (String path : libPaths) {
-            File libFile = new File(path, libFileName);
-            if (libFile.exists()) {
-                return libFile.getAbsolutePath();
-            }
-        }
-        return null;
-    }
+	@Override
+	protected String findLibrary(String libname) {
+		String libFileName = System.mapLibraryName(libname);
+		for (String path : libPaths) {
+			File libFile = new File(path, libFileName);
+			if (libFile.exists()) {
+				return libFile.getAbsolutePath();
+			}
+		}
+		return null;
+	}
 
-    public List<String> getNativeLibPaths() {
-        return new ArrayList<String>(libPaths);
-    }
+	public List<String> getNativeLibPaths() {
+		return new ArrayList<String>(libPaths);
+	}
 }

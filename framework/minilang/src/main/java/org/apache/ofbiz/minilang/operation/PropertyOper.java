@@ -18,41 +18,41 @@
  *******************************************************************************/
 package org.apache.ofbiz.minilang.operation;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.base.util.UtilURL;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.w3c.dom.Element;
 
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * A MakeInStringOperation that insert the value of a property from a properties file
  */
 public class PropertyOper extends MakeInStringOperation {
 
-    public static final String module = PropertyOper.class.getName();
+	public static final String module = PropertyOper.class.getName();
 
-    String property;
-    String resource;
+	String property;
+	String resource;
 
-    public PropertyOper(Element element) {
-        super(element);
-        resource = element.getAttribute("resource");
-        property = element.getAttribute("property");
-    }
+	public PropertyOper(Element element) {
+		super(element);
+		resource = element.getAttribute("resource");
+		property = element.getAttribute("property");
+	}
 
-    @Override
-    public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
-        String propStr = UtilProperties.getPropertyValue(UtilURL.fromResource(resource, loader), property);
+	@Override
+	public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
+		String propStr = UtilProperties.getPropertyValue(UtilURL.fromResource(resource, loader), property);
 
-        if (UtilValidate.isEmpty(propStr)) {
-            Debug.logWarning("[SimpleMapProcessor.PropertyOper.exec] Property " + property + " in resource " + resource + " not found, not appending anything", module);
-            return null;
-        } else {
-            return propStr;
-        }
-    }
+		if (UtilValidate.isEmpty(propStr)) {
+			Debug.logWarning("[SimpleMapProcessor.PropertyOper.exec] Property " + property + " in resource " + resource + " not found, not appending anything", module);
+			return null;
+		} else {
+			return propStr;
+		}
+	}
 }

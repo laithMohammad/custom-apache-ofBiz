@@ -18,13 +18,13 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.container;
 
-import java.util.List;
-
 import org.apache.ofbiz.base.start.StartupCommand;
+
+import java.util.List;
 
 /**
  * An OFBiz container. A container can be thought of as a background process.
- * 
+ *
  * <p>
  * When OFBiz starts, the main thread will create the <code>Container</code> instance and
  * then call the container's <code>init</code> method. If the method returns without
@@ -35,43 +35,44 @@ import org.apache.ofbiz.base.start.StartupCommand;
  * Implementations should anticipate asynchronous calls to the methods by different
  * threads.
  * </p>
- * 
+ *
  * <p>Containers might be loaded more than once (have more than one instance).<p>
  */
 public interface Container {
 
-    /** Initialize the container. This method must not block - implementations
-     * should initialize internal structures and then return.
-     *
-     * @param ofbizCommands Command-line arguments.
-     * @param name Unique name of the container's instance.
-     * @param configFile Location of the configuration file used to load this container.
-     * @throws ContainerException If an error was encountered. Throwing this exception
-     * will halt container loading, so it should be thrown only when other containers
-     * might depend on this one.
-     */
-    public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException;
+	/**
+	 * Initialize the container. This method must not block - implementations
+	 * should initialize internal structures and then return.
+	 *
+	 * @param ofbizCommands Command-line arguments.
+	 * @param name          Unique name of the container's instance.
+	 * @param configFile    Location of the configuration file used to load this container.
+	 * @throws ContainerException If an error was encountered. Throwing this exception
+	 *                            will halt container loading, so it should be thrown only when other containers
+	 *                            might depend on this one.
+	 */
+	public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException;
 
-    /**
-     * Start the container process. This method must not block - implementations
-     * that require thread blocking must create a separate thread and then return.
-     *
-     * @return <code>true</code> if the process started.
-     * @throws ContainerException If an error was encountered.
-     */
-    public boolean start() throws ContainerException;
+	/**
+	 * Start the container process. This method must not block - implementations
+	 * that require thread blocking must create a separate thread and then return.
+	 *
+	 * @return <code>true</code> if the process started.
+	 * @throws ContainerException If an error was encountered.
+	 */
+	public boolean start() throws ContainerException;
 
-    /**
-     * Stop the container process. This method must not block.
-     *
-     * @throws ContainerException If an error was encountered.
-     */
-    public void stop() throws ContainerException;
+	/**
+	 * Stop the container process. This method must not block.
+	 *
+	 * @throws ContainerException If an error was encountered.
+	 */
+	public void stop() throws ContainerException;
 
-    /**
-     * Return the container name.
-     *
-     * @return Name of the container's instance.
-     */
-    public String getName();
+	/**
+	 * Return the container name.
+	 *
+	 * @return Name of the container's instance.
+	 */
+	public String getName();
 }

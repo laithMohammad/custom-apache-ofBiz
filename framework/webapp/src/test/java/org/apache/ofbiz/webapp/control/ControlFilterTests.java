@@ -22,40 +22,40 @@ import org.junit.Test;
 
 import javax.servlet.FilterConfig;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class ControlFilterTests {
-    @Test
-    public void initRetrievesAllInitParameters() throws Exception {
-        FilterConfig config = mock(FilterConfig.class);
-        ControlFilter cf = new ControlFilter();
-        cf.init(config);
-        verify(config).getInitParameter("redirectPath");
-        verify(config).getInitParameter("forceRedirectAll");
-        verify(config).getInitParameter("errorCode");
-        verify(config).getInitParameter("allowedPaths");
-        verifyNoMoreInteractions(config);
-    }
+	@Test
+	public void initRetrievesAllInitParameters() throws Exception {
+		FilterConfig config = mock(FilterConfig.class);
+		ControlFilter cf = new ControlFilter();
+		cf.init(config);
+		verify(config).getInitParameter("redirectPath");
+		verify(config).getInitParameter("forceRedirectAll");
+		verify(config).getInitParameter("errorCode");
+		verify(config).getInitParameter("allowedPaths");
+		verifyNoMoreInteractions(config);
+	}
 
-    @Test
-    public void initSetsProperErrorCode() throws Exception {
-        FilterConfig config = mock(FilterConfig.class);
-        ControlFilter cf = new ControlFilter();
-        // if no errorCode parameter is specified then the default error code is 403
-        cf.init(config);
-        assertEquals(cf.errorCode, 403);
-        // if the errorCode parameter is empty then the default error code is 403
-        when(config.getInitParameter("errorCode")).thenReturn("");
-        cf.init(config);
-        assertEquals(cf.errorCode, 403); // default error code is 403
-        // if an invalid errorCode parameter is specified then the default error code is 403
-        when(config.getInitParameter("errorCode")).thenReturn("NaN");
-        cf.init(config);
-        assertEquals(cf.errorCode, 403);
-        // if the errorCode parameter is specified then it is set in the filter
-        when(config.getInitParameter("errorCode")).thenReturn("404");
-        cf.init(config);
-        assertEquals(cf.errorCode, 404);
-    }
+	@Test
+	public void initSetsProperErrorCode() throws Exception {
+		FilterConfig config = mock(FilterConfig.class);
+		ControlFilter cf = new ControlFilter();
+		// if no errorCode parameter is specified then the default error code is 403
+		cf.init(config);
+		assertEquals(cf.errorCode, 403);
+		// if the errorCode parameter is empty then the default error code is 403
+		when(config.getInitParameter("errorCode")).thenReturn("");
+		cf.init(config);
+		assertEquals(cf.errorCode, 403); // default error code is 403
+		// if an invalid errorCode parameter is specified then the default error code is 403
+		when(config.getInitParameter("errorCode")).thenReturn("NaN");
+		cf.init(config);
+		assertEquals(cf.errorCode, 403);
+		// if the errorCode parameter is specified then it is set in the filter
+		when(config.getInitParameter("errorCode")).thenReturn("404");
+		cf.init(config);
+		assertEquals(cf.errorCode, 404);
+	}
 }

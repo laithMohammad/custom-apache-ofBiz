@@ -28,16 +28,16 @@ import org.apache.ofbiz.base.util.GeneralException;
  */
 public class TaxwareException extends GeneralException {
 
-    public TaxwareException() {
-        super();
-    }
+	public TaxwareException() {
+		super();
+	}
 
-    public TaxwareException(String str) {
-        super(str);
-    }
+	public TaxwareException(String str) {
+		super(str);
+	}
 
-    public TaxwareException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public TaxwareException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }
 

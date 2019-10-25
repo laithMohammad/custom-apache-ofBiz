@@ -18,15 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.birt.container;
 
-import java.io.File;
-import java.util.List;
-
-import org.eclipse.birt.core.exception.BirtException;
-import org.eclipse.birt.core.framework.Platform;
-import org.eclipse.birt.report.IBirtConstants;
-import org.eclipse.birt.report.engine.api.EngineConfig;
-import org.eclipse.birt.report.engine.api.IReportEngine;
-import org.eclipse.birt.report.engine.api.IReportEngineFactory;
 import org.apache.ofbiz.base.container.Container;
 import org.apache.ofbiz.base.container.ContainerConfig;
 import org.apache.ofbiz.base.container.ContainerException;
@@ -34,88 +25,97 @@ import org.apache.ofbiz.base.start.StartupCommand;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.birt.BirtFactory;
 import org.apache.ofbiz.birt.BirtWorker;
+import org.eclipse.birt.core.exception.BirtException;
+import org.eclipse.birt.core.framework.Platform;
+import org.eclipse.birt.report.IBirtConstants;
+import org.eclipse.birt.report.engine.api.EngineConfig;
+import org.eclipse.birt.report.engine.api.IReportEngine;
+import org.eclipse.birt.report.engine.api.IReportEngineFactory;
+
+import java.io.File;
+import java.util.List;
 
 public class BirtContainer implements Container {
 
-    public static final String module = BirtContainer.class.getName();
-    
-    protected String configFile;
+	public static final String module = BirtContainer.class.getName();
 
-    private String name;
+	protected String configFile;
 
-    @Override
-    public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
-        this.name = name;
-        this.configFile = configFile;
-    }
+	private String name;
 
-    /**
-     * start container
-     */
-    @Override
-    public boolean start() throws ContainerException {
-        Debug.logInfo("Start BIRT container", module);
+	@Override
+	public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
+		this.name = name;
+		this.configFile = configFile;
+	}
 
-        // make sure the subclass sets the config name
-        if (getName() == null) {
-            throw new ContainerException("Unknown container config name");
-        }
-        // get the container config
-        ContainerConfig.Configuration cc = ContainerConfig.getConfiguration(getName(), configFile);
-        if (cc == null) {
-            throw new ContainerException("No " + getName() + " configuration found in container config!");
-        }
+	/**
+	 * start container
+	 */
+	@Override
+	public boolean start() throws ContainerException {
+		Debug.logInfo("Start BIRT container", module);
 
-        // create engine config
-        EngineConfig config = new EngineConfig();
-        String ofbizHome = System.getProperty("ofbiz.home");
-        config.setTempDir(ofbizHome + File.separatorChar + "runtime" + File.separatorChar + "tempfiles");
+		// make sure the subclass sets the config name
+		if (getName() == null) {
+			throw new ContainerException("Unknown container config name");
+		}
+		// get the container config
+		ContainerConfig.Configuration cc = ContainerConfig.getConfiguration(getName(), configFile);
+		if (cc == null) {
+			throw new ContainerException("No " + getName() + " configuration found in container config!");
+		}
 
-        // set system properties
-        System.setProperty(IBirtConstants.SYS_PROP_WORKING_PATH, config.getTempDir());
+		// create engine config
+		EngineConfig config = new EngineConfig();
+		String ofbizHome = System.getProperty("ofbiz.home");
+		config.setTempDir(ofbizHome + File.separatorChar + "runtime" + File.separatorChar + "tempfiles");
 
-        //Set log config
-        BirtWorker.setLogConfig(config);
+		// set system properties
+		System.setProperty(IBirtConstants.SYS_PROP_WORKING_PATH, config.getTempDir());
 
-        // startup platform
-        try {
-            Debug.logInfo("Startup BIRT platform", module);
-            Platform.startup(config);
-        } catch (BirtException e) {
-            throw new ContainerException(e);
-        }
+		//Set log config
+		BirtWorker.setLogConfig(config);
 
-        // create report engine
-        Debug.logInfo("Create factory object", module);
-        IReportEngineFactory factory = (IReportEngineFactory) Platform
-              .createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
-        if (factory == null) {
-            throw new ContainerException("can not create birt engine factory");
-        }
-        Debug.logInfo("Create report engine", module);
-        IReportEngine engine = factory.createReportEngine(config);
-        BirtFactory.setReportEngine(engine);
-        
-        // print supported formats
-        String[] supportedFormats = engine.getSupportedFormats();
-        String formatList = null;
-        for (String supportedFormat : supportedFormats) {
-            if (formatList != null) {
-                formatList += ", " + supportedFormat;
-            } else {
-                formatList = supportedFormat;
-            }
-        }
-        Debug.logInfo("BIRT supported formats: " + formatList, module);
-        return false;
-    }
+		// startup platform
+		try {
+			Debug.logInfo("Startup BIRT platform", module);
+			Platform.startup(config);
+		} catch (BirtException e) {
+			throw new ContainerException(e);
+		}
 
-    @Override
-    public void stop() throws ContainerException {
-    }
+		// create report engine
+		Debug.logInfo("Create factory object", module);
+		IReportEngineFactory factory = (IReportEngineFactory) Platform
+				.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
+		if (factory == null) {
+			throw new ContainerException("can not create birt engine factory");
+		}
+		Debug.logInfo("Create report engine", module);
+		IReportEngine engine = factory.createReportEngine(config);
+		BirtFactory.setReportEngine(engine);
 
-    @Override
-    public String getName() {
-        return name;
-    }
+		// print supported formats
+		String[] supportedFormats = engine.getSupportedFormats();
+		String formatList = null;
+		for (String supportedFormat : supportedFormats) {
+			if (formatList != null) {
+				formatList += ", " + supportedFormat;
+			} else {
+				formatList = supportedFormat;
+			}
+		}
+		Debug.logInfo("BIRT supported formats: " + formatList, module);
+		return false;
+	}
+
+	@Override
+	public void stop() throws ContainerException {
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
 }

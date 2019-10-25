@@ -23,19 +23,19 @@ import org.apache.ofbiz.base.util.GeneralException;
 @SuppressWarnings("serial")
 public class ItemNotFoundException extends GeneralException {
 
-    public ItemNotFoundException() {
-        super();
-    }
+	public ItemNotFoundException() {
+		super();
+	}
 
-    public ItemNotFoundException(String str) {
-        super(str);
-    }
+	public ItemNotFoundException(String str) {
+		super(str);
+	}
 
-    public ItemNotFoundException(Throwable nested) {
-        super(nested);
-    }
+	public ItemNotFoundException(Throwable nested) {
+		super(nested);
+	}
 
-    public ItemNotFoundException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public ItemNotFoundException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

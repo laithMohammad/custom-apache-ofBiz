@@ -18,14 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.webapp.event;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.entity.transaction.GenericTransactionException;
 import org.apache.ofbiz.entity.transaction.TransactionUtil;
@@ -33,93 +25,100 @@ import org.apache.ofbiz.webapp.control.ConfigXMLReader;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader.Event;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader.RequestMap;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * JavaEventHandler - Static Method Java Event Handler
  */
 public class JavaEventHandler implements EventHandler {
 
-    public static final String module = JavaEventHandler.class.getName();
+	public static final String module = JavaEventHandler.class.getName();
 
-    private Map<String, Class<?>> eventClassMap = new HashMap<String, Class<?>>();
+	private Map<String, Class<?>> eventClassMap = new HashMap<String, Class<?>>();
 
-    /**
-     * @see org.apache.ofbiz.webapp.event.EventHandler#init(javax.servlet.ServletContext)
-     */
-    public void init(ServletContext context) throws EventHandlerException {
-    }
+	/**
+	 * @see org.apache.ofbiz.webapp.event.EventHandler#init(javax.servlet.ServletContext)
+	 */
+	public void init(ServletContext context) throws EventHandlerException {
+	}
 
-    /**
-     * @see org.apache.ofbiz.webapp.event.EventHandler#invoke(ConfigXMLReader.Event, ConfigXMLReader.RequestMap, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-     */
-    public String invoke(Event event, RequestMap requestMap, HttpServletRequest request, HttpServletResponse response) throws EventHandlerException {
-        Class<?> eventClass = this.eventClassMap.get(event.path);
+	/**
+	 * @see org.apache.ofbiz.webapp.event.EventHandler#invoke(ConfigXMLReader.Event, ConfigXMLReader.RequestMap, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	public String invoke(Event event, RequestMap requestMap, HttpServletRequest request, HttpServletResponse response) throws EventHandlerException {
+		Class<?> eventClass = this.eventClassMap.get(event.path);
 
-        if (eventClass == null) {
-            synchronized (this) {
-                eventClass = this.eventClassMap.get(event.path);
-                if (eventClass == null) {
-                    try {
-                        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                        eventClass = loader.loadClass(event.path);
-                    } catch (ClassNotFoundException e) {
-                        Debug.logError(e, "Error loading class with name: " + event.path + ", will not be able to run event...", module);
-                    }
-                    if (eventClass != null) {
-                        eventClassMap.put(event.path, eventClass);
-                    }
-                }
-            }
-        }
-        if (Debug.verboseOn()) Debug.logVerbose("[Set path/method]: " + event.path + " / " + event.invoke, module);
+		if (eventClass == null) {
+			synchronized (this) {
+				eventClass = this.eventClassMap.get(event.path);
+				if (eventClass == null) {
+					try {
+						ClassLoader loader = Thread.currentThread().getContextClassLoader();
+						eventClass = loader.loadClass(event.path);
+					} catch (ClassNotFoundException e) {
+						Debug.logError(e, "Error loading class with name: " + event.path + ", will not be able to run event...", module);
+					}
+					if (eventClass != null) {
+						eventClassMap.put(event.path, eventClass);
+					}
+				}
+			}
+		}
+		if (Debug.verboseOn()) Debug.logVerbose("[Set path/method]: " + event.path + " / " + event.invoke, module);
 
-        Class<?>[] paramTypes = new Class<?>[] {HttpServletRequest.class, HttpServletResponse.class};
+		Class<?>[] paramTypes = new Class<?>[]{HttpServletRequest.class, HttpServletResponse.class};
 
-        Debug.logVerbose("*[[Event invocation]]*", module);
-        Object[] params = new Object[] {request, response};
+		Debug.logVerbose("*[[Event invocation]]*", module);
+		Object[] params = new Object[]{request, response};
 
-        return invoke(event.path, event.invoke, eventClass, paramTypes, params, event.transactionTimeout);
-    }
+		return invoke(event.path, event.invoke, eventClass, paramTypes, params, event.transactionTimeout);
+	}
 
-    private String invoke(String eventPath, String eventMethod, Class<?> eventClass, Class<?>[] paramTypes, Object[] params, int transactionTimeout) throws EventHandlerException {
-        boolean beganTransaction = false;
-        if (eventClass == null) {
-            throw new EventHandlerException("Error invoking event, the class " + eventPath + " was not found");
-        }
-        if (eventPath == null || eventMethod == null) {
-            throw new EventHandlerException("Invalid event method or path; call initialize()");
-        }
+	private String invoke(String eventPath, String eventMethod, Class<?> eventClass, Class<?>[] paramTypes, Object[] params, int transactionTimeout) throws EventHandlerException {
+		boolean beganTransaction = false;
+		if (eventClass == null) {
+			throw new EventHandlerException("Error invoking event, the class " + eventPath + " was not found");
+		}
+		if (eventPath == null || eventMethod == null) {
+			throw new EventHandlerException("Invalid event method or path; call initialize()");
+		}
 
-        Debug.logVerbose("[Processing]: JAVA Event", module);
-        try {
-            if (transactionTimeout > 0) {
-                beganTransaction = TransactionUtil.begin(transactionTimeout);
-            } else {
-                beganTransaction = TransactionUtil.begin();
-            }
-            Method m = eventClass.getMethod(eventMethod, paramTypes);
-            String eventReturn = (String) m.invoke(null, params);
+		Debug.logVerbose("[Processing]: JAVA Event", module);
+		try {
+			if (transactionTimeout > 0) {
+				beganTransaction = TransactionUtil.begin(transactionTimeout);
+			} else {
+				beganTransaction = TransactionUtil.begin();
+			}
+			Method m = eventClass.getMethod(eventMethod, paramTypes);
+			String eventReturn = (String) m.invoke(null, params);
 
-            if (Debug.verboseOn()) Debug.logVerbose("[Event Return]: " + eventReturn, module);
-            return eventReturn;
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            Throwable t = e.getTargetException();
+			if (Debug.verboseOn()) Debug.logVerbose("[Event Return]: " + eventReturn, module);
+			return eventReturn;
+		} catch (java.lang.reflect.InvocationTargetException e) {
+			Throwable t = e.getTargetException();
 
-            if (t != null) {
-                Debug.logError(t, "Problems Processing Event", module);
-                throw new EventHandlerException("Problems processing event: " + t.toString(), t);
-            } else {
-                Debug.logError(e, "Problems Processing Event", module);
-                throw new EventHandlerException("Problems processing event: " + e.toString(), e);
-            }
-        } catch (Exception e) {
-            Debug.logError(e, "Problems Processing Event", module);
-            throw new EventHandlerException("Problems processing event: " + e.toString(), e);
-        } finally {
-            try {
-                TransactionUtil.commit(beganTransaction);
-            } catch (GenericTransactionException e) {
-                Debug.logError(e, module);
-            }
-        }
-    }
+			if (t != null) {
+				Debug.logError(t, "Problems Processing Event", module);
+				throw new EventHandlerException("Problems processing event: " + t.toString(), t);
+			} else {
+				Debug.logError(e, "Problems Processing Event", module);
+				throw new EventHandlerException("Problems processing event: " + e.toString(), e);
+			}
+		} catch (Exception e) {
+			Debug.logError(e, "Problems Processing Event", module);
+			throw new EventHandlerException("Problems processing event: " + e.toString(), e);
+		} finally {
+			try {
+				TransactionUtil.commit(beganTransaction);
+			} catch (GenericTransactionException e) {
+				Debug.logError(e, module);
+			}
+		}
+	}
 }

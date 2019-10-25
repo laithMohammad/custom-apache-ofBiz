@@ -24,16 +24,16 @@ package org.apache.ofbiz.service.calendar;
 @SuppressWarnings("serial")
 public class RecurrenceInfoException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public RecurrenceInfoException() {
-        super();
-    }
+	public RecurrenceInfoException() {
+		super();
+	}
 
-    public RecurrenceInfoException(String msg) {
-        super(msg);
-    }
+	public RecurrenceInfoException(String msg) {
+		super(msg);
+	}
 
-    public RecurrenceInfoException(String msg, Throwable t) {
-        super(msg, t);
-    }
+	public RecurrenceInfoException(String msg, Throwable t) {
+		super(msg, t);
+	}
 
 }

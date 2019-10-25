@@ -32,25 +32,24 @@ import java.util.List;
  * Implementations should anticipate asynchronous calls to the methods by different
  * threads.
  * </p>
- * 
  */
 public interface StartupLoader {
 
-    /**
-     * Start a startup class.
-     *
-     * @param config Startup config.
-     * @param ofbizCommands Command-line arguments.
-     * @throws StartupException If an error was encountered. Throwing this exception
-     * will halt loader loading, so it should be thrown only when OFBiz can't
-     * operate without it.
-     */
-    public void load(Config config, List<StartupCommand> ofbizCommands) throws StartupException;
+	/**
+	 * Start a startup class.
+	 *
+	 * @param config        Startup config.
+	 * @param ofbizCommands Command-line arguments.
+	 * @throws StartupException If an error was encountered. Throwing this exception
+	 *                          will halt loader loading, so it should be thrown only when OFBiz can't
+	 *                          operate without it.
+	 */
+	public void load(Config config, List<StartupCommand> ofbizCommands) throws StartupException;
 
-    /**
-     * Stop the startup class. This method must not block.
-     *
-     * @throws StartupException If an error was encountered.
-     */
-    public void unload() throws StartupException;
+	/**
+	 * Stop the startup class. This method must not block.
+	 *
+	 * @throws StartupException If an error was encountered.
+	 */
+	public void unload() throws StartupException;
 }

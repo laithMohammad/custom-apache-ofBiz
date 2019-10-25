@@ -24,20 +24,20 @@ package org.apache.ofbiz.webapp.event;
 @SuppressWarnings("serial")
 public class EventHandlerException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public EventHandlerException(String str, Throwable t) {
-        super(str, t);
-    }
+	public EventHandlerException(String str, Throwable t) {
+		super(str, t);
+	}
 
-    public EventHandlerException(Throwable t) {
-        super(t);
-    }
+	public EventHandlerException(Throwable t) {
+		super(t);
+	}
 
-    public EventHandlerException(String str) {
-        super(str);
-    }
+	public EventHandlerException(String str) {
+		super(str);
+	}
 
-    public EventHandlerException() {
-        super();
-    }
+	public EventHandlerException() {
+		super();
+	}
 }
 

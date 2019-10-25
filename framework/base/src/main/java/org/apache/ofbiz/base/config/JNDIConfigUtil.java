@@ -18,66 +18,70 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.config;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilXml;
 import org.w3c.dom.Element;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * JNDIConfigUtil
- *
  */
 public final class JNDIConfigUtil {
 
-    public static final String module = JNDIConfigUtil.class.getName();
-    private static final String JNDI_CONFIG_XML_FILENAME = "jndiservers.xml";
-    private static final ConcurrentHashMap<String, JndiServerInfo> jndiServerInfos = new ConcurrentHashMap<String, JndiServerInfo>();
-    private JNDIConfigUtil() {};
+	public static final String module = JNDIConfigUtil.class.getName();
+	private static final String JNDI_CONFIG_XML_FILENAME = "jndiservers.xml";
+	private static final ConcurrentHashMap<String, JndiServerInfo> jndiServerInfos = new ConcurrentHashMap<String, JndiServerInfo>();
 
-    private static Element getXmlRootElement() throws GenericConfigException {
-        try {
-            return ResourceLoader.readXmlRootElement(JNDIConfigUtil.JNDI_CONFIG_XML_FILENAME);
-        } catch (GenericConfigException e) {
-            throw new GenericConfigException("Could not get JNDI XML root element", e);
-        }
-    }
+	static {
+		try {
+			initialize(getXmlRootElement());
+		} catch (Exception e) {
+			Debug.logError(e, "Error loading JNDI config XML file " + JNDI_CONFIG_XML_FILENAME, module);
+		}
+	}
 
-    static {
-        try {
-            initialize(getXmlRootElement());
-        } catch (Exception e) {
-            Debug.logError(e, "Error loading JNDI config XML file " + JNDI_CONFIG_XML_FILENAME, module);
-        }
-    }
-    public static void initialize(Element rootElement) throws GenericConfigException {
-        // jndi-server - jndiServerInfos
-        for (Element curElement: UtilXml.childElementList(rootElement, "jndi-server")) {
-            JndiServerInfo jndiServerInfo = new JndiServerInfo(curElement);
+	;
 
-            jndiServerInfos.putIfAbsent(jndiServerInfo.name, jndiServerInfo);
-        }
-    }
+	private JNDIConfigUtil() {
+	}
 
-    public static JndiServerInfo getJndiServerInfo(String name) {
-        return jndiServerInfos.get(name);
-    }
+	private static Element getXmlRootElement() throws GenericConfigException {
+		try {
+			return ResourceLoader.readXmlRootElement(JNDIConfigUtil.JNDI_CONFIG_XML_FILENAME);
+		} catch (GenericConfigException e) {
+			throw new GenericConfigException("Could not get JNDI XML root element", e);
+		}
+	}
 
-    public static final class JndiServerInfo {
-        public final String name;
-        public final String contextProviderUrl;
-        public final String initialContextFactory;
-        public final String urlPkgPrefixes;
-        public final String securityPrincipal;
-        public final String securityCredentials;
+	public static void initialize(Element rootElement) throws GenericConfigException {
+		// jndi-server - jndiServerInfos
+		for (Element curElement : UtilXml.childElementList(rootElement, "jndi-server")) {
+			JndiServerInfo jndiServerInfo = new JndiServerInfo(curElement);
 
-        public JndiServerInfo(Element element) {
-            this.name = element.getAttribute("name");
-            this.contextProviderUrl = element.getAttribute("context-provider-url");
-            this.initialContextFactory = element.getAttribute("initial-context-factory");
-            this.urlPkgPrefixes = element.getAttribute("url-pkg-prefixes");
-            this.securityPrincipal = element.getAttribute("security-principal");
-            this.securityCredentials = element.getAttribute("security-credentials");
-        }
-    }
+			jndiServerInfos.putIfAbsent(jndiServerInfo.name, jndiServerInfo);
+		}
+	}
+
+	public static JndiServerInfo getJndiServerInfo(String name) {
+		return jndiServerInfos.get(name);
+	}
+
+	public static final class JndiServerInfo {
+		public final String name;
+		public final String contextProviderUrl;
+		public final String initialContextFactory;
+		public final String urlPkgPrefixes;
+		public final String securityPrincipal;
+		public final String securityCredentials;
+
+		public JndiServerInfo(Element element) {
+			this.name = element.getAttribute("name");
+			this.contextProviderUrl = element.getAttribute("context-provider-url");
+			this.initialContextFactory = element.getAttribute("initial-context-factory");
+			this.urlPkgPrefixes = element.getAttribute("url-pkg-prefixes");
+			this.securityPrincipal = element.getAttribute("security-principal");
+			this.securityCredentials = element.getAttribute("security-credentials");
+		}
+	}
 }

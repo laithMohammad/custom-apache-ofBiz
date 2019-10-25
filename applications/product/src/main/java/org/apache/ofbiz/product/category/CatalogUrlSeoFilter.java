@@ -18,54 +18,49 @@
  *******************************************************************************/
 package org.apache.ofbiz.product.category;
 
-import java.io.IOException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.common.UrlServletHelper;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.product.category.ftl.CatalogUrlSeoTransform;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 public class CatalogUrlSeoFilter extends CatalogUrlFilter {
 
-    public final static String module = CatalogUrlSeoFilter.class.getName();
+	public final static String module = CatalogUrlSeoFilter.class.getName();
 
-    protected static String defaultLocaleString = null;
-    protected static String redirectUrl = null;
+	protected static String defaultLocaleString = null;
+	protected static String redirectUrl = null;
 
-    /**
-     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
-     */
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        Delegator delegator = (Delegator) httpRequest.getSession().getServletContext().getAttribute("delegator");
+	/**
+	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+	 */
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		HttpServletResponse httpResponse = (HttpServletResponse) response;
+		Delegator delegator = (Delegator) httpRequest.getSession().getServletContext().getAttribute("delegator");
 
-        // Get ServletContext
-        ServletContext servletContext = config.getServletContext();
+		// Get ServletContext
+		ServletContext servletContext = config.getServletContext();
 
-        // Set request attribute and session
-        UrlServletHelper.setRequestAttributes(request, delegator, servletContext);
+		// Set request attribute and session
+		UrlServletHelper.setRequestAttributes(request, delegator, servletContext);
 
-        // set initial parameters
-        String initDefaultLocalesString = config.getInitParameter("defaultLocaleString");
-        String initRedirectUrl = config.getInitParameter("redirectUrl");
-        defaultLocaleString = UtilValidate.isNotEmpty(initDefaultLocalesString) ? initDefaultLocalesString : "";
-        redirectUrl = UtilValidate.isNotEmpty(initRedirectUrl) ? initRedirectUrl : "";
+		// set initial parameters
+		String initDefaultLocalesString = config.getInitParameter("defaultLocaleString");
+		String initRedirectUrl = config.getInitParameter("redirectUrl");
+		defaultLocaleString = UtilValidate.isNotEmpty(initDefaultLocalesString) ? initDefaultLocalesString : "";
+		redirectUrl = UtilValidate.isNotEmpty(initRedirectUrl) ? initRedirectUrl : "";
 
-        // set the ServletContext in the request for future use
-        httpRequest.setAttribute("servletContext", config.getServletContext());
-        if (CatalogUrlSeoTransform.forwardUri(httpRequest, httpResponse, delegator, ControlServlet.controlServlet)) {
-            return;
-        }
-        super.doFilter(httpRequest, httpResponse, chain);
-    }
+		// set the ServletContext in the request for future use
+		httpRequest.setAttribute("servletContext", config.getServletContext());
+		if (CatalogUrlSeoTransform.forwardUri(httpRequest, httpResponse, delegator, ControlServlet.controlServlet)) {
+			return;
+		}
+		super.doFilter(httpRequest, httpResponse, chain);
+	}
 
 }

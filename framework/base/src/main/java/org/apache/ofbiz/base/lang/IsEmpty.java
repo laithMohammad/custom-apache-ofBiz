@@ -19,5 +19,5 @@
 package org.apache.ofbiz.base.lang;
 
 public interface IsEmpty {
-    boolean isEmpty();
+	boolean isEmpty();
 }

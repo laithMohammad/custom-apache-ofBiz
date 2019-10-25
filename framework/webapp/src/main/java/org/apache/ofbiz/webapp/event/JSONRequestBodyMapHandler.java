@@ -25,10 +25,12 @@ import javax.servlet.ServletRequest;
 import java.io.IOException;
 import java.util.Map;
 
-/** An implementation of <code>RequestBodyMapHandler</code> that can extract a <code>Map<String, Object></code> from the JSON data in the request body */
+/**
+ * An implementation of <code>RequestBodyMapHandler</code> that can extract a <code>Map<String, Object></code> from the JSON data in the request body
+ */
 public class JSONRequestBodyMapHandler implements RequestBodyMapHandler {
 
-    public Map<String, Object> extractMapFromRequestBody(ServletRequest request) throws IOException {
-        return UtilGenerics.<Map<String, Object>>cast(JSON.from(request.getInputStream()).toObject(Map.class));
-    }
+	public Map<String, Object> extractMapFromRequestBody(ServletRequest request) throws IOException {
+		return UtilGenerics.<Map<String, Object>>cast(JSON.from(request.getInputStream()).toObject(Map.class));
+	}
 }

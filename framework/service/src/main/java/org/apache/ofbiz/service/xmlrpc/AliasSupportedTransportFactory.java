@@ -19,6 +19,16 @@
 
 package org.apache.ofbiz.service.xmlrpc;
 
+import org.apache.ofbiz.base.util.GeneralException;
+import org.apache.ofbiz.base.util.SSLUtil;
+import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.XmlRpcRequest;
+import org.apache.xmlrpc.client.*;
+import org.apache.xmlrpc.common.XmlRpcStreamRequestConfig;
+import org.apache.xmlrpc.util.HttpUtil;
+import org.xml.sax.SAXException;
+
+import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -27,116 +37,101 @@ import java.net.URLConnection;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import org.apache.xmlrpc.XmlRpcException;
-import org.apache.xmlrpc.XmlRpcRequest;
-import org.apache.xmlrpc.client.XmlRpcClientException;
-import org.apache.xmlrpc.client.XmlRpcHttpClientConfig;
-import org.apache.xmlrpc.client.XmlRpcHttpTransport;
-import org.apache.xmlrpc.client.XmlRpcTransport;
-import org.apache.xmlrpc.client.XmlRpcTransportFactoryImpl;
-import org.apache.xmlrpc.common.XmlRpcStreamRequestConfig;
-import org.apache.xmlrpc.util.HttpUtil;
-import org.apache.ofbiz.base.util.GeneralException;
-import org.apache.ofbiz.base.util.SSLUtil;
-import org.xml.sax.SAXException;
-
 /**
  * AliasSupportedTransportFactory
  */
 public class AliasSupportedTransportFactory extends XmlRpcTransportFactoryImpl {
 
-    private final AliasSupportedTransport transport;
+	private final AliasSupportedTransport transport;
 
-    public AliasSupportedTransportFactory(org.apache.xmlrpc.client.XmlRpcClient client, KeyStore ks, String password, String alias) {
-        super(client);
-        transport = new AliasSupportedTransport(client, ks, password, alias);
-    }
+	public AliasSupportedTransportFactory(org.apache.xmlrpc.client.XmlRpcClient client, KeyStore ks, String password, String alias) {
+		super(client);
+		transport = new AliasSupportedTransport(client, ks, password, alias);
+	}
 
-    public XmlRpcTransport getTransport() {
-        return transport;
-    }
+	public XmlRpcTransport getTransport() {
+		return transport;
+	}
 
-    class AliasSupportedTransport extends XmlRpcHttpTransport {
+	class AliasSupportedTransport extends XmlRpcHttpTransport {
 
-        private URLConnection con;
-        private String password;
-        private String alias;
-        private KeyStore ks;
+		private URLConnection con;
+		private String password;
+		private String alias;
+		private KeyStore ks;
 
-        protected AliasSupportedTransport(org.apache.xmlrpc.client.XmlRpcClient client, KeyStore ks, String password, String alias) {
-            super(client, USER_AGENT + " (Sun HTTP Transport)");
-            this.password = password;
-            this.alias = alias;
-            this.ks = ks;
-        }
+		protected AliasSupportedTransport(org.apache.xmlrpc.client.XmlRpcClient client, KeyStore ks, String password, String alias) {
+			super(client, USER_AGENT + " (Sun HTTP Transport)");
+			this.password = password;
+			this.alias = alias;
+			this.ks = ks;
+		}
 
-        @Override
-        public Object sendRequest(XmlRpcRequest req) throws XmlRpcException {
-            XmlRpcHttpClientConfig config = (XmlRpcHttpClientConfig) req.getConfig();
-            URL serverUrl = config.getServerURL();
-            if (serverUrl == null) {
-                throw new XmlRpcException("Invalid server URL");
-            }
+		@Override
+		public Object sendRequest(XmlRpcRequest req) throws XmlRpcException {
+			XmlRpcHttpClientConfig config = (XmlRpcHttpClientConfig) req.getConfig();
+			URL serverUrl = config.getServerURL();
+			if (serverUrl == null) {
+				throw new XmlRpcException("Invalid server URL");
+			}
 
-            try {
-                con = openConnection(serverUrl);
-                con.setUseCaches(false);
-                con.setDoInput(true);
-                con.setDoOutput(true);
-            } catch (IOException e) {
-                throw new XmlRpcException("Failed to create URLConnection: " + e.getMessage(), e);
-            }
-            return super.sendRequest(req);
-        }
+			try {
+				con = openConnection(serverUrl);
+				con.setUseCaches(false);
+				con.setDoInput(true);
+				con.setDoOutput(true);
+			} catch (IOException e) {
+				throw new XmlRpcException("Failed to create URLConnection: " + e.getMessage(), e);
+			}
+			return super.sendRequest(req);
+		}
 
-        protected URLConnection openConnection(URL url) throws IOException {
-            URLConnection con = url.openConnection();
-            if ("HTTPS".equalsIgnoreCase(url.getProtocol())) {
-                HttpsURLConnection scon = (HttpsURLConnection) con;
-                try {
-                    scon.setSSLSocketFactory(SSLUtil.getSSLSocketFactory(ks, password, alias));
-                    scon.setHostnameVerifier(SSLUtil.getHostnameVerifier(SSLUtil.getHostCertMinCheck()));
-                } catch (GeneralException e) {
-                    throw new IOException(e.getMessage());
-                } catch (GeneralSecurityException e) {
-                    throw new IOException(e.getMessage());
-                }
-            }
+		protected URLConnection openConnection(URL url) throws IOException {
+			URLConnection con = url.openConnection();
+			if ("HTTPS".equalsIgnoreCase(url.getProtocol())) {
+				HttpsURLConnection scon = (HttpsURLConnection) con;
+				try {
+					scon.setSSLSocketFactory(SSLUtil.getSSLSocketFactory(ks, password, alias));
+					scon.setHostnameVerifier(SSLUtil.getHostnameVerifier(SSLUtil.getHostCertMinCheck()));
+				} catch (GeneralException e) {
+					throw new IOException(e.getMessage());
+				} catch (GeneralSecurityException e) {
+					throw new IOException(e.getMessage());
+				}
+			}
 
-            return con;
-        }
+			return con;
+		}
 
-        @Override
-        protected void setRequestHeader(String header, String value) {
-            con.setRequestProperty(header, value);
-        }
+		@Override
+		protected void setRequestHeader(String header, String value) {
+			con.setRequestProperty(header, value);
+		}
 
-        @Override
-        protected void close() throws XmlRpcClientException {
-            if (con instanceof HttpURLConnection) {
-                ((HttpURLConnection) con).disconnect();
-            }
-        }
+		@Override
+		protected void close() throws XmlRpcClientException {
+			if (con instanceof HttpURLConnection) {
+				((HttpURLConnection) con).disconnect();
+			}
+		}
 
-        @Override
-        protected boolean isResponseGzipCompressed(XmlRpcStreamRequestConfig config) {
-            return HttpUtil.isUsingGzipEncoding(con.getHeaderField("Content-Encoding"));
-        }
+		@Override
+		protected boolean isResponseGzipCompressed(XmlRpcStreamRequestConfig config) {
+			return HttpUtil.isUsingGzipEncoding(con.getHeaderField("Content-Encoding"));
+		}
 
-        @Override
-        protected InputStream getInputStream() throws XmlRpcException {
-            try {
-                return con.getInputStream();
-            } catch (IOException e) {
-                throw new XmlRpcException("Failed to create input stream: " + e.getMessage(), e);
-            }
-        }
+		@Override
+		protected InputStream getInputStream() throws XmlRpcException {
+			try {
+				return con.getInputStream();
+			} catch (IOException e) {
+				throw new XmlRpcException("Failed to create input stream: " + e.getMessage(), e);
+			}
+		}
 
-        @Override
-        protected void writeRequest(ReqWriter pWriter) throws IOException, XmlRpcException, SAXException {
-            pWriter.write(con.getOutputStream());
-        }
-    }
+		@Override
+		protected void writeRequest(ReqWriter pWriter) throws IOException, XmlRpcException, SAXException {
+			pWriter.write(con.getOutputStream());
+		}
+	}
 }

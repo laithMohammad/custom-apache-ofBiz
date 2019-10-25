@@ -18,11 +18,11 @@
  *******************************************************************************/
 package org.apache.ofbiz.product.category;
 
+import org.apache.ofbiz.base.util.UtilValidate;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-
-import org.apache.ofbiz.base.util.UtilValidate;
 
 /**
  * ControlServlet.java - Master servlet for the web application.
@@ -30,39 +30,39 @@ import org.apache.ofbiz.base.util.UtilValidate;
 @SuppressWarnings("serial")
 public class ControlServlet extends org.apache.ofbiz.webapp.control.ControlServlet {
 
-    public static final String module = ControlServlet.class.getName();
+	public static final String module = ControlServlet.class.getName();
 
-    protected static String defaultPage = null;
-    protected static String pageNotFound = null;
-    protected static String controlServlet = null;
+	protected static String defaultPage = null;
+	protected static String pageNotFound = null;
+	protected static String controlServlet = null;
 
-    public ControlServlet() {
-        super();
-    }
+	public ControlServlet() {
+		super();
+	}
 
-    /**
-     * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
-     */
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
+	/**
+	 * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
+	 */
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
 
-        ServletContext context = this.getServletContext();
-        if (UtilValidate.isEmpty(defaultPage)) {
-            defaultPage = context.getInitParameter("defaultPage");
-        }
-        if (UtilValidate.isEmpty(defaultPage)) {
-            defaultPage = "/main";
-        }
-        if (UtilValidate.isEmpty(pageNotFound)) {
-            pageNotFound = context.getInitParameter("pageNotFound");
-        }
-        if (UtilValidate.isEmpty(pageNotFound)) {
-            pageNotFound = "/pagenotfound";
-        }
+		ServletContext context = this.getServletContext();
+		if (UtilValidate.isEmpty(defaultPage)) {
+			defaultPage = context.getInitParameter("defaultPage");
+		}
+		if (UtilValidate.isEmpty(defaultPage)) {
+			defaultPage = "/main";
+		}
+		if (UtilValidate.isEmpty(pageNotFound)) {
+			pageNotFound = context.getInitParameter("pageNotFound");
+		}
+		if (UtilValidate.isEmpty(pageNotFound)) {
+			pageNotFound = "/pagenotfound";
+		}
 
-        if (defaultPage.startsWith("/") && defaultPage.lastIndexOf("/") > 0) {
-            controlServlet = defaultPage.substring(1);
-            controlServlet = controlServlet.substring(0, controlServlet.indexOf("/"));
-        }
-    }
+		if (defaultPage.startsWith("/") && defaultPage.lastIndexOf("/") > 0) {
+			controlServlet = defaultPage.substring(1);
+			controlServlet = controlServlet.substring(0, controlServlet.indexOf("/"));
+		}
+	}
 }

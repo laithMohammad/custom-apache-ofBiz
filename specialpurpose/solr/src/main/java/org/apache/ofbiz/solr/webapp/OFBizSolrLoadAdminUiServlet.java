@@ -18,65 +18,63 @@
  *******************************************************************************/
 package org.apache.ofbiz.solr.webapp;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+
 /**
  * A simple servlet to load the Solr Admin UI
- * 
  */
 public class OFBizSolrLoadAdminUiServlet extends OFBizSolrRedirectServlet {
 
-    private static final long serialVersionUID = 1L;
-    public static final String module = OFBizSolrLoadAdminUiServlet.class.getName();
+	public static final String module = OFBizSolrLoadAdminUiServlet.class.getName();
+	private static final long serialVersionUID = 1L;
 
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean isForwarded = forwardUrl(request, response);
-        if (isForwarded) {
-            return;
-        }
-        
-        // This attribute is set by the SolrDispatchFilter
-        CoreContainer cores = (CoreContainer) request.getAttribute("org.apache.solr.CoreContainer");
+	@Override
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		boolean isForwarded = forwardUrl(request, response);
+		if (isForwarded) {
+			return;
+		}
 
-        InputStream in = getServletContext().getResourceAsStream("/admin.html");
-        if (in != null && cores != null) {
-            try {
-                response.setCharacterEncoding("UTF-8");
-                response.setContentType("text/html");
-                Writer out = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
+		// This attribute is set by the SolrDispatchFilter
+		CoreContainer cores = (CoreContainer) request.getAttribute("org.apache.solr.CoreContainer");
 
-                String html = IOUtils.toString(in, "UTF-8");
-                Package pack = SolrCore.class.getPackage();
+		InputStream in = getServletContext().getResourceAsStream("/admin.html");
+		if (in != null && cores != null) {
+			try {
+				response.setCharacterEncoding("UTF-8");
+				response.setContentType("text/html");
+				Writer out = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
 
-                String[] search = new String[] { "${contextPath}", "${adminPath}", "${version}" };
-                String[] replace = new String[] {
-                        StringEscapeUtils.escapeJavaScript(request.getContextPath()),
-                        StringEscapeUtils.escapeJavaScript(CommonParams.CORES_HANDLER_PATH),
-                        StringEscapeUtils.escapeJavaScript(pack.getSpecificationVersion()) };
+				String html = IOUtils.toString(in, "UTF-8");
+				Package pack = SolrCore.class.getPackage();
 
-                out.write(StringUtils.replaceEach(html, search, replace));
-                out.flush();
-            } finally {
-                IOUtils.closeQuietly(in);
-            }
-        } else {
-            response.sendError(404);
-        }
-    }
+				String[] search = new String[]{"${contextPath}", "${adminPath}", "${version}"};
+				String[] replace = new String[]{
+						StringEscapeUtils.escapeJavaScript(request.getContextPath()),
+						StringEscapeUtils.escapeJavaScript(CommonParams.CORES_HANDLER_PATH),
+						StringEscapeUtils.escapeJavaScript(pack.getSpecificationVersion())};
+
+				out.write(StringUtils.replaceEach(html, search, replace));
+				out.flush();
+			} finally {
+				IOUtils.closeQuietly(in);
+			}
+		} else {
+			response.sendError(404);
+		}
+	}
 
 }

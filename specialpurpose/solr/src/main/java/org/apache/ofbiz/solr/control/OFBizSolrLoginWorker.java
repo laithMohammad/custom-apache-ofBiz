@@ -18,56 +18,56 @@
  *******************************************************************************/
 package org.apache.ofbiz.solr.control;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.webapp.control.LoginWorker;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * OFBiz Solr Login Workers
  */
 public class OFBizSolrLoginWorker extends LoginWorker {
 
-    public final static String module = OFBizSolrLoginWorker.class.getName();
+	public final static String module = OFBizSolrLoginWorker.class.getName();
 
-    /**
-     * An HTTP WebEvent handler that logs in a userLogin. This should run before the security check.
-     *
-     * @param request The HTTP request object for the current JSP or Servlet request.
-     * @param response The HTTP response object for the current JSP or Servlet request.
-     * @return Return a boolean which specifies whether or not the calling Servlet or
-     *         JSP should generate its own content. This allows an event to override the default content.
-     */
-    public static String login(HttpServletRequest request, HttpServletResponse response) {
-        String result = LoginWorker.login(request, response);
-        if (result.equals("success")) {
-            // send the redirect
-            try {            
-                response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-                response.setHeader("Location", request.getContextPath());
-                response.setHeader("Connection", "close");
-            } catch (IllegalStateException ise) {
-                Debug.logError(ise.getMessage(), module);
-                return "error";
-            }
-        }
-        return result;
-    }
+	/**
+	 * An HTTP WebEvent handler that logs in a userLogin. This should run before the security check.
+	 *
+	 * @param request  The HTTP request object for the current JSP or Servlet request.
+	 * @param response The HTTP response object for the current JSP or Servlet request.
+	 * @return Return a boolean which specifies whether or not the calling Servlet or
+	 * JSP should generate its own content. This allows an event to override the default content.
+	 */
+	public static String login(HttpServletRequest request, HttpServletResponse response) {
+		String result = LoginWorker.login(request, response);
+		if (result.equals("success")) {
+			// send the redirect
+			try {
+				response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+				response.setHeader("Location", request.getContextPath());
+				response.setHeader("Connection", "close");
+			} catch (IllegalStateException ise) {
+				Debug.logError(ise.getMessage(), module);
+				return "error";
+			}
+		}
+		return result;
+	}
 
-    public static String extensionCheckLogin(HttpServletRequest request, HttpServletResponse response) {
-        String result = LoginWorker.extensionCheckLogin(request, response);
-        if (result.equals("success")) {
-            // send the redirect
-            try {            
-                response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-                response.setHeader("Location", request.getContextPath());
-                response.setHeader("Connection", "close");
-            } catch (IllegalStateException ise) {
-                Debug.logError(ise.getMessage(), module);
-                return "error";
-            }
-        }
-        return result;
-    }
+	public static String extensionCheckLogin(HttpServletRequest request, HttpServletResponse response) {
+		String result = LoginWorker.extensionCheckLogin(request, response);
+		if (result.equals("success")) {
+			// send the redirect
+			try {
+				response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+				response.setHeader("Location", request.getContextPath());
+				response.setHeader("Connection", "close");
+			} catch (IllegalStateException ise) {
+				Debug.logError(ise.getMessage(), module);
+				return "error";
+			}
+		}
+		return result;
+	}
 }

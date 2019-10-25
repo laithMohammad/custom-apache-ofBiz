@@ -18,12 +18,12 @@
  *******************************************************************************/
 package org.apache.ofbiz.minilang.operation;
 
+import org.apache.ofbiz.base.util.UtilXml;
+import org.w3c.dom.Element;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.apache.ofbiz.base.util.UtilXml;
-import org.w3c.dom.Element;
 
 /**
  * <p>
@@ -31,15 +31,15 @@ import org.w3c.dom.Element;
  */
 public class ConstantOper extends MakeInStringOperation {
 
-    String constant;
+	String constant;
 
-    public ConstantOper(Element element) {
-        super(element);
-        constant = UtilXml.elementValue(element);
-    }
+	public ConstantOper(Element element) {
+		super(element);
+		constant = UtilXml.elementValue(element);
+	}
 
-    @Override
-    public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
-        return constant;
-    }
+	@Override
+	public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
+		return constant;
+	}
 }

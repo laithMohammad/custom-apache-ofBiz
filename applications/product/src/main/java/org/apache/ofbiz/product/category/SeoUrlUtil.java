@@ -22,25 +22,26 @@ import org.apache.ofbiz.base.util.UtilValidate;
 
 public final class SeoUrlUtil {
 
-    private SeoUrlUtil() {}
+	private SeoUrlUtil() {
+	}
 
-    public static String replaceSpecialCharsUrl(String url) {
-        if (UtilValidate.isEmpty(url)) {
-            url = "";
-        }
-        for (String characterPattern : SeoConfigUtil.getCharFilters().keySet()) {
-            url = url.replaceAll(characterPattern, SeoConfigUtil.getCharFilters().get(characterPattern));
-        }
-        return url;
-    }
+	public static String replaceSpecialCharsUrl(String url) {
+		if (UtilValidate.isEmpty(url)) {
+			url = "";
+		}
+		for (String characterPattern : SeoConfigUtil.getCharFilters().keySet()) {
+			url = url.replaceAll(characterPattern, SeoConfigUtil.getCharFilters().get(characterPattern));
+		}
+		return url;
+	}
 
-    public static String removeContextPath(String uri, String contextPath) {
-        if (UtilValidate.isEmpty(contextPath) || UtilValidate.isEmpty(uri)) {
-            return uri;
-        }
-        if (uri.length() > contextPath.length() && uri.startsWith(contextPath)) {
-            return uri.substring(contextPath.length());
-        }
-        return uri;
-    }
+	public static String removeContextPath(String uri, String contextPath) {
+		if (UtilValidate.isEmpty(contextPath) || UtilValidate.isEmpty(uri)) {
+			return uri;
+		}
+		if (uri.length() > contextPath.length() && uri.startsWith(contextPath)) {
+			return uri.substring(contextPath.length());
+		}
+		return uri;
+	}
 }

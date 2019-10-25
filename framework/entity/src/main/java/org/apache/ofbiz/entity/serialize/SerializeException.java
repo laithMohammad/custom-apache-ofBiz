@@ -20,20 +20,19 @@ package org.apache.ofbiz.entity.serialize;
 
 /**
  * XmlSerializable
- *
  */
 @SuppressWarnings("serial")
 public class SerializeException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public SerializeException() {
-        super();
-    }
+	public SerializeException() {
+		super();
+	}
 
-    public SerializeException(String str) {
-        super(str);
-    }
+	public SerializeException(String str) {
+		super(str);
+	}
 
-    public SerializeException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public SerializeException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

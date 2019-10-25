@@ -18,32 +18,31 @@
  *******************************************************************************/
 package org.apache.ofbiz.example;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
-import javax.websocket.Session;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.service.DispatchContext;
 import org.apache.ofbiz.service.ServiceUtil;
 
-public class ExampleServices {
-    public static final String module = ExampleServices.class.getName();
+import javax.websocket.Session;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
-    public static Map<String, Object> sendExamplePushNotifications(DispatchContext dctx, Map<String, ? extends Object> context) {
-        String exampleId = (String) context.get("exampleId");
-        String message = (String) context.get("message");
-        Set<Session> clients = (Set<Session>) ExampleWebSockets.getClients();
-        try {
-            synchronized (clients) {
-                for (Session client : clients) {
-                    client.getBasicRemote().sendText(message + ": " + exampleId);
-                }
-            }
-        } catch (IOException e) {
-            Debug.logError(e.getMessage(), module);
-        }
-        return ServiceUtil.returnSuccess();
-    }
+public class ExampleServices {
+	public static final String module = ExampleServices.class.getName();
+
+	public static Map<String, Object> sendExamplePushNotifications(DispatchContext dctx, Map<String, ? extends Object> context) {
+		String exampleId = (String) context.get("exampleId");
+		String message = (String) context.get("message");
+		Set<Session> clients = (Set<Session>) ExampleWebSockets.getClients();
+		try {
+			synchronized (clients) {
+				for (Session client : clients) {
+					client.getBasicRemote().sendText(message + ": " + exampleId);
+				}
+			}
+		} catch (IOException e) {
+			Debug.logError(e.getMessage(), module);
+		}
+		return ServiceUtil.returnSuccess();
+	}
 }

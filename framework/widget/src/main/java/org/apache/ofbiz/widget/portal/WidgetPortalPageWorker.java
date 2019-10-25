@@ -24,22 +24,23 @@ import org.apache.ofbiz.base.util.Debug;
  * PortalPageWorker Class
  */
 public final class WidgetPortalPageWorker {
-    public static final String module = WidgetPortalPageWorker.class.getName();
-    private static PortalPageWorkerInterface portalPageWorker = null;
+	public static final String module = WidgetPortalPageWorker.class.getName();
+	private static PortalPageWorkerInterface portalPageWorker = null;
 
-    private WidgetPortalPageWorker() {}
+	static {
+		try {
+			ClassLoader loader = Thread.currentThread().getContextClassLoader();
+			// note: loadClass is necessary for these since this class doesn't know anything about them at compile time
+			portalPageWorker = (PortalPageWorkerInterface) loader.loadClass("org.apache.ofbiz.widget.portal.PortalPageWorker").newInstance();
+		} catch (ClassNotFoundException e) {
+			Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
+		} catch (IllegalAccessException e) {
+			Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
+		} catch (InstantiationException e) {
+			Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
+		}
+	}
 
-    static {
-        try {
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            // note: loadClass is necessary for these since this class doesn't know anything about them at compile time
-            portalPageWorker = (PortalPageWorkerInterface) loader.loadClass("org.apache.ofbiz.widget.portal.PortalPageWorker").newInstance();
-        } catch (ClassNotFoundException e) {
-            Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
-        } catch (IllegalAccessException e) {
-            Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
-        } catch (InstantiationException e) {
-            Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
-        }
-    }
+	private WidgetPortalPageWorker() {
+	}
 }

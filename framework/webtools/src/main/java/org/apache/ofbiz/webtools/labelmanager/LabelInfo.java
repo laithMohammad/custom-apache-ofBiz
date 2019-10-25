@@ -18,77 +18,77 @@
  */
 package org.apache.ofbiz.webtools.labelmanager;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilValidate;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class LabelInfo {
 
-    public static final String module = LabelInfo.class.getName();
+	public static final String module = LabelInfo.class.getName();
 
-    protected String labelKey = "";
-    protected String labelKeyComment = "";
-    protected String fileName = "";
-    protected Map<String, LabelValue> labelValues = new LinkedHashMap<String, LabelValue>();
+	protected String labelKey = "";
+	protected String labelKeyComment = "";
+	protected String fileName = "";
+	protected Map<String, LabelValue> labelValues = new LinkedHashMap<String, LabelValue>();
 
-    public LabelInfo(String labelKey, String labelKeyComment, String fileName, String localeStr, String labelValue, String labelComment) {
-        this.labelKey = labelKey;
-        this.labelKeyComment = labelKeyComment;
-        this.fileName = fileName;
-        setLabelValue(localeStr, labelValue, labelComment, false);
-    }
+	public LabelInfo(String labelKey, String labelKeyComment, String fileName, String localeStr, String labelValue, String labelComment) {
+		this.labelKey = labelKey;
+		this.labelKeyComment = labelKeyComment;
+		this.fileName = fileName;
+		setLabelValue(localeStr, labelValue, labelComment, false);
+	}
 
-    public String getLabelKey() {
-        return labelKey;
-    }
+	public String getLabelKey() {
+		return labelKey;
+	}
 
-    public String getLabelKeyComment() {
-        return labelKeyComment;
-    }
+	public String getLabelKeyComment() {
+		return labelKeyComment;
+	}
 
-    public void setLabelKeyComment(String labelKeyComment) {
-        this.labelKeyComment = labelKeyComment;
-    }
+	public void setLabelKeyComment(String labelKeyComment) {
+		this.labelKeyComment = labelKeyComment;
+	}
 
-    public String getFileName() {
-        return fileName;
-    }
+	public String getFileName() {
+		return fileName;
+	}
 
-    public LabelValue getLabelValue(String localeStr) {
-       return labelValues.get(localeStr);
-    }
+	public LabelValue getLabelValue(String localeStr) {
+		return labelValues.get(localeStr);
+	}
 
-    public int getLabelValueSize() {
-       return labelValues.size();
-    }
+	public int getLabelValueSize() {
+		return labelValues.size();
+	}
 
-    public boolean setLabelValue(String localeStr, String labelValue, String labelComment, boolean update) {
-        LabelValue localeFound = getLabelValue(localeStr);
-        boolean isDuplicatedLocales = false;
+	public boolean setLabelValue(String localeStr, String labelValue, String labelComment, boolean update) {
+		LabelValue localeFound = getLabelValue(localeStr);
+		boolean isDuplicatedLocales = false;
 
-        if (UtilValidate.isEmpty(localeFound)) {
-            if (UtilValidate.isNotEmpty(labelValue)) {
-                localeFound = new LabelValue(labelValue, labelComment);
-                labelValues.put(localeStr, localeFound);
-            }
-        } else {
-            if (update) {
-                if (UtilValidate.isNotEmpty(labelValue)) {
-                    localeFound.setLabelValue(labelValue);
-                    localeFound.setLabelComment(labelComment);
-                    labelValues.put(localeStr, localeFound);
-                } else {
-                    labelValues.remove(localeStr);
-                }
-            } else {
-                if (Debug.warningOn()) {
-                    Debug.logWarning("Already found locale " + localeStr + " for label " + labelKey + " into the file " + fileName, module);
-                }
-                isDuplicatedLocales = true;
-            }
-        }
-        return isDuplicatedLocales;
-    }
+		if (UtilValidate.isEmpty(localeFound)) {
+			if (UtilValidate.isNotEmpty(labelValue)) {
+				localeFound = new LabelValue(labelValue, labelComment);
+				labelValues.put(localeStr, localeFound);
+			}
+		} else {
+			if (update) {
+				if (UtilValidate.isNotEmpty(labelValue)) {
+					localeFound.setLabelValue(labelValue);
+					localeFound.setLabelComment(labelComment);
+					labelValues.put(localeStr, localeFound);
+				} else {
+					labelValues.remove(localeStr);
+				}
+			} else {
+				if (Debug.warningOn()) {
+					Debug.logWarning("Already found locale " + localeStr + " for label " + labelKey + " into the file " + fileName, module);
+				}
+				isDuplicatedLocales = true;
+			}
+		}
+		return isDuplicatedLocales;
+	}
 }

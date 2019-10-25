@@ -18,54 +18,53 @@
  *******************************************************************************/
 package org.apache.ofbiz.content.survey;
 
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilHttp;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader;
-import org.apache.ofbiz.webapp.control.RequestHandler;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader.RequestMap;
+import org.apache.ofbiz.webapp.control.RequestHandler;
 import org.apache.ofbiz.webapp.control.WebAppConfigurationException;
 import org.apache.ofbiz.webapp.event.EventHandlerException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * SurveyEvents Class
  */
 public class SurveyEvents {
 
-    public static final String module = SurveyEvents.class.getName();
+	public static final String module = SurveyEvents.class.getName();
 
-    public static String createSurveyResponseAndRestoreParameters(HttpServletRequest request, HttpServletResponse response) {
-        // Call createSurveyResponse as an event, easier to setup and ensures parameter security
-        ConfigXMLReader.Event createSurveyResponseEvent = new ConfigXMLReader.Event("service", null, "createSurveyResponse", true);
-        RequestHandler rh = (RequestHandler) request.getAttribute("_REQUEST_HANDLER_");
-        ConfigXMLReader.ControllerConfig controllerConfig = rh.getControllerConfig();
-        String requestUri = (String) request.getAttribute("thisRequestUri");
-        RequestMap requestMap = null;
-        try {
-            requestMap = controllerConfig.getRequestMapMap().get(requestUri);
-        } catch (WebAppConfigurationException e) {
-            Debug.logError(e, "Exception thrown while parsing controller.xml file: ", module);
-        }
-        String eventResponse = null;
-        try {
-            eventResponse = rh.runEvent(request, response, createSurveyResponseEvent, requestMap, null);
-        } catch (EventHandlerException e) {
-            Debug.logError(e, module);
-            return "error";
-        }
-        if (!"success".equals(eventResponse)) {
-            return eventResponse;
-        }
-        // Check for an incoming _ORIG_PARAM_MAP_ID_, if present get the session stored parameter map and insert it's entries as request attributes
-        Map<String, Object> combinedMap = UtilHttp.getCombinedMap(request);
-        if (combinedMap.containsKey("_ORIG_PARAM_MAP_ID_")) {
-            String origParamMapId = (String) combinedMap.get("_ORIG_PARAM_MAP_ID_");
-            UtilHttp.restoreStashedParameterMap(request, origParamMapId);
-        }
-        return "success";
-    }
+	public static String createSurveyResponseAndRestoreParameters(HttpServletRequest request, HttpServletResponse response) {
+		// Call createSurveyResponse as an event, easier to setup and ensures parameter security
+		ConfigXMLReader.Event createSurveyResponseEvent = new ConfigXMLReader.Event("service", null, "createSurveyResponse", true);
+		RequestHandler rh = (RequestHandler) request.getAttribute("_REQUEST_HANDLER_");
+		ConfigXMLReader.ControllerConfig controllerConfig = rh.getControllerConfig();
+		String requestUri = (String) request.getAttribute("thisRequestUri");
+		RequestMap requestMap = null;
+		try {
+			requestMap = controllerConfig.getRequestMapMap().get(requestUri);
+		} catch (WebAppConfigurationException e) {
+			Debug.logError(e, "Exception thrown while parsing controller.xml file: ", module);
+		}
+		String eventResponse = null;
+		try {
+			eventResponse = rh.runEvent(request, response, createSurveyResponseEvent, requestMap, null);
+		} catch (EventHandlerException e) {
+			Debug.logError(e, module);
+			return "error";
+		}
+		if (!"success".equals(eventResponse)) {
+			return eventResponse;
+		}
+		// Check for an incoming _ORIG_PARAM_MAP_ID_, if present get the session stored parameter map and insert it's entries as request attributes
+		Map<String, Object> combinedMap = UtilHttp.getCombinedMap(request);
+		if (combinedMap.containsKey("_ORIG_PARAM_MAP_ID_")) {
+			String origParamMapId = (String) combinedMap.get("_ORIG_PARAM_MAP_ID_");
+			UtilHttp.restoreStashedParameterMap(request, origParamMapId);
+		}
+		return "success";
+	}
 }

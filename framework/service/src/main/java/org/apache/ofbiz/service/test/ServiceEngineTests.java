@@ -18,28 +18,28 @@
  *******************************************************************************/
 package org.apache.ofbiz.service.test;
 
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.service.ModelService;
 import org.apache.ofbiz.service.testtools.OFBizTestCase;
 
+import java.util.Map;
+
 public class ServiceEngineTests extends OFBizTestCase {
 
-    public ServiceEngineTests(String name) {
-        super(name);
-    }
+	public ServiceEngineTests(String name) {
+		super(name);
+	}
 
-    @Override
-    protected void setUp() throws Exception {
-    }
+	@Override
+	protected void setUp() throws Exception {
+	}
 
-    @Override
-    protected void tearDown() throws Exception {
-    }
+	@Override
+	protected void tearDown() throws Exception {
+	}
 
-    public void testBasicJavaInvocation() throws Exception {
-        Map<String, Object> result = dispatcher.runSync("testScv", UtilMisc.toMap("message", "Unit Test"));
-        assertEquals("Service result success", ModelService.RESPOND_SUCCESS, result.get(ModelService.RESPONSE_MESSAGE));
-    }
+	public void testBasicJavaInvocation() throws Exception {
+		Map<String, Object> result = dispatcher.runSync("testScv", UtilMisc.toMap("message", "Unit Test"));
+		assertEquals("Service result success", ModelService.RESPOND_SUCCESS, result.get(ModelService.RESPONSE_MESSAGE));
+	}
 }

@@ -30,30 +30,34 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class Resource {
 
-    private final String loader; // type = xs:string
-    private final String location; // type = xs:string
+	private final String loader; // type = xs:string
+	private final String location; // type = xs:string
 
-    Resource(Element element) throws GenericEntityConfException {
-        String lineNumberText = EntityConfig.createConfigFileLineNumberText(element);
-        String loader = element.getAttribute("loader").intern();
-        if (loader.isEmpty()) {
-            throw new GenericEntityConfException("<resource> element loader attribute is empty" + lineNumberText);
-        }
-        this.loader = loader;
-        String location = element.getAttribute("location").intern();
-        if (location.isEmpty()) {
-            throw new GenericEntityConfException("<resource> element location attribute is empty" + lineNumberText);
-        }
-        this.location = location;
-    }
+	Resource(Element element) throws GenericEntityConfException {
+		String lineNumberText = EntityConfig.createConfigFileLineNumberText(element);
+		String loader = element.getAttribute("loader").intern();
+		if (loader.isEmpty()) {
+			throw new GenericEntityConfException("<resource> element loader attribute is empty" + lineNumberText);
+		}
+		this.loader = loader;
+		String location = element.getAttribute("location").intern();
+		if (location.isEmpty()) {
+			throw new GenericEntityConfException("<resource> element location attribute is empty" + lineNumberText);
+		}
+		this.location = location;
+	}
 
-    /** Returns the value of the <code>loader</code> attribute. */
-    public String getLoader() {
-        return this.loader;
-    }
+	/**
+	 * Returns the value of the <code>loader</code> attribute.
+	 */
+	public String getLoader() {
+		return this.loader;
+	}
 
-    /** Returns the value of the <code>location</code> attribute. */
-    public String getLocation() {
-        return this.location;
-    }
+	/**
+	 * Returns the value of the <code>location</code> attribute.
+	 */
+	public String getLocation() {
+		return this.location;
+	}
 }

@@ -18,54 +18,49 @@
  *******************************************************************************/
 package org.apache.ofbiz.passport.user;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Arrays;
-import java.util.Set;
-
 import org.apache.ofbiz.base.util.UtilProperties;
+
+import java.util.*;
 
 /**
  * GitHub UserGroupMapper
  */
 public class GitHubUserGroupMapper {
 
-    protected List<String> groups;
+	protected List<String> groups;
 
-    public GitHubUserGroupMapper(String[] groups) {
-        this.groups = Arrays.asList(groups);
-    }
+	public GitHubUserGroupMapper(String[] groups) {
+		this.groups = Arrays.asList(groups);
+	}
 
-    public GitHubUserGroupMapper(String group) {
-        if (groups == null) {
-            groups = new ArrayList<String>();
-        }
-        groups.add(group);
-    }
+	public GitHubUserGroupMapper(String group) {
+		if (groups == null) {
+			groups = new ArrayList<String>();
+		}
+		groups.add(group);
+	}
 
-    public Set<String> getSecurityGroups() {
-        Properties props = UtilProperties.getProperties(GitHubAuthenticator.props);
+	public Set<String> getSecurityGroups() {
+		Properties props = UtilProperties.getProperties(GitHubAuthenticator.props);
 
-        Set<String> secGroups = new HashSet<String>();
-        boolean running = true;
-        int index = 1;
+		Set<String> secGroups = new HashSet<String>();
+		boolean running = true;
+		int index = 1;
 
-        while (running) {
-            String groupStr = (String) props.get("github.group.map." + index);
-            if (groupStr == null) {
-                running = false;
-            } else {
-                String[] groupSplit = groupStr.split("=");
-                if (groupSplit.length == 2) {
-                    if (groups.contains(groupSplit[0])) {
-                        secGroups.add(groupSplit[1]);
-                    }
-                }
-            }
-            index++;
-        }
-        return secGroups;
-    }
+		while (running) {
+			String groupStr = (String) props.get("github.group.map." + index);
+			if (groupStr == null) {
+				running = false;
+			} else {
+				String[] groupSplit = groupStr.split("=");
+				if (groupSplit.length == 2) {
+					if (groups.contains(groupSplit[0])) {
+						secGroups.add(groupSplit[1]);
+					}
+				}
+			}
+			index++;
+		}
+		return secGroups;
+	}
 }

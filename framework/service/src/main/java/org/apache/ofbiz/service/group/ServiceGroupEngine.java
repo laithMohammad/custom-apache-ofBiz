@@ -18,47 +18,48 @@
  *******************************************************************************/
 package org.apache.ofbiz.service.group;
 
-import java.util.Map;
-
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.ModelService;
 import org.apache.ofbiz.service.ServiceDispatcher;
 import org.apache.ofbiz.service.engine.GenericAsyncEngine;
+
+import java.util.Map;
 
 /**
  * ServiceGroupEngine.java
  */
 public class ServiceGroupEngine extends GenericAsyncEngine {
 
-    /**
-     * Constructor for ServiceGroupEngine.
-     * @param dispatcher
-     */
-    public ServiceGroupEngine(ServiceDispatcher dispatcher) {
-        super(dispatcher);
-    }
+	/**
+	 * Constructor for ServiceGroupEngine.
+	 *
+	 * @param dispatcher
+	 */
+	public ServiceGroupEngine(ServiceDispatcher dispatcher) {
+		super(dispatcher);
+	}
 
-    /**
-     * @see org.apache.ofbiz.service.engine.GenericEngine#runSync(java.lang.String, org.apache.ofbiz.service.ModelService, java.util.Map)
-     */
-    @Override
-    public Map<String, Object> runSync(String localName, ModelService modelService, Map<String, Object> context) throws GenericServiceException {
-        GroupModel groupModel = modelService.internalGroup;
-        if (groupModel == null) {
-            groupModel = ServiceGroupReader.getGroupModel(this.getLocation(modelService));
-        }
-        if (groupModel == null) {
-            throw new GenericServiceException("GroupModel was null; not a valid ServiceGroup!");
-        }
+	/**
+	 * @see org.apache.ofbiz.service.engine.GenericEngine#runSync(java.lang.String, org.apache.ofbiz.service.ModelService, java.util.Map)
+	 */
+	@Override
+	public Map<String, Object> runSync(String localName, ModelService modelService, Map<String, Object> context) throws GenericServiceException {
+		GroupModel groupModel = modelService.internalGroup;
+		if (groupModel == null) {
+			groupModel = ServiceGroupReader.getGroupModel(this.getLocation(modelService));
+		}
+		if (groupModel == null) {
+			throw new GenericServiceException("GroupModel was null; not a valid ServiceGroup!");
+		}
 
-        return groupModel.run(dispatcher, localName, context);
-    }
+		return groupModel.run(dispatcher, localName, context);
+	}
 
-    /**
-     * @see org.apache.ofbiz.service.engine.GenericEngine#runSyncIgnore(java.lang.String, org.apache.ofbiz.service.ModelService, java.util.Map)
-     */
-    @Override
-    public void runSyncIgnore(String localName, ModelService modelService, Map<String, Object> context) throws GenericServiceException {
-        runSync(localName, modelService, context);
-    }
+	/**
+	 * @see org.apache.ofbiz.service.engine.GenericEngine#runSyncIgnore(java.lang.String, org.apache.ofbiz.service.ModelService, java.util.Map)
+	 */
+	@Override
+	public void runSyncIgnore(String localName, ModelService modelService, Map<String, Object> context) throws GenericServiceException {
+		runSync(localName, modelService, context);
+	}
 }

@@ -18,16 +18,16 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.portal;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.entity.Delegator;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * PortalPageWorkerInterface
  */
 public interface PortalPageWorkerInterface {
-    public String renderPortalPageAsTextExt(Delegator delegator, String portalPageId, Map<String, Object> templateContext,
-            boolean cache) throws GeneralException, IOException;
+	public String renderPortalPageAsTextExt(Delegator delegator, String portalPageId, Map<String, Object> templateContext,
+	                                        boolean cache) throws GeneralException, IOException;
 }

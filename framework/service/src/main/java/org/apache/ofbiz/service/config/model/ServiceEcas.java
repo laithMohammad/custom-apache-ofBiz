@@ -28,27 +28,27 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class ServiceEcas {
 
-    private final String loader;
-    private final String location;
+	private final String loader;
+	private final String location;
 
-    ServiceEcas(Element serviceEcasElement) throws ServiceConfigException {
-        String loader = serviceEcasElement.getAttribute("loader").intern();
-        if (loader.isEmpty()) {
-            throw new ServiceConfigException("<service-ecas> element loader attribute is empty");
-        }
-        this.loader = loader;
-        String location = serviceEcasElement.getAttribute("location").intern();
-        if (location.isEmpty()) {
-            throw new ServiceConfigException("<service-ecas> element location attribute is empty");
-        }
-        this.location = location;
-    }
+	ServiceEcas(Element serviceEcasElement) throws ServiceConfigException {
+		String loader = serviceEcasElement.getAttribute("loader").intern();
+		if (loader.isEmpty()) {
+			throw new ServiceConfigException("<service-ecas> element loader attribute is empty");
+		}
+		this.loader = loader;
+		String location = serviceEcasElement.getAttribute("location").intern();
+		if (location.isEmpty()) {
+			throw new ServiceConfigException("<service-ecas> element location attribute is empty");
+		}
+		this.location = location;
+	}
 
-    public String getLoader() {
-        return loader;
-    }
+	public String getLoader() {
+		return loader;
+	}
 
-    public String getLocation() {
-        return location;
-    }
+	public String getLocation() {
+		return location;
+	}
 }

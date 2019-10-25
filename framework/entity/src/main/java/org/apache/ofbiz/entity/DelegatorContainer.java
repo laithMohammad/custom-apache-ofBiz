@@ -19,50 +19,50 @@
 
 package org.apache.ofbiz.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Future;
-
 import org.apache.ofbiz.base.concurrent.ExecutionPool;
 import org.apache.ofbiz.base.container.Container;
 import org.apache.ofbiz.base.container.ContainerConfig;
 import org.apache.ofbiz.base.container.ContainerException;
 import org.apache.ofbiz.base.start.StartupCommand;
-import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.base.util.StringUtil;
+import org.apache.ofbiz.base.util.UtilValidate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Future;
 
 public class DelegatorContainer implements Container {
-    private String name;
-    private List<String> preloadedDelegatorNames;
+	private String name;
+	private List<String> preloadedDelegatorNames;
 
-    @Override
-    public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
-        this.name = name;
+	@Override
+	public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
+		this.name = name;
 
-        ContainerConfig.Configuration cc = ContainerConfig.getConfiguration(name, configFile);
+		ContainerConfig.Configuration cc = ContainerConfig.getConfiguration(name, configFile);
 
-        preloadedDelegatorNames = StringUtil.split(ContainerConfig.getPropertyValue(cc, "preloaded-delegators", "default"), ", ");
-    }
+		preloadedDelegatorNames = StringUtil.split(ContainerConfig.getPropertyValue(cc, "preloaded-delegators", "default"), ", ");
+	}
 
-    @Override
-    public boolean start() throws ContainerException {
-        if (UtilValidate.isEmpty(preloadedDelegatorNames)) {
-            return true;
-        }
-        List<Future<Delegator>> futures = new ArrayList<Future<Delegator>>();
-        for (String preloadedDelegatorName: preloadedDelegatorNames) {
-            futures.add(DelegatorFactory.getDelegatorFuture(preloadedDelegatorName));
-        }
-        ExecutionPool.getAllFutures(futures);
-        return true;
-    }
+	@Override
+	public boolean start() throws ContainerException {
+		if (UtilValidate.isEmpty(preloadedDelegatorNames)) {
+			return true;
+		}
+		List<Future<Delegator>> futures = new ArrayList<Future<Delegator>>();
+		for (String preloadedDelegatorName : preloadedDelegatorNames) {
+			futures.add(DelegatorFactory.getDelegatorFuture(preloadedDelegatorName));
+		}
+		ExecutionPool.getAllFutures(futures);
+		return true;
+	}
 
-    @Override
-    public void stop() throws ContainerException {
-    }
+	@Override
+	public void stop() throws ContainerException {
+	}
 
-    @Override
-    public String getName() {
-        return name;
-    }
+	@Override
+	public String getName() {
+		return name;
+	}
 }

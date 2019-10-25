@@ -24,16 +24,16 @@ package org.apache.ofbiz.webapp.control;
 @SuppressWarnings("serial")
 public class RequestHandlerExceptionAllowExternalRequests extends org.apache.ofbiz.base.util.GeneralException {
 
-    public RequestHandlerExceptionAllowExternalRequests(String str, Throwable t) {
-        super(str, t);
-    }
+	public RequestHandlerExceptionAllowExternalRequests(String str, Throwable t) {
+		super(str, t);
+	}
 
-    public RequestHandlerExceptionAllowExternalRequests(String str) {
-        super(str);
-    }
+	public RequestHandlerExceptionAllowExternalRequests(String str) {
+		super(str);
+	}
 
-    public RequestHandlerExceptionAllowExternalRequests() {
-        super();
-    }
+	public RequestHandlerExceptionAllowExternalRequests() {
+		super();
+	}
 }
 

@@ -19,61 +19,59 @@
 
 package org.apache.ofbiz.example;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import org.apache.ofbiz.base.util.Debug;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-
-import org.apache.ofbiz.base.util.Debug;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @ServerEndpoint("/ws/pushNotifications")
 public class ExampleWebSockets {
 
-    public static final String module = ExampleWebSockets.class.getName();
-    private static Set<Session> clients = Collections.synchronizedSet(new HashSet<Session>());
-    
+	public static final String module = ExampleWebSockets.class.getName();
+	private static Set<Session> clients = Collections.synchronizedSet(new HashSet<Session>());
 
-    @OnMessage
-    public void onMessage(Session session, String msg, boolean last) {
-        try {
-            if (session.isOpen()) {
-                synchronized (clients) {
-                    for(Session client : clients){
-                        if (!client.equals(session)){
-                            client.getBasicRemote().sendText(msg);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            try {
-                session.close();
-            } catch (IOException ioe) {
-                Debug.logError(ioe.getMessage(), module);
-            }
-        }
-    }
+	public static Set<Session> getClients() {
+		return clients;
+	}
 
-    @OnOpen
-    public void onOpen (Session session) {
-        // Add session to the connected sessions clients set
-        clients.add(session);
-    }
+	@OnMessage
+	public void onMessage(Session session, String msg, boolean last) {
+		try {
+			if (session.isOpen()) {
+				synchronized (clients) {
+					for (Session client : clients) {
+						if (!client.equals(session)) {
+							client.getBasicRemote().sendText(msg);
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			try {
+				session.close();
+			} catch (IOException ioe) {
+				Debug.logError(ioe.getMessage(), module);
+			}
+		}
+	}
 
-    @OnClose
-    public void onClose (Session session) {
-        // Remove session from the connected sessions clients set
-        clients.remove(session);
-    }
+	@OnOpen
+	public void onOpen(Session session) {
+		// Add session to the connected sessions clients set
+		clients.add(session);
+	}
 
-    public static Set<Session> getClients () {
-        return clients;
-    }
+	@OnClose
+	public void onClose(Session session) {
+		// Remove session from the connected sessions clients set
+		clients.remove(session);
+	}
 }
 

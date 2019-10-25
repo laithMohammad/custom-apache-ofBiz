@@ -24,39 +24,41 @@ package org.apache.ofbiz.entity.util;
 @SuppressWarnings("serial")
 public class EntityStoreOptions implements java.io.Serializable {
 
-    /** Option for creating missing referenced values as dummy (pk-only) entries */
-    protected boolean createDummyFks = false;
+	/**
+	 * Option for creating missing referenced values as dummy (pk-only) entries
+	 */
+	protected boolean createDummyFks = false;
 
-    /**
-     * Default constructor. Defaults are as follows: createDummyFks = false
-     */
-    public EntityStoreOptions() {
-    }
+	/**
+	 * Default constructor. Defaults are as follows: createDummyFks = false
+	 */
+	public EntityStoreOptions() {
+	}
 
-    /**
-     * Optional constructor with options to specify.
-     * 
-     * @param createDummyFks
-     */
-    public EntityStoreOptions(boolean createDummyFks) {
-        this.createDummyFks = createDummyFks;
-    }
+	/**
+	 * Optional constructor with options to specify.
+	 *
+	 * @param createDummyFks
+	 */
+	public EntityStoreOptions(boolean createDummyFks) {
+		this.createDummyFks = createDummyFks;
+	}
 
-    /**
-     * If true, missing entries in FK referenced entities will be created while storing the given GenericValues.
-     * 
-     * @return boolean
-     */
-    public boolean isCreateDummyFks() {
-        return createDummyFks;
-    }
+	/**
+	 * If true, missing entries in FK referenced entities will be created while storing the given GenericValues.
+	 *
+	 * @return boolean
+	 */
+	public boolean isCreateDummyFks() {
+		return createDummyFks;
+	}
 
-    /**
-     * If true, missing entries in FK referenced entities will be created while storing the given GenericValues.
-     * 
-     * @param createDummyFks
-     */
-    public void setCreateDummyFks(boolean createDummyFks) {
-        this.createDummyFks = createDummyFks;
-    }
+	/**
+	 * If true, missing entries in FK referenced entities will be created while storing the given GenericValues.
+	 *
+	 * @param createDummyFks
+	 */
+	public void setCreateDummyFks(boolean createDummyFks) {
+		this.createDummyFks = createDummyFks;
+	}
 }

@@ -18,13 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.renderer.html;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
@@ -33,48 +26,55 @@ import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.widget.content.WidgetContentWorker;
 import org.apache.ofbiz.widget.model.ModelMenuItem;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Map;
+
 /**
  * Widget Library - HTML Menu Renderer implementation
  */
 
 public class HtmlMenuRendererImage extends HtmlMenuRenderer {
 
-    protected HtmlMenuRendererImage() {}
+	protected HtmlMenuRendererImage() {
+	}
 
-    public HtmlMenuRendererImage(HttpServletRequest request, HttpServletResponse response) {
-        super(request, response);
-    }
+	public HtmlMenuRendererImage(HttpServletRequest request, HttpServletResponse response) {
+		super(request, response);
+	}
 
 
-    public String buildDivStr(ModelMenuItem menuItem, Map<String, Object> context) throws IOException {
+	public String buildDivStr(ModelMenuItem menuItem, Map<String, Object> context) throws IOException {
 
-        StringBuilder imgStr = new StringBuilder("<img src=\"");
-        String contentId = menuItem.getAssociatedContentId(context);
-        Delegator delegator = (Delegator)request.getAttribute("delegator");
-        GenericValue webSitePublishPoint = null;
-                //Debug.logInfo("in HtmlMenuRendererImage, contentId:" + contentId,"");
-        try {
-            if (WidgetContentWorker.getContentWorker() != null) {
-                webSitePublishPoint = WidgetContentWorker.getContentWorker().getWebSitePublishPointExt(delegator, contentId, false);
-            } else {
-                Debug.logError("Not rendering image because can't get WebSitePublishPoint, not ContentWorker found.", module);
-            }
-        } catch (GenericEntityException e) {
-                //Debug.logInfo("in HtmlMenuRendererImage, GEException:" + e.getMessage(),"");
-            throw new RuntimeException(e.getMessage());
-        }
-        String medallionLogoStr = webSitePublishPoint.getString("medallionLogo");
-        StringWriter buf = new StringWriter();
-        appendContentUrl(buf, medallionLogoStr);
-        imgStr.append(buf.toString());
-                //Debug.logInfo("in HtmlMenuRendererImage, imgStr:" + imgStr,"");
-        String cellWidth = menuItem.getCellWidth();
-        imgStr.append("\"");
-        if (UtilValidate.isNotEmpty(cellWidth))
-            imgStr.append(" width=\"").append(cellWidth).append("\" ");
+		StringBuilder imgStr = new StringBuilder("<img src=\"");
+		String contentId = menuItem.getAssociatedContentId(context);
+		Delegator delegator = (Delegator) request.getAttribute("delegator");
+		GenericValue webSitePublishPoint = null;
+		//Debug.logInfo("in HtmlMenuRendererImage, contentId:" + contentId,"");
+		try {
+			if (WidgetContentWorker.getContentWorker() != null) {
+				webSitePublishPoint = WidgetContentWorker.getContentWorker().getWebSitePublishPointExt(delegator, contentId, false);
+			} else {
+				Debug.logError("Not rendering image because can't get WebSitePublishPoint, not ContentWorker found.", module);
+			}
+		} catch (GenericEntityException e) {
+			//Debug.logInfo("in HtmlMenuRendererImage, GEException:" + e.getMessage(),"");
+			throw new RuntimeException(e.getMessage());
+		}
+		String medallionLogoStr = webSitePublishPoint.getString("medallionLogo");
+		StringWriter buf = new StringWriter();
+		appendContentUrl(buf, medallionLogoStr);
+		imgStr.append(buf.toString());
+		//Debug.logInfo("in HtmlMenuRendererImage, imgStr:" + imgStr,"");
+		String cellWidth = menuItem.getCellWidth();
+		imgStr.append("\"");
+		if (UtilValidate.isNotEmpty(cellWidth))
+			imgStr.append(" width=\"").append(cellWidth).append("\" ");
 
-        imgStr.append(" border=\"0\" />");
-        return imgStr.toString();
-    }
+		imgStr.append(" border=\"0\" />");
+		return imgStr.toString();
+	}
 
 }

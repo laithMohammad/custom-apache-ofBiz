@@ -24,66 +24,65 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 public final class ReferenceCleaner {
-    public static final String module = ReferenceCleaner.class.getName();
+	public static final String module = ReferenceCleaner.class.getName();
+	private static final ReferenceQueue<Object> QUEUE = new ReferenceQueue<Object>();
+	private static CleanerThread cleanerThread = new CleanerThread();
 
-    private static final class CleanerThread extends Thread {
-        private boolean keepRunning = true;
+	static {
+		cleanerThread.start();
+	}
 
-        protected CleanerThread() {
-            setDaemon(true);
-            setName("ReferenceCleaner");
-        }
+	private ReferenceCleaner() {
+	}
 
-        protected void stopRunning() {
-            keepRunning = false;
-        }
+	public interface Removable {
+		void remove() throws Exception;
+	}
 
-        @Override
-        public void run() {
-            while (keepRunning) {
-                try {
-                    ((Removable) QUEUE.remove()).remove();
-                } catch (Throwable t) {
-                    // ignore
-                }
-                if (interrupted()) {
-                    stopRunning();
-                    cleanerThread = new CleanerThread();
-                    cleanerThread.start();
-                }
-            }
-        }
-    }
-    private static CleanerThread cleanerThread = new CleanerThread();
+	private static final class CleanerThread extends Thread {
+		private boolean keepRunning = true;
 
-    static {
-        cleanerThread.start();
-    }
+		protected CleanerThread() {
+			setDaemon(true);
+			setName("ReferenceCleaner");
+		}
 
-    private ReferenceCleaner() {
-    }
+		protected void stopRunning() {
+			keepRunning = false;
+		}
 
-    private static final ReferenceQueue<Object> QUEUE = new ReferenceQueue<Object>();
+		@Override
+		public void run() {
+			while (keepRunning) {
+				try {
+					((Removable) QUEUE.remove()).remove();
+				} catch (Throwable t) {
+					// ignore
+				}
+				if (interrupted()) {
+					stopRunning();
+					cleanerThread = new CleanerThread();
+					cleanerThread.start();
+				}
+			}
+		}
+	}
 
-    public interface Removable {
-        void remove() throws Exception;
-    }
+	public abstract static class Soft<V> extends SoftReference<V> implements Removable {
+		public Soft(V value) {
+			super(value, QUEUE);
+		}
+	}
 
-    public abstract static class Soft<V> extends SoftReference<V> implements Removable {
-        public Soft(V value) {
-            super(value, QUEUE);
-        }
-    }
+	public abstract static class Phantom<V> extends PhantomReference<V> implements Removable {
+		public Phantom(V value) {
+			super(value, QUEUE);
+		}
+	}
 
-    public abstract static class Phantom<V> extends PhantomReference<V> implements Removable {
-        public Phantom(V value) {
-            super(value, QUEUE);
-        }
-    }
-
-    public abstract static class Weak<V> extends WeakReference<V> implements Removable {
-        public Weak(V value) {
-            super(value, QUEUE);
-        }
-    }
+	public abstract static class Weak<V> extends WeakReference<V> implements Removable {
+		public Weak(V value) {
+			super(value, QUEUE);
+		}
+	}
 }

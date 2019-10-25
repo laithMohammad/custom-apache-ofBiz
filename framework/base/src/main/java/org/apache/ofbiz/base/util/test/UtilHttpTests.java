@@ -21,10 +21,10 @@ package org.apache.ofbiz.base.util.test;
 import org.apache.ofbiz.base.test.GenericTestCaseBase;
 
 public class UtilHttpTests extends GenericTestCaseBase {
-    public UtilHttpTests(String name) {
-        super(name);
-    }
+	public UtilHttpTests(String name) {
+		super(name);
+	}
 
-    public void testGetParameterMap() throws Exception {
-    }
+	public void testGetParameterMap() throws Exception {
+	}
 }

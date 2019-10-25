@@ -24,16 +24,16 @@ package org.apache.ofbiz.service;
 @SuppressWarnings("serial")
 public class ServiceAuthException extends GenericServiceException {
 
-    public ServiceAuthException() {
-        super();
-    }
+	public ServiceAuthException() {
+		super();
+	}
 
-    public ServiceAuthException(String str) {
-        super(str);
-    }
+	public ServiceAuthException(String str) {
+		super(str);
+	}
 
-    public ServiceAuthException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public ServiceAuthException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }
 

@@ -6,8 +6,8 @@ import org.apache.tomcat.JarScanType;
 
 final class FilterJars implements JarScanFilter {
 
-    @Override
-    public boolean check(final JarScanType jarScanType, final String jarName) {
-        return UtilProperties.getPropertyAsBoolean("catalina", "webSocket", false) ? jarName.contains("ofbiz.jar") : false;
-    } 
+	@Override
+	public boolean check(final JarScanType jarScanType, final String jarName) {
+		return UtilProperties.getPropertyAsBoolean("catalina", "webSocket", false) ? jarName.contains("ofbiz.jar") : false;
+	}
 }

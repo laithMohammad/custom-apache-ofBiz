@@ -32,18 +32,18 @@ import org.w3c.dom.Element;
  */
 public abstract class EntityOperation extends MethodOperation {
 
-    private final FlexibleStringExpander delegatorNameFse;
+	private final FlexibleStringExpander delegatorNameFse;
 
-    public EntityOperation(Element element, SimpleMethod simpleMethod) throws MiniLangException {
-        super(element, simpleMethod);
-        this.delegatorNameFse = FlexibleStringExpander.getInstance(element.getAttribute("delegator-name"));
-    }
+	public EntityOperation(Element element, SimpleMethod simpleMethod) throws MiniLangException {
+		super(element, simpleMethod);
+		this.delegatorNameFse = FlexibleStringExpander.getInstance(element.getAttribute("delegator-name"));
+	}
 
-    protected final Delegator getDelegator(MethodContext methodContext) {
-        String delegatorName = delegatorNameFse.expandString(methodContext.getEnvMap());
-        if (!delegatorName.isEmpty()) {
-            return DelegatorFactory.getDelegator(delegatorName);
-        }
-        return methodContext.getDelegator();
-    }
+	protected final Delegator getDelegator(MethodContext methodContext) {
+		String delegatorName = delegatorNameFse.expandString(methodContext.getEnvMap());
+		if (!delegatorName.isEmpty()) {
+			return DelegatorFactory.getDelegator(delegatorName);
+		}
+		return methodContext.getDelegator();
+	}
 }

@@ -18,34 +18,33 @@
  *******************************************************************************/
 package org.apache.ofbiz.birt.report.servlet;
 
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.ofbiz.base.util.UtilGenerics;
+import org.apache.ofbiz.birt.BirtWorker;
 import org.eclipse.birt.core.exception.BirtException;
 import org.eclipse.birt.report.context.BirtContext;
 import org.eclipse.birt.report.context.IContext;
 import org.eclipse.birt.report.service.BirtReportServiceFactory;
 import org.eclipse.birt.report.service.ReportEngineService;
 import org.eclipse.birt.report.utility.ParameterAccessor;
-import org.apache.ofbiz.base.util.UtilGenerics;
-import org.apache.ofbiz.birt.BirtWorker;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BirtEngineServlet extends org.eclipse.birt.report.servlet.BirtEngineServlet {
 
-    public final static String module = BirtEngineServlet.class.getName();
+	public final static String module = BirtEngineServlet.class.getName();
 
-    @Override
-    protected IContext __getContext(HttpServletRequest request, HttpServletResponse response) throws BirtException {
-        BirtReportServiceFactory.getReportService().setContext(getServletContext( ), null);
-        
-        // set app context
-        Map<String, Object> appContext = UtilGenerics.cast(ReportEngineService.getInstance().getEngineConfig().getAppContext());
-        BirtWorker.setWebContextObjects(appContext, request, response);
-        
-        return new BirtContext(new ViewerServletRequest(ParameterAccessor.getParameter(request, ParameterAccessor.PARAM_REPORT)
-                        , request), response);
-    }
+	@Override
+	protected IContext __getContext(HttpServletRequest request, HttpServletResponse response) throws BirtException {
+		BirtReportServiceFactory.getReportService().setContext(getServletContext(), null);
+
+		// set app context
+		Map<String, Object> appContext = UtilGenerics.cast(ReportEngineService.getInstance().getEngineConfig().getAppContext());
+		BirtWorker.setWebContextObjects(appContext, request, response);
+
+		return new BirtContext(new ViewerServletRequest(ParameterAccessor.getParameter(request, ParameterAccessor.PARAM_REPORT)
+				, request), response);
+	}
 }

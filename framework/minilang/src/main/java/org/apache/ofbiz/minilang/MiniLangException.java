@@ -24,19 +24,19 @@ package org.apache.ofbiz.minilang;
 @SuppressWarnings("serial")
 public class MiniLangException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public MiniLangException() {
-        super();
-    }
+	public MiniLangException() {
+		super();
+	}
 
-    public MiniLangException(String str) {
-        super(str);
-    }
+	public MiniLangException(String str) {
+		super(str);
+	}
 
-    public MiniLangException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public MiniLangException(String str, Throwable nested) {
+		super(str, nested);
+	}
 
-    public MiniLangException(Throwable nested) {
-        super(nested);
-    }
+	public MiniLangException(Throwable nested) {
+		super(nested);
+	}
 }

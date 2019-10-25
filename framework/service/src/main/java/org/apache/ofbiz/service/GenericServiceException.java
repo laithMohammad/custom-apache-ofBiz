@@ -24,19 +24,19 @@ package org.apache.ofbiz.service;
 @SuppressWarnings("serial")
 public class GenericServiceException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public GenericServiceException() {
-        super();
-    }
+	public GenericServiceException() {
+		super();
+	}
 
-    public GenericServiceException(String str) {
-        super(str);
-    }
+	public GenericServiceException(String str) {
+		super(str);
+	}
 
-    public GenericServiceException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public GenericServiceException(String str, Throwable nested) {
+		super(str, nested);
+	}
 
-    public GenericServiceException(Throwable nested) {
-        super(nested);
-    }
+	public GenericServiceException(Throwable nested) {
+		super(nested);
+	}
 }

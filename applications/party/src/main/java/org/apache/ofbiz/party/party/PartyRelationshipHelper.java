@@ -19,11 +19,6 @@
 
 package org.apache.ofbiz.party.party;
 
-import java.sql.Timestamp;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilDateTime;
 import org.apache.ofbiz.base.util.UtilMisc;
@@ -35,52 +30,61 @@ import org.apache.ofbiz.entity.condition.EntityCondition;
 import org.apache.ofbiz.entity.condition.EntityOperator;
 import org.apache.ofbiz.entity.util.EntityQuery;
 
+import java.sql.Timestamp;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 /**
  * PartyRelationshipHelper
  */
 public final class PartyRelationshipHelper {
 
-    public static final String module = PartyRelationshipHelper.class.getName();
-    private PartyRelationshipHelper() {}
+	public static final String module = PartyRelationshipHelper.class.getName();
 
-    /** Return A List of the active Party Relationships (ie with valid from and thru dates)
-     *@param delegator needed Delegator
-     *@param partyRelationshipValues Map containing the input parameters (primaries keys + partyRelationshipTypeId)
-     *@return List of the active Party Relationships
-     */
-    public static List<GenericValue> getActivePartyRelationships(Delegator delegator, Map<String, ?> partyRelationshipValues) {
-        String partyIdFrom = (String) partyRelationshipValues.get("partyIdFrom") ;
-        String partyIdTo = (String) partyRelationshipValues.get("partyIdTo") ;
-        String roleTypeIdFrom = (String) partyRelationshipValues.get("roleTypeIdFrom") ;
-        String roleTypeIdTo = (String) partyRelationshipValues.get("roleTypeIdTo") ;
-        String partyRelationshipTypeId = (String) partyRelationshipValues.get("partyRelationshipTypeId") ;
-        Timestamp fromDate = UtilDateTime.nowTimestamp();
+	private PartyRelationshipHelper() {
+	}
 
-        List<EntityCondition> condList = new LinkedList<EntityCondition>();
-        condList.add(EntityCondition.makeCondition("partyIdFrom", partyIdFrom));
-        condList.add(EntityCondition.makeCondition("partyIdTo", partyIdTo));
-        condList.add(EntityCondition.makeCondition("roleTypeIdFrom", roleTypeIdFrom));
-        condList.add(EntityCondition.makeCondition("roleTypeIdTo", roleTypeIdTo));
-        condList.add(EntityCondition.makeCondition("partyRelationshipTypeId", partyRelationshipTypeId));
-        condList.add(EntityCondition.makeCondition("fromDate", EntityOperator.LESS_THAN_EQUAL_TO, fromDate));
-        EntityCondition thruCond = EntityCondition.makeCondition(UtilMisc.toList(
-                EntityCondition.makeCondition("thruDate", null),
-                EntityCondition.makeCondition("thruDate", EntityOperator.GREATER_THAN, fromDate)),
-                EntityOperator.OR);
-        condList.add(thruCond);
-        EntityCondition condition = EntityCondition.makeCondition(condList);
+	/**
+	 * Return A List of the active Party Relationships (ie with valid from and thru dates)
+	 *
+	 * @param delegator               needed Delegator
+	 * @param partyRelationshipValues Map containing the input parameters (primaries keys + partyRelationshipTypeId)
+	 * @return List of the active Party Relationships
+	 */
+	public static List<GenericValue> getActivePartyRelationships(Delegator delegator, Map<String, ?> partyRelationshipValues) {
+		String partyIdFrom = (String) partyRelationshipValues.get("partyIdFrom");
+		String partyIdTo = (String) partyRelationshipValues.get("partyIdTo");
+		String roleTypeIdFrom = (String) partyRelationshipValues.get("roleTypeIdFrom");
+		String roleTypeIdTo = (String) partyRelationshipValues.get("roleTypeIdTo");
+		String partyRelationshipTypeId = (String) partyRelationshipValues.get("partyRelationshipTypeId");
+		Timestamp fromDate = UtilDateTime.nowTimestamp();
 
-        List<GenericValue> partyRelationships = null;
-        try {
-            partyRelationships = EntityQuery.use(delegator).from("PartyRelationship").where(condition).queryList();
-        } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem finding PartyRelationships. ", module);
-            return null;
-        }
-        if (UtilValidate.isNotEmpty(partyRelationships)) {
-           return partyRelationships;
-        } else {
-            return null;
-        }
-    }
+		List<EntityCondition> condList = new LinkedList<EntityCondition>();
+		condList.add(EntityCondition.makeCondition("partyIdFrom", partyIdFrom));
+		condList.add(EntityCondition.makeCondition("partyIdTo", partyIdTo));
+		condList.add(EntityCondition.makeCondition("roleTypeIdFrom", roleTypeIdFrom));
+		condList.add(EntityCondition.makeCondition("roleTypeIdTo", roleTypeIdTo));
+		condList.add(EntityCondition.makeCondition("partyRelationshipTypeId", partyRelationshipTypeId));
+		condList.add(EntityCondition.makeCondition("fromDate", EntityOperator.LESS_THAN_EQUAL_TO, fromDate));
+		EntityCondition thruCond = EntityCondition.makeCondition(UtilMisc.toList(
+				EntityCondition.makeCondition("thruDate", null),
+				EntityCondition.makeCondition("thruDate", EntityOperator.GREATER_THAN, fromDate)),
+				EntityOperator.OR);
+		condList.add(thruCond);
+		EntityCondition condition = EntityCondition.makeCondition(condList);
+
+		List<GenericValue> partyRelationships = null;
+		try {
+			partyRelationships = EntityQuery.use(delegator).from("PartyRelationship").where(condition).queryList();
+		} catch (GenericEntityException e) {
+			Debug.logError(e, "Problem finding PartyRelationships. ", module);
+			return null;
+		}
+		if (UtilValidate.isNotEmpty(partyRelationships)) {
+			return partyRelationships;
+		} else {
+			return null;
+		}
+	}
 }

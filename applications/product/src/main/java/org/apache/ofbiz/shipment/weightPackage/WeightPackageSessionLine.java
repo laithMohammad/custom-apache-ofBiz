@@ -18,116 +18,116 @@
  *******************************************************************************/
 package org.apache.ofbiz.shipment.weightPackage;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.base.util.UtilFormatOut;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ServiceUtil;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+
 @SuppressWarnings("serial")
 public class WeightPackageSessionLine implements java.io.Serializable {
 
-    protected String orderId = null;
-    protected BigDecimal packageWeight = BigDecimal.ZERO;
-    protected BigDecimal packageLength = null;
-    protected BigDecimal packageWidth = null;
-    protected BigDecimal packageHeight = null;
-    protected String shipmentBoxTypeId = null;
-    protected String shipmentItemSeqId = null;
-    protected int weightPackageSeqId = 0;
+	protected String orderId = null;
+	protected BigDecimal packageWeight = BigDecimal.ZERO;
+	protected BigDecimal packageLength = null;
+	protected BigDecimal packageWidth = null;
+	protected BigDecimal packageHeight = null;
+	protected String shipmentBoxTypeId = null;
+	protected String shipmentItemSeqId = null;
+	protected int weightPackageSeqId = 0;
 
-    public WeightPackageSessionLine(String orderId, BigDecimal packageWeight, BigDecimal packageLength, BigDecimal packageWidth, BigDecimal packageHeight, String shipmentBoxTypeId, int weightPackageSeqId) throws GeneralException {
-        this.orderId = orderId;
-        this.packageWeight = packageWeight;
-        this.packageLength = packageLength;
-        this.packageWidth = packageWidth;
-        this.packageHeight = packageHeight;
-        this.shipmentBoxTypeId = shipmentBoxTypeId;
-        this.weightPackageSeqId = weightPackageSeqId;
-    }
+	public WeightPackageSessionLine(String orderId, BigDecimal packageWeight, BigDecimal packageLength, BigDecimal packageWidth, BigDecimal packageHeight, String shipmentBoxTypeId, int weightPackageSeqId) throws GeneralException {
+		this.orderId = orderId;
+		this.packageWeight = packageWeight;
+		this.packageLength = packageLength;
+		this.packageWidth = packageWidth;
+		this.packageHeight = packageHeight;
+		this.shipmentBoxTypeId = shipmentBoxTypeId;
+		this.weightPackageSeqId = weightPackageSeqId;
+	}
 
-    public String getOrderId() {
-        return this.orderId;
-    }
+	public String getOrderId() {
+		return this.orderId;
+	}
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
 
-    public BigDecimal getPackageWeight() {
-        return this.packageWeight;
-    }
+	public BigDecimal getPackageWeight() {
+		return this.packageWeight;
+	}
 
-    public void setPackageWeight(BigDecimal packageWeight) {
-        this.packageWeight = packageWeight;
-    }
+	public void setPackageWeight(BigDecimal packageWeight) {
+		this.packageWeight = packageWeight;
+	}
 
-    public BigDecimal getPackageLength() {
-        return this.packageLength;
-    }
+	public BigDecimal getPackageLength() {
+		return this.packageLength;
+	}
 
-    public void setPackageLength(BigDecimal packageLength) {
-        this.packageLength = packageLength;
-    }
+	public void setPackageLength(BigDecimal packageLength) {
+		this.packageLength = packageLength;
+	}
 
-    public BigDecimal getPackageWidth() {
-       return this.packageWidth;
-    }
+	public BigDecimal getPackageWidth() {
+		return this.packageWidth;
+	}
 
-    public void setPackageWidth(BigDecimal packageWidth) {
-        this.packageWidth = packageWidth;
-    }
+	public void setPackageWidth(BigDecimal packageWidth) {
+		this.packageWidth = packageWidth;
+	}
 
-    public BigDecimal getPackageHeight() {
-        return this.packageHeight;
-    }
+	public BigDecimal getPackageHeight() {
+		return this.packageHeight;
+	}
 
-    public void setPackageHeight(BigDecimal packageHeight) {
-        this.packageHeight = packageHeight;
-    }
+	public void setPackageHeight(BigDecimal packageHeight) {
+		this.packageHeight = packageHeight;
+	}
 
-    public String getShipmentBoxTypeId() {
-        return this.shipmentBoxTypeId;
-    }
+	public String getShipmentBoxTypeId() {
+		return this.shipmentBoxTypeId;
+	}
 
-    public void setShipmentBoxTypeId(String shipmentBoxTypeId) {
-        this.shipmentBoxTypeId = shipmentBoxTypeId;
-    }
+	public void setShipmentBoxTypeId(String shipmentBoxTypeId) {
+		this.shipmentBoxTypeId = shipmentBoxTypeId;
+	}
 
-    public int getWeightPackageSeqId() {
-        return this.weightPackageSeqId;
-    }
+	public int getWeightPackageSeqId() {
+		return this.weightPackageSeqId;
+	}
 
-    public void setWeightPackageSeqId(int weightPackageSeqId) {
-        this.weightPackageSeqId = weightPackageSeqId;
-    }
+	public void setWeightPackageSeqId(int weightPackageSeqId) {
+		this.weightPackageSeqId = weightPackageSeqId;
+	}
 
-    public String getShipmentItemSeqId() {
-        return this.shipmentItemSeqId;
-    }
+	public String getShipmentItemSeqId() {
+		return this.shipmentItemSeqId;
+	}
 
-    public void setShipmentItemSeqId(String shipmentItemSeqId) {
-        this.shipmentItemSeqId = shipmentItemSeqId;
-    }
+	public void setShipmentItemSeqId(String shipmentItemSeqId) {
+		this.shipmentItemSeqId = shipmentItemSeqId;
+	}
 
-    protected void applyLineToPackage(String shipmentId, GenericValue userLogin, LocalDispatcher dispatcher, int shipPackSeqId) throws GeneralException {
-        String shipmentPackageSeqId = UtilFormatOut.formatPaddedNumber(shipPackSeqId, 5);
+	protected void applyLineToPackage(String shipmentId, GenericValue userLogin, LocalDispatcher dispatcher, int shipPackSeqId) throws GeneralException {
+		String shipmentPackageSeqId = UtilFormatOut.formatPaddedNumber(shipPackSeqId, 5);
 
-        Map<String, Object> packageMap = new HashMap<String, Object>();
-        packageMap.put("shipmentId", shipmentId);
-        packageMap.put("shipmentItemSeqId", this.getShipmentItemSeqId());
-        // quanity given, by defult one because it is a required field
-        packageMap.put("quantity", BigDecimal.ONE);
-        packageMap.put("shipmentPackageSeqId", shipmentPackageSeqId);
-        packageMap.put("userLogin", userLogin);
-        Map<String, Object> packageResp = dispatcher.runSync("addShipmentContentToPackage", packageMap);
+		Map<String, Object> packageMap = new HashMap<String, Object>();
+		packageMap.put("shipmentId", shipmentId);
+		packageMap.put("shipmentItemSeqId", this.getShipmentItemSeqId());
+		// quanity given, by defult one because it is a required field
+		packageMap.put("quantity", BigDecimal.ONE);
+		packageMap.put("shipmentPackageSeqId", shipmentPackageSeqId);
+		packageMap.put("userLogin", userLogin);
+		Map<String, Object> packageResp = dispatcher.runSync("addShipmentContentToPackage", packageMap);
 
-        if (ServiceUtil.isError(packageResp)) {
-            throw new GeneralException(ServiceUtil.getErrorMessage(packageResp));
-        }
-    }
+		if (ServiceUtil.isError(packageResp)) {
+			throw new GeneralException(ServiceUtil.getErrorMessage(packageResp));
+		}
+	}
 }

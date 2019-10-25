@@ -18,24 +18,24 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.util.test;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.ofbiz.base.test.GenericTestCaseBase;
 import org.apache.ofbiz.base.util.UtilMisc;
 
+import java.util.List;
+import java.util.Locale;
+
 public class UtilMiscTests extends GenericTestCaseBase {
 
-    public UtilMiscTests(String name) {
-        super(name);
-    }
+	public UtilMiscTests(String name) {
+		super(name);
+	}
 
-    public void testLocales() throws Exception {
-        List<Locale> availableLocales = UtilMisc.availableLocales();
-        for (Locale availableLocale : availableLocales) {
-            if (availableLocale.getDisplayName().isEmpty()) {
-                fail("Locale.getDisplayName() is empty");
-            }
-        }
-    }
+	public void testLocales() throws Exception {
+		List<Locale> availableLocales = UtilMisc.availableLocales();
+		for (Locale availableLocale : availableLocales) {
+			if (availableLocale.getDisplayName().isEmpty()) {
+				fail("Locale.getDisplayName() is empty");
+			}
+		}
+	}
 }

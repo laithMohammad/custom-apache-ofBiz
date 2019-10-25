@@ -21,210 +21,206 @@
 package org.apache.ofbiz.accounting.thirdparty.ideal;
 
 
-import java.sql.Timestamp;
-import java.util.Random;
-
-import junit.framework.TestCase;
-import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.base.util.UtilDateTime;
-import org.apache.ofbiz.service.testtools.OFBizTestCase;
 import com.ing.ideal.connector.IdealConnector;
 import com.ing.ideal.connector.IdealException;
 import com.ing.ideal.connector.Transaction;
+import junit.framework.TestCase;
+import org.apache.ofbiz.base.util.Debug;
+import org.apache.ofbiz.service.testtools.OFBizTestCase;
+
+import java.util.Random;
 
 
-public class IdealPaymentServiceTest extends OFBizTestCase{
+public class IdealPaymentServiceTest extends OFBizTestCase {
 
-    public IdealPaymentServiceTest(String name) {
-        super(name);
-    }
-    
-    public static final String module = IdealPaymentServiceTest.class.getName();
+	public static final String module = IdealPaymentServiceTest.class.getName();
+	// test data
+	protected String orderId = null;
+	protected String orderDiscription = null;
+	protected String issuerId = null;
+	protected String merchantReturnURL = null;
+	protected String configFile = null;
+	public IdealPaymentServiceTest(String name) {
+		super(name);
+	}
 
-    // test data
-    protected String orderId = null;
-    protected String orderDiscription = null;
-    protected String issuerId = null;
-    protected String merchantReturnURL = null;
-    protected String configFile = null;
+	@Override
+	protected void setUp() throws Exception {
+		// populate test data
+		configFile = "paymentTest";
+		orderId = "testOrder1000";
+		issuerId = "0151";
+		orderDiscription = "Test Order Description";
+		merchantReturnURL = "https://localhost:8443/ecommerce";
+	}
 
-    @Override
-    protected void setUp() throws Exception {
-        // populate test data
-        configFile = "paymentTest";
-        orderId = "testOrder1000";
-        issuerId = "0151";
-        orderDiscription = "Test Order Description";
-        merchantReturnURL = "https://localhost:8443/ecommerce";
-    }
-    
-    public void testDirectoryRequest() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            connector.getIssuerList();
-        } catch (IdealException ex){
-            TestCase.fail(ex.getMessage());
-        }
-    }
-    
-    public void testOrderSuccuess() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            int amount = 1;
-            int amountFormat = amount * 100;
-            
-            Transaction transaction = new Transaction();
-            transaction.setIssuerID(issuerId);
-            transaction.setAmount(Integer.toString(amountFormat));
-            transaction.setPurchaseID(orderId);
-            transaction.setDescription(orderDiscription);
-            
-            Random random = new Random();
-            String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
-            transaction.setEntranceCode(EntranceCode);
-            transaction.setMerchantReturnURL(merchantReturnURL);
-            Transaction trx = connector.requestTransaction(transaction);
-            String transactionId = trx.getTransactionID();
-            Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
-            transactionCustomer.isSuccess();
-            Debug.logInfo("[testOrderSuccuess] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
-            Debug.logInfo("[testOrderSuccuess] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
-        } catch (IdealException ex) {
-            TestCase.fail(ex.getMessage());
-        }
-    }
+	public void testDirectoryRequest() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			connector.getIssuerList();
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
 
-    public void testOrderCancelled() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            int amount = 2;
-            int amountFormat = amount * 100;
-            
-            Transaction transaction = new Transaction();
-            transaction.setIssuerID(issuerId);
-            transaction.setAmount(Integer.toString(amountFormat));
-            transaction.setPurchaseID(orderId);
-            transaction.setDescription(orderDiscription);
-            
-            Random random = new Random();
-            String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
-            transaction.setEntranceCode(EntranceCode);
-            transaction.setMerchantReturnURL(merchantReturnURL);
-            Transaction trx = connector.requestTransaction(transaction);
-            String transactionId = trx.getTransactionID();
-            Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
-            transactionCustomer.isCancelled();
-            Debug.logInfo("[testOrderCancelled] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
-            Debug.logInfo("[testOrderCancelled] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
-        } catch (IdealException ex) {
-            TestCase.fail(ex.getMessage());
-        }
-    }
+	public void testOrderSuccuess() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			int amount = 1;
+			int amountFormat = amount * 100;
 
-    public void testOrderExpired() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            int amount = 3;
-            int amountFormat = amount * 100;
-            
-            Transaction transaction = new Transaction();
-            transaction.setIssuerID(issuerId);
-            transaction.setAmount(Integer.toString(amountFormat));
-            transaction.setPurchaseID(orderId);
-            transaction.setDescription(orderDiscription);
-            
-            Random random = new Random();
-            String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
-            transaction.setEntranceCode(EntranceCode);
-            transaction.setMerchantReturnURL(merchantReturnURL);
-            Transaction trx = connector.requestTransaction(transaction);
-            String transactionId = trx.getTransactionID();
-            Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
-            transactionCustomer.isExpired();
-            Debug.logInfo("[testOrderExpired] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
-            Debug.logInfo("[testOrderExpired] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
-        } catch (IdealException ex) {
-            TestCase.fail(ex.getMessage());
-        }
-    }
+			Transaction transaction = new Transaction();
+			transaction.setIssuerID(issuerId);
+			transaction.setAmount(Integer.toString(amountFormat));
+			transaction.setPurchaseID(orderId);
+			transaction.setDescription(orderDiscription);
 
-    public void testOrderOpen() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            int amount = 4;
-            int amountFormat = amount * 100;
-            
-            Transaction transaction = new Transaction();
-            transaction.setIssuerID(issuerId);
-            transaction.setAmount(Integer.toString(amountFormat));
-            transaction.setPurchaseID(orderId);
-            transaction.setDescription(orderDiscription);
-            
-            Random random = new Random();
-            String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
-            transaction.setEntranceCode(EntranceCode);
-            transaction.setMerchantReturnURL(merchantReturnURL);
-            Transaction trx = connector.requestTransaction(transaction);
-            String transactionId = trx.getTransactionID();
-            Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
-            transactionCustomer.isOpen();
-            Debug.logInfo("[testOrderOpen] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
-            Debug.logInfo("[testOrderOpen] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
-        } catch (IdealException ex) {
-            TestCase.fail(ex.getMessage());
-        }
-    }
+			Random random = new Random();
+			String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
+			transaction.setEntranceCode(EntranceCode);
+			transaction.setMerchantReturnURL(merchantReturnURL);
+			Transaction trx = connector.requestTransaction(transaction);
+			String transactionId = trx.getTransactionID();
+			Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
+			transactionCustomer.isSuccess();
+			Debug.logInfo("[testOrderSuccuess] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
+			Debug.logInfo("[testOrderSuccuess] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
 
-    public void testOrderFailure() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            int amount = 5;
-            int amountFormat = amount * 100;
-            
-            Transaction transaction = new Transaction();
-            transaction.setIssuerID(issuerId);
-            transaction.setAmount(Integer.toString(amountFormat));
-            transaction.setPurchaseID(orderId);
-            transaction.setDescription(orderDiscription);
-            
-            Random random = new Random();
-            String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
-            transaction.setEntranceCode(EntranceCode);
-            transaction.setMerchantReturnURL(merchantReturnURL);
-            Transaction trx = connector.requestTransaction(transaction);
-            String transactionId = trx.getTransactionID();
-            Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
-            transactionCustomer.isFailure();
-            Debug.logInfo("[testOrderFailure] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
-            Debug.logInfo("[testOrderFailure] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
-        } catch (IdealException ex) {
-            TestCase.fail(ex.getMessage());
-        }
-    }
-    
-    public void testOrderError() throws Exception{
-        try {
-            IdealConnector connector = new IdealConnector(configFile);
-            int amount = 7;
-            int amountFormat = amount * 100;
-            
-            Transaction transaction = new Transaction();
-            transaction.setIssuerID(issuerId);
-            transaction.setAmount(Integer.toString(amountFormat));
-            transaction.setPurchaseID(orderId);
-            transaction.setDescription(orderDiscription);
-            
-            Random random = new Random();
-            String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
-            transaction.setEntranceCode(EntranceCode);
-            transaction.setMerchantReturnURL(merchantReturnURL);
-            IdealException ex = new IdealException("");
-            ex.setErrorCode("SO1000");
-            Transaction transactionCustomer = connector.requestTransaction(transaction);
-            Debug.logInfo("[testOrderError] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
-            Debug.logInfo("[testOrderError] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
-        } catch (IdealException ex){
-            TestCase.fail(ex.getMessage());
-        }
-    }
+	public void testOrderCancelled() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			int amount = 2;
+			int amountFormat = amount * 100;
+
+			Transaction transaction = new Transaction();
+			transaction.setIssuerID(issuerId);
+			transaction.setAmount(Integer.toString(amountFormat));
+			transaction.setPurchaseID(orderId);
+			transaction.setDescription(orderDiscription);
+
+			Random random = new Random();
+			String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
+			transaction.setEntranceCode(EntranceCode);
+			transaction.setMerchantReturnURL(merchantReturnURL);
+			Transaction trx = connector.requestTransaction(transaction);
+			String transactionId = trx.getTransactionID();
+			Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
+			transactionCustomer.isCancelled();
+			Debug.logInfo("[testOrderCancelled] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
+			Debug.logInfo("[testOrderCancelled] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
+
+	public void testOrderExpired() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			int amount = 3;
+			int amountFormat = amount * 100;
+
+			Transaction transaction = new Transaction();
+			transaction.setIssuerID(issuerId);
+			transaction.setAmount(Integer.toString(amountFormat));
+			transaction.setPurchaseID(orderId);
+			transaction.setDescription(orderDiscription);
+
+			Random random = new Random();
+			String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
+			transaction.setEntranceCode(EntranceCode);
+			transaction.setMerchantReturnURL(merchantReturnURL);
+			Transaction trx = connector.requestTransaction(transaction);
+			String transactionId = trx.getTransactionID();
+			Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
+			transactionCustomer.isExpired();
+			Debug.logInfo("[testOrderExpired] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
+			Debug.logInfo("[testOrderExpired] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
+
+	public void testOrderOpen() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			int amount = 4;
+			int amountFormat = amount * 100;
+
+			Transaction transaction = new Transaction();
+			transaction.setIssuerID(issuerId);
+			transaction.setAmount(Integer.toString(amountFormat));
+			transaction.setPurchaseID(orderId);
+			transaction.setDescription(orderDiscription);
+
+			Random random = new Random();
+			String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
+			transaction.setEntranceCode(EntranceCode);
+			transaction.setMerchantReturnURL(merchantReturnURL);
+			Transaction trx = connector.requestTransaction(transaction);
+			String transactionId = trx.getTransactionID();
+			Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
+			transactionCustomer.isOpen();
+			Debug.logInfo("[testOrderOpen] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
+			Debug.logInfo("[testOrderOpen] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
+
+	public void testOrderFailure() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			int amount = 5;
+			int amountFormat = amount * 100;
+
+			Transaction transaction = new Transaction();
+			transaction.setIssuerID(issuerId);
+			transaction.setAmount(Integer.toString(amountFormat));
+			transaction.setPurchaseID(orderId);
+			transaction.setDescription(orderDiscription);
+
+			Random random = new Random();
+			String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
+			transaction.setEntranceCode(EntranceCode);
+			transaction.setMerchantReturnURL(merchantReturnURL);
+			Transaction trx = connector.requestTransaction(transaction);
+			String transactionId = trx.getTransactionID();
+			Transaction transactionCustomer = connector.requestTransactionStatus(transactionId);
+			transactionCustomer.isFailure();
+			Debug.logInfo("[testOrderFailure] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
+			Debug.logInfo("[testOrderFailure] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
+
+	public void testOrderError() throws Exception {
+		try {
+			IdealConnector connector = new IdealConnector(configFile);
+			int amount = 7;
+			int amountFormat = amount * 100;
+
+			Transaction transaction = new Transaction();
+			transaction.setIssuerID(issuerId);
+			transaction.setAmount(Integer.toString(amountFormat));
+			transaction.setPurchaseID(orderId);
+			transaction.setDescription(orderDiscription);
+
+			Random random = new Random();
+			String EntranceCode = Long.toString(Math.abs(random.nextLong()), 36);
+			transaction.setEntranceCode(EntranceCode);
+			transaction.setMerchantReturnURL(merchantReturnURL);
+			IdealException ex = new IdealException("");
+			ex.setErrorCode("SO1000");
+			Transaction transactionCustomer = connector.requestTransaction(transaction);
+			Debug.logInfo("[testOrderError] IssuerID Messages from iDEAL: " + transactionCustomer.getIssuerID(), module);
+			Debug.logInfo("[testOrderError] Status Messages from iDEAL: " + transactionCustomer.getStatus(), module);
+		} catch (IdealException ex) {
+			TestCase.fail(ex.getMessage());
+		}
+	}
 }

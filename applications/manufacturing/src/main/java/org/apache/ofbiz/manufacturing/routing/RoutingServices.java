@@ -18,11 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.manufacturing.routing;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.entity.Delegator;
@@ -34,54 +29,59 @@ import org.apache.ofbiz.service.DispatchContext;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ServiceUtil;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * Routing related services
- *
  */
 public class RoutingServices {
 
-    public static final String module = RoutingServices.class.getName();
-    public static final String resource = "ManufacturingUiLabels";
+	public static final String module = RoutingServices.class.getName();
+	public static final String resource = "ManufacturingUiLabels";
 
-    /**
-     * Computes the estimated time needed to perform the task.
-     * @param ctx The DispatchContext that this service is operating in.
-     * @param context Map containing the input parameters.
-     * @return Map with the result of the service, the output parameters.
-     */
-    public static Map<String, Object> getEstimatedTaskTime(DispatchContext ctx, Map<String, ? extends Object> context) {
-        Map<String, Object> result = new HashMap<String, Object>();
-        Delegator delegator = ctx.getDelegator();
-        LocalDispatcher dispatcher = ctx.getDispatcher();
-        Locale locale = (Locale) context.get("locale");
+	/**
+	 * Computes the estimated time needed to perform the task.
+	 *
+	 * @param ctx     The DispatchContext that this service is operating in.
+	 * @param context Map containing the input parameters.
+	 * @return Map with the result of the service, the output parameters.
+	 */
+	public static Map<String, Object> getEstimatedTaskTime(DispatchContext ctx, Map<String, ? extends Object> context) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		Delegator delegator = ctx.getDelegator();
+		LocalDispatcher dispatcher = ctx.getDispatcher();
+		Locale locale = (Locale) context.get("locale");
 
-        // The mandatory IN parameters
-        String taskId = (String) context.get("taskId");
-        BigDecimal quantity = (BigDecimal) context.get("quantity");
-        // The optional IN parameters
-        String productId = (String) context.get("productId");
-        String routingId = (String) context.get("routingId");
+		// The mandatory IN parameters
+		String taskId = (String) context.get("taskId");
+		BigDecimal quantity = (BigDecimal) context.get("quantity");
+		// The optional IN parameters
+		String productId = (String) context.get("productId");
+		String routingId = (String) context.get("routingId");
 
-        if (quantity == null) {
-            quantity = BigDecimal.ONE;
-        }
+		if (quantity == null) {
+			quantity = BigDecimal.ONE;
+		}
 
-        GenericValue task = null;
-        try {
-            task = EntityQuery.use(delegator).from("WorkEffort").where("workEffortId", taskId).queryOne();
-        } catch (GenericEntityException gee) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ManufacturingRoutingErrorFindingTask", UtilMisc.toMap("taskId", taskId), locale));
-        }
-        // FIXME: the ProductionRun.getEstimatedTaskTime(...) method will be removed and
-        // its logic will be implemented inside this method.
-        long estimatedTaskTime = ProductionRun.getEstimatedTaskTime(task, quantity, productId, routingId, dispatcher);
-        result.put("estimatedTaskTime", Long.valueOf(estimatedTaskTime));
-        if (task != null && task.get("estimatedSetupMillis") != null) {
-            result.put("setupTime", task.getBigDecimal("estimatedSetupMillis"));
-        }
-        if (task != null && task.get("estimatedMilliSeconds") != null) {
-            result.put("taskUnitTime", task.getBigDecimal("estimatedMilliSeconds"));
-        }
-        return result;
-    }
+		GenericValue task = null;
+		try {
+			task = EntityQuery.use(delegator).from("WorkEffort").where("workEffortId", taskId).queryOne();
+		} catch (GenericEntityException gee) {
+			return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ManufacturingRoutingErrorFindingTask", UtilMisc.toMap("taskId", taskId), locale));
+		}
+		// FIXME: the ProductionRun.getEstimatedTaskTime(...) method will be removed and
+		// its logic will be implemented inside this method.
+		long estimatedTaskTime = ProductionRun.getEstimatedTaskTime(task, quantity, productId, routingId, dispatcher);
+		result.put("estimatedTaskTime", Long.valueOf(estimatedTaskTime));
+		if (task != null && task.get("estimatedSetupMillis") != null) {
+			result.put("setupTime", task.getBigDecimal("estimatedSetupMillis"));
+		}
+		if (task != null && task.get("estimatedMilliSeconds") != null) {
+			result.put("taskUnitTime", task.getBigDecimal("estimatedMilliSeconds"));
+		}
+		return result;
+	}
 }

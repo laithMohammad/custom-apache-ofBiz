@@ -18,18 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.renderer.html;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilGenerics;
 import org.apache.ofbiz.base.util.UtilHttp;
@@ -40,213 +28,225 @@ import org.apache.ofbiz.widget.model.ModelMenu;
 import org.apache.ofbiz.widget.renderer.MenuStringRenderer;
 import org.xml.sax.SAXException;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Widget Library - HTML Menu Wrapper class - makes it easy to do the setup and render of a menu
  */
 public class HtmlMenuWrapper {
 
-    public static final String module = HtmlMenuWrapper.class.getName();
+	public static final String module = HtmlMenuWrapper.class.getName();
 
-    protected String resourceName;
-    protected String menuName;
-    protected HttpServletRequest request;
-    protected HttpServletResponse response;
-    protected ModelMenu modelMenu;
-    protected MenuStringRenderer renderer;
-    protected Map<String, Object> context;
+	protected String resourceName;
+	protected String menuName;
+	protected HttpServletRequest request;
+	protected HttpServletResponse response;
+	protected ModelMenu modelMenu;
+	protected MenuStringRenderer renderer;
+	protected Map<String, Object> context;
 
-    protected HtmlMenuWrapper() {}
+	protected HtmlMenuWrapper() {
+	}
 
-    public HtmlMenuWrapper(String resourceName, String menuName, HttpServletRequest request, HttpServletResponse response)
-            throws IOException, SAXException, ParserConfigurationException {
-        init(resourceName, menuName, request, response);
-    }
+	public HtmlMenuWrapper(String resourceName, String menuName, HttpServletRequest request, HttpServletResponse response)
+			throws IOException, SAXException, ParserConfigurationException {
+		init(resourceName, menuName, request, response);
+	}
 
-    public void init(String resourceName, String menuName, HttpServletRequest request, HttpServletResponse response)
-            throws IOException, SAXException, ParserConfigurationException {
-        this.resourceName = resourceName;
-        this.menuName = menuName;
-        this.request = request;
-        this.response = response;
+	public static HtmlMenuWrapper getMenuWrapper(HttpServletRequest request, HttpServletResponse response, HttpSession session, String menuDefFile, String menuName, String menuWrapperClassName) {
 
-        this.modelMenu = MenuFactory.getMenuFromWebappContext(resourceName, menuName, request);
+		HtmlMenuWrapper menuWrapper = null;
 
-        this.renderer = getMenuRenderer();
+		String menuSig = menuDefFile + "__" + menuName;
+		if (session != null) {
+			menuWrapper = (HtmlMenuWrapper) session.getAttribute(menuSig);
+		}
 
-        this.context = new HashMap<String, Object>();
-        Map<String, Object> parameterMap = UtilHttp.getParameterMap(request);
-        context.put("parameters", parameterMap);
+		if (menuWrapper == null) {
+			try {
+				Class<?> cls = Class.forName("org.apache.ofbiz.widget.html." + menuWrapperClassName);
+				menuWrapper = (HtmlMenuWrapper) cls.newInstance();
+				menuWrapper.init(menuDefFile, menuName, request, response);
+			} catch (InstantiationException e) {
+				throw new RuntimeException(e.getMessage());
+			} catch (IllegalAccessException e2) {
+				throw new RuntimeException(e2.getMessage());
+			} catch (ClassNotFoundException e3) {
+				throw new RuntimeException("Class not found:" + e3.getMessage());
+			} catch (IOException e4) {
+				throw new RuntimeException(e4.getMessage());
+			} catch (SAXException e5) {
+				throw new RuntimeException(e5.getMessage());
+			} catch (ParserConfigurationException e6) {
+				throw new RuntimeException(e6.getMessage());
+			}
+		} else {
+			menuWrapper.setRequest(request);
+			menuWrapper.setResponse(response);
+			Map<String, Object> parameterMap = UtilHttp.getParameterMap(request);
+			menuWrapper.setParameters(parameterMap);
 
-        HttpSession session = request.getSession();
-        GenericValue userLogin = (GenericValue)session.getAttribute("userLogin");
-        context.put("userLogin", userLogin);
+			GenericValue userLogin = (GenericValue) session.getAttribute("userLogin");
+			menuWrapper.putInContext("userLogin", userLogin);
 
-        //make sure the locale is in the context
-        context.put("locale", UtilHttp.getLocale(request));
+		}
 
-        // if there was an error message, this is an error
-        if (UtilValidate.isNotEmpty(request.getAttribute("_ERROR_MESSAGE_"))) {
-            context.put("isError", Boolean.TRUE);
-        } else {
-            context.put("isError", Boolean.FALSE);
-        }
+		if (session != null) {
+			session.setAttribute(menuSig, menuWrapper);
+		}
+		return menuWrapper;
+	}
 
-        // if a parameter was passed saying this is an error, it is an error
-        if ("true".equals(parameterMap.get("isError"))) {
-            context.put("isError", Boolean.TRUE);
-        }
-    }
+	public void init(String resourceName, String menuName, HttpServletRequest request, HttpServletResponse response)
+			throws IOException, SAXException, ParserConfigurationException {
+		this.resourceName = resourceName;
+		this.menuName = menuName;
+		this.request = request;
+		this.response = response;
 
-    public MenuStringRenderer getMenuRenderer() {
-        return new HtmlMenuRenderer(request, response);
-    }
+		this.modelMenu = MenuFactory.getMenuFromWebappContext(resourceName, menuName, request);
 
-    public String renderMenuString() throws IOException {
-        HttpServletRequest req = ((HtmlMenuRenderer)renderer).request;
-        ServletContext ctx = (ServletContext) req.getAttribute("servletContext");
-        if (ctx == null) {
-            if (Debug.infoOn()) Debug.logInfo("in renderMenuString, ctx is null(0)" , "");
-        }
+		this.renderer = getMenuRenderer();
 
-        Writer writer = new StringWriter();
-        modelMenu.renderMenuString(writer, context, renderer);
+		this.context = new HashMap<String, Object>();
+		Map<String, Object> parameterMap = UtilHttp.getParameterMap(request);
+		context.put("parameters", parameterMap);
 
-        HttpServletRequest req2 = ((HtmlMenuRenderer)renderer).request;
-        ServletContext ctx2 = (ServletContext) req2.getAttribute("servletContext");
-        if (ctx2 == null) {
-            if (Debug.infoOn()) Debug.logInfo("in renderMenuString, ctx is null(2)" , "");
-        }
+		HttpSession session = request.getSession();
+		GenericValue userLogin = (GenericValue) session.getAttribute("userLogin");
+		context.put("userLogin", userLogin);
 
-        return writer.toString();
-    }
+		//make sure the locale is in the context
+		context.put("locale", UtilHttp.getLocale(request));
 
-    /**
-     * Tells the menu library whether this is a response to an error or not.
-     * Defaults on initialization according to the presense of an errorMessage
-     * in the request or if an isError parameter was passed to the page with
-     * the value "true". If true then the prefilled values will come from the
-     * parameters Map instead of the value Map.
-     */
-    public void setIsError(boolean isError) {
-        this.context.put("isError", Boolean.valueOf(isError));
-    }
+		// if there was an error message, this is an error
+		if (UtilValidate.isNotEmpty(request.getAttribute("_ERROR_MESSAGE_"))) {
+			context.put("isError", Boolean.TRUE);
+		} else {
+			context.put("isError", Boolean.FALSE);
+		}
 
-    public boolean getIsError() {
-        Boolean isErrorBoolean = (Boolean) this.context.get("isError");
-        if (isErrorBoolean == null) {
-            return false;
-        } else {
-            return isErrorBoolean.booleanValue();
-        }
-    }
+		// if a parameter was passed saying this is an error, it is an error
+		if ("true".equals(parameterMap.get("isError"))) {
+			context.put("isError", Boolean.TRUE);
+		}
+	}
 
-    public void setMenuOverrideName(String menuName) {
-        this.context.put("menuName", menuName);
-    }
+	public MenuStringRenderer getMenuRenderer() {
+		return new HtmlMenuRenderer(request, response);
+	}
 
-    public void putInContext(String name, Object value) {
-        this.context.put(name, value);
-    }
+	public String renderMenuString() throws IOException {
+		HttpServletRequest req = ((HtmlMenuRenderer) renderer).request;
+		ServletContext ctx = (ServletContext) req.getAttribute("servletContext");
+		if (ctx == null) {
+			if (Debug.infoOn()) Debug.logInfo("in renderMenuString, ctx is null(0)", "");
+		}
 
-    public void putInContext(String menuItemName, String valueName,  Object value) {
-        Map<String, Object> valueMap = UtilGenerics.toMap(context.get(menuItemName));
-        if (valueMap == null) {
-            valueMap = new HashMap<String, Object>();
-            context.put(menuItemName, valueMap);
-        }
-        valueMap.put(valueName, value);
-    }
+		Writer writer = new StringWriter();
+		modelMenu.renderMenuString(writer, context, renderer);
 
-    public Object getFromContext(String name) {
-        return this.context.get(name);
-    }
+		HttpServletRequest req2 = ((HtmlMenuRenderer) renderer).request;
+		ServletContext ctx2 = (ServletContext) req2.getAttribute("servletContext");
+		if (ctx2 == null) {
+			if (Debug.infoOn()) Debug.logInfo("in renderMenuString, ctx is null(2)", "");
+		}
 
-    public Object getFromContext(String menuItemName, String valueName) {
-        Map<String, Object> valueMap = UtilGenerics.toMap(context.get(menuItemName));
-        if (valueMap == null) {
-            valueMap = new HashMap<String, Object>();
-            context.put(menuItemName, valueMap);
-        }
-        return valueMap.get(valueName);
-    }
+		return writer.toString();
+	}
 
-    public ModelMenu getModelMenu() {
-        return modelMenu;
-    }
+	public boolean getIsError() {
+		Boolean isErrorBoolean = (Boolean) this.context.get("isError");
+		if (isErrorBoolean == null) {
+			return false;
+		} else {
+			return isErrorBoolean.booleanValue();
+		}
+	}
 
-    public MenuStringRenderer getRenderer() {
-        return renderer;
-    }
+	/**
+	 * Tells the menu library whether this is a response to an error or not.
+	 * Defaults on initialization according to the presense of an errorMessage
+	 * in the request or if an isError parameter was passed to the page with
+	 * the value "true". If true then the prefilled values will come from the
+	 * parameters Map instead of the value Map.
+	 */
+	public void setIsError(boolean isError) {
+		this.context.put("isError", Boolean.valueOf(isError));
+	}
 
-    public void setRenderer(MenuStringRenderer renderer) {
-        this.renderer = renderer;
-    }
+	public void setMenuOverrideName(String menuName) {
+		this.context.put("menuName", menuName);
+	}
 
-    public void setRequest(HttpServletRequest request) {
-        this.request = request;
-        ((HtmlMenuRenderer)renderer).setRequest(request);
-    }
+	public void putInContext(String name, Object value) {
+		this.context.put(name, value);
+	}
 
-    public void setResponse(HttpServletResponse response) {
-        this.response = response;
-        ((HtmlMenuRenderer)renderer).setResponse(response);
-    }
+	public void putInContext(String menuItemName, String valueName, Object value) {
+		Map<String, Object> valueMap = UtilGenerics.toMap(context.get(menuItemName));
+		if (valueMap == null) {
+			valueMap = new HashMap<String, Object>();
+			context.put(menuItemName, valueMap);
+		}
+		valueMap.put(valueName, value);
+	}
 
-    public HttpServletRequest getRequest() {
-        return ((HtmlMenuRenderer)renderer).request;
-    }
+	public Object getFromContext(String name) {
+		return this.context.get(name);
+	}
 
-    public HttpServletResponse getResponse() {
-        return ((HtmlMenuRenderer)renderer).response;
-    }
+	public Object getFromContext(String menuItemName, String valueName) {
+		Map<String, Object> valueMap = UtilGenerics.toMap(context.get(menuItemName));
+		if (valueMap == null) {
+			valueMap = new HashMap<String, Object>();
+			context.put(menuItemName, valueMap);
+		}
+		return valueMap.get(valueName);
+	}
 
-    public static HtmlMenuWrapper getMenuWrapper(HttpServletRequest request, HttpServletResponse response, HttpSession session, String menuDefFile, String menuName, String menuWrapperClassName) {
+	public ModelMenu getModelMenu() {
+		return modelMenu;
+	}
 
-        HtmlMenuWrapper menuWrapper = null;
+	public MenuStringRenderer getRenderer() {
+		return renderer;
+	}
 
-        String menuSig = menuDefFile + "__" + menuName;
-        if (session != null) {
-             menuWrapper = (HtmlMenuWrapper)session.getAttribute(menuSig);
-        }
+	public void setRenderer(MenuStringRenderer renderer) {
+		this.renderer = renderer;
+	}
 
-        if (menuWrapper == null) {
-            try {
-                Class<?> cls = Class.forName("org.apache.ofbiz.widget.html." + menuWrapperClassName);
-                menuWrapper = (HtmlMenuWrapper)cls.newInstance();
-                menuWrapper.init(menuDefFile, menuName, request, response);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e.getMessage());
-            } catch (IllegalAccessException e2) {
-                throw new RuntimeException(e2.getMessage());
-            } catch (ClassNotFoundException e3) {
-                throw new RuntimeException("Class not found:" + e3.getMessage());
-            } catch (IOException e4) {
-                throw new RuntimeException(e4.getMessage());
-            } catch (SAXException e5) {
-                throw new RuntimeException(e5.getMessage());
-            } catch (ParserConfigurationException e6) {
-                throw new RuntimeException(e6.getMessage());
-            }
-        } else {
-            menuWrapper.setRequest(request);
-            menuWrapper.setResponse(response);
-            Map<String, Object> parameterMap = UtilHttp.getParameterMap(request);
-            menuWrapper.setParameters(parameterMap);
+	public HttpServletRequest getRequest() {
+		return ((HtmlMenuRenderer) renderer).request;
+	}
 
-            GenericValue userLogin = (GenericValue)session.getAttribute("userLogin");
-            menuWrapper.putInContext("userLogin", userLogin);
+	public void setRequest(HttpServletRequest request) {
+		this.request = request;
+		((HtmlMenuRenderer) renderer).setRequest(request);
+	}
 
-        }
+	public HttpServletResponse getResponse() {
+		return ((HtmlMenuRenderer) renderer).response;
+	}
 
-        if (session != null) {
-            session.setAttribute(menuSig, menuWrapper);
-        }
-        return menuWrapper;
-    }
+	public void setResponse(HttpServletResponse response) {
+		this.response = response;
+		((HtmlMenuRenderer) renderer).setResponse(response);
+	}
 
-    public void setParameters(Map<String, Object> paramMap) {
-        context.put("parameters", paramMap);
-    }
+	public void setParameters(Map<String, Object> paramMap) {
+		context.put("parameters", paramMap);
+	}
 
 }

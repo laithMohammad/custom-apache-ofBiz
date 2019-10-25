@@ -18,10 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.service.mail;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.ofbiz.base.component.ComponentConfig;
 import org.apache.ofbiz.base.config.GenericConfigException;
 import org.apache.ofbiz.base.config.ResourceHandler;
@@ -33,65 +29,70 @@ import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.w3c.dom.Element;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
+
 public final class ServiceMcaUtil {
 
-    public static final String module = ServiceMcaUtil.class.getName();
-    private static final UtilCache<String, ServiceMcaRule> mcaCache = UtilCache.createUtilCache("service.ServiceMCAs", 0, 0, false);
+	public static final String module = ServiceMcaUtil.class.getName();
+	private static final UtilCache<String, ServiceMcaRule> mcaCache = UtilCache.createUtilCache("service.ServiceMCAs", 0, 0, false);
 
-    private ServiceMcaUtil() {}
+	private ServiceMcaUtil() {
+	}
 
-    public static void reloadConfig() {
-        mcaCache.clear();
-        readConfig();
-    }
+	public static void reloadConfig() {
+		mcaCache.clear();
+		readConfig();
+	}
 
-    public static void readConfig() {
-        // TODO: Missing in XSD file.
+	public static void readConfig() {
+		// TODO: Missing in XSD file.
 
-        // get all of the component resource eca stuff, ie specified in each ofbiz-component.xml file
-        for (ComponentConfig.ServiceResourceInfo componentResourceInfo: ComponentConfig.getAllServiceResourceInfos("mca")) {
-            addMcaDefinitions(componentResourceInfo.createResourceHandler());
-        }
-    }
+		// get all of the component resource eca stuff, ie specified in each ofbiz-component.xml file
+		for (ComponentConfig.ServiceResourceInfo componentResourceInfo : ComponentConfig.getAllServiceResourceInfos("mca")) {
+			addMcaDefinitions(componentResourceInfo.createResourceHandler());
+		}
+	}
 
-    public static void addMcaDefinitions(ResourceHandler handler) {
-        Element rootElement = null;
-        try {
-            rootElement = handler.getDocument().getDocumentElement();
-        } catch (GenericConfigException e) {
-            Debug.logError(e, module);
-            return;
-        }
+	public static void addMcaDefinitions(ResourceHandler handler) {
+		Element rootElement = null;
+		try {
+			rootElement = handler.getDocument().getDocumentElement();
+		} catch (GenericConfigException e) {
+			Debug.logError(e, module);
+			return;
+		}
 
-        int numDefs = 0;
-        for (Element e: UtilXml.childElementList(rootElement, "mca")) {
-            String ruleName = e.getAttribute("mail-rule-name");
-            mcaCache.put(ruleName, new ServiceMcaRule(e));
-            numDefs++;
-        }
+		int numDefs = 0;
+		for (Element e : UtilXml.childElementList(rootElement, "mca")) {
+			String ruleName = e.getAttribute("mail-rule-name");
+			mcaCache.put(ruleName, new ServiceMcaRule(e));
+			numDefs++;
+		}
 
-        if (Debug.importantOn()) {
-            String resourceLocation = handler.getLocation();
-            try {
-                resourceLocation = handler.getURL().toExternalForm();
-            } catch (GenericConfigException e) {
-                Debug.logError(e, "Could not get resource URL", module);
-            }
-            Debug.logImportant("Loaded " + numDefs + " Service MCA definitions from " + resourceLocation, module);
-        }
-    }
+		if (Debug.importantOn()) {
+			String resourceLocation = handler.getLocation();
+			try {
+				resourceLocation = handler.getURL().toExternalForm();
+			} catch (GenericConfigException e) {
+				Debug.logError(e, "Could not get resource URL", module);
+			}
+			Debug.logImportant("Loaded " + numDefs + " Service MCA definitions from " + resourceLocation, module);
+		}
+	}
 
-    public static Collection<ServiceMcaRule> getServiceMcaRules() {
-    if (mcaCache.size() == 0) {
-        readConfig();
-    }
-        return mcaCache.values();
-    }
+	public static Collection<ServiceMcaRule> getServiceMcaRules() {
+		if (mcaCache.size() == 0) {
+			readConfig();
+		}
+		return mcaCache.values();
+	}
 
-    public static void evalRules(LocalDispatcher dispatcher, MimeMessageWrapper wrapper, GenericValue userLogin) throws GenericServiceException {
-        Set<String> actionsRun = new TreeSet<String>();
-        for (ServiceMcaRule rule: getServiceMcaRules()) {
-            rule.eval(dispatcher, wrapper, actionsRun, userLogin);
-        }
-    }
+	public static void evalRules(LocalDispatcher dispatcher, MimeMessageWrapper wrapper, GenericValue userLogin) throws GenericServiceException {
+		Set<String> actionsRun = new TreeSet<String>();
+		for (ServiceMcaRule rule : getServiceMcaRules()) {
+			rule.eval(dispatcher, wrapper, actionsRun, userLogin);
+		}
+	}
 }

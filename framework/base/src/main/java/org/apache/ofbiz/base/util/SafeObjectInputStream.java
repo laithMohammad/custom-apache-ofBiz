@@ -27,64 +27,63 @@ import java.util.regex.Pattern;
 
 /**
  * ObjectInputStream
- *
  */
 public class SafeObjectInputStream extends java.io.ObjectInputStream {
 
-    private ClassLoader classloader;
-    private Pattern WHITELIST_PATTERN = null;
+	private ClassLoader classloader;
+	private Pattern WHITELIST_PATTERN = null;
 
-    public SafeObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
-        super(in);
-        this.classloader = loader;
-    }
+	public SafeObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
+		super(in);
+		this.classloader = loader;
+	}
 
-    public SafeObjectInputStream(InputStream in, ClassLoader loader, List<String> whitelist) throws IOException {
-        super(in);
-        this.classloader = loader;
-        StringBuilder bld = new StringBuilder("(");
-        for (int i = 0; i < whitelist.size(); i++) {
-            bld.append(whitelist.get(i));
-            if (i != whitelist.size() - 1) {
-                bld.append("|");
-            }
-        }
-        bld.append(")");
-        WHITELIST_PATTERN = Pattern.compile(bld.toString());
-    }
+	public SafeObjectInputStream(InputStream in, ClassLoader loader, List<String> whitelist) throws IOException {
+		super(in);
+		this.classloader = loader;
+		StringBuilder bld = new StringBuilder("(");
+		for (int i = 0; i < whitelist.size(); i++) {
+			bld.append(whitelist.get(i));
+			if (i != whitelist.size() - 1) {
+				bld.append("|");
+			}
+		}
+		bld.append(")");
+		WHITELIST_PATTERN = Pattern.compile(bld.toString());
+	}
 
 
-    /**
-     * @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass)
-     */
-    @Override
-    protected Class<?> resolveClass(ObjectStreamClass classDesc) throws IOException, ClassNotFoundException {
-        if (!WHITELIST_PATTERN.matcher(classDesc.getName()).find()) {
-            Debug.logWarning("***Incompatible class***: " + classDesc.getName() + 
-                    ". Please see OFBIZ-10837.  Report to dev ML if you use OFBiz without changes. "
-                    + "Else add your class into UtilObject::getObjectException", "SafeObjectInputStream");
-            throw new ClassCastException("Incompatible class: " + classDesc.getName());
-        }
-        
-        return ObjectType.loadClass(classDesc.getName(), classloader);
-    }
+	/**
+	 * @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass)
+	 */
+	@Override
+	protected Class<?> resolveClass(ObjectStreamClass classDesc) throws IOException, ClassNotFoundException {
+		if (!WHITELIST_PATTERN.matcher(classDesc.getName()).find()) {
+			Debug.logWarning("***Incompatible class***: " + classDesc.getName() +
+					". Please see OFBIZ-10837.  Report to dev ML if you use OFBiz without changes. "
+					+ "Else add your class into UtilObject::getObjectException", "SafeObjectInputStream");
+			throw new ClassCastException("Incompatible class: " + classDesc.getName());
+		}
 
-    /**
-     * @see java.io.ObjectInputStream#resolveProxyClass(java.lang.String[])
-     */
-    @Override
-    protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
-        Class<?>[] cinterfaces = new Class<?>[interfaces.length];
-        for (int i = 0; i < interfaces.length; i++) {
-            cinterfaces[i] = classloader.loadClass(interfaces[i]);
-        }
-        //Proxy.getInvocationHandler(proxy)
-        
-        try {
-            return Proxy.getProxyClass(classloader, cinterfaces);
-        } catch (IllegalArgumentException e) {
-            throw new ClassNotFoundException(null, e);
-        }
+		return ObjectType.loadClass(classDesc.getName(), classloader);
+	}
 
-    }
+	/**
+	 * @see java.io.ObjectInputStream#resolveProxyClass(java.lang.String[])
+	 */
+	@Override
+	protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
+		Class<?>[] cinterfaces = new Class<?>[interfaces.length];
+		for (int i = 0; i < interfaces.length; i++) {
+			cinterfaces[i] = classloader.loadClass(interfaces[i]);
+		}
+		//Proxy.getInvocationHandler(proxy)
+
+		try {
+			return Proxy.getProxyClass(classloader, cinterfaces);
+		} catch (IllegalArgumentException e) {
+			throw new ClassNotFoundException(null, e);
+		}
+
+	}
 }

@@ -28,27 +28,27 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class GlobalServices {
 
-    private final String loader;
-    private final String location;
+	private final String loader;
+	private final String location;
 
-    GlobalServices(Element globalServicesElement) throws ServiceConfigException {
-        String loader = globalServicesElement.getAttribute("loader").intern();
-        if (loader.isEmpty()) {
-            throw new ServiceConfigException("<global-services> element loader attribute is empty");
-        }
-        this.loader = loader;
-        String location = globalServicesElement.getAttribute("location").intern();
-        if (location.isEmpty()) {
-            throw new ServiceConfigException("<global-services> element location attribute is empty");
-        }
-        this.location = location;
-    }
+	GlobalServices(Element globalServicesElement) throws ServiceConfigException {
+		String loader = globalServicesElement.getAttribute("loader").intern();
+		if (loader.isEmpty()) {
+			throw new ServiceConfigException("<global-services> element loader attribute is empty");
+		}
+		this.loader = loader;
+		String location = globalServicesElement.getAttribute("location").intern();
+		if (location.isEmpty()) {
+			throw new ServiceConfigException("<global-services> element location attribute is empty");
+		}
+		this.location = location;
+	}
 
-    public String getLoader() {
-        return loader;
-    }
+	public String getLoader() {
+		return loader;
+	}
 
-    public String getLocation() {
-        return location;
-    }
+	public String getLocation() {
+		return location;
+	}
 }

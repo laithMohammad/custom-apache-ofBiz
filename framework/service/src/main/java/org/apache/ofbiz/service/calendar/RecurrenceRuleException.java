@@ -24,16 +24,16 @@ package org.apache.ofbiz.service.calendar;
 @SuppressWarnings("serial")
 public class RecurrenceRuleException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public RecurrenceRuleException() {
-        super();
-    }
+	public RecurrenceRuleException() {
+		super();
+	}
 
-    public RecurrenceRuleException(String msg) {
-        super(msg);
-    }
+	public RecurrenceRuleException(String msg) {
+		super(msg);
+	}
 
-    public RecurrenceRuleException(String msg, Throwable nested) {
-        super(msg, nested);
-    }
+	public RecurrenceRuleException(String msg, Throwable nested) {
+		super(msg, nested);
+	}
 
 }

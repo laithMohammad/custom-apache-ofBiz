@@ -18,26 +18,11 @@
  *******************************************************************************/
 package org.apache.ofbiz.cmssite.multisite;
 
-import java.io.IOException;
-import java.util.Locale;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilHttp;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
-import org.apache.ofbiz.entity.DelegatorFactory;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.util.EntityQuery;
@@ -50,126 +35,134 @@ import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.webapp.control.RequestHandler;
 import org.apache.ofbiz.webapp.stats.VisitHandler;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.Locale;
+
 // Used to filter website on the basis of hosted pathAlias.
 public class WebSiteFilter implements Filter {
 
-    public static final String MODULE = WebSiteFilter.class.getName();
+	public static final String MODULE = WebSiteFilter.class.getName();
 
-    protected FilterConfig m_config = null;
+	protected FilterConfig m_config = null;
 
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        m_config = filterConfig;
-        m_config.getServletContext().setAttribute("MULTI_SITE_ENABLED", true);
-    }
+	private static void setWebContextObjects(HttpServletRequest request, HttpServletResponse response, Delegator delegator, LocalDispatcher dispatcher) {
+		HttpSession session = request.getSession();
+		Security security = null;
+		try {
+			security = SecurityFactory.getInstance(delegator);
+		} catch (SecurityConfigurationException e) {
+			Debug.logError(e, MODULE);
+		}
+		request.setAttribute("delegator", delegator);
+		request.setAttribute("dispatcher", dispatcher);
+		request.setAttribute("security", security);
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        HttpSession session = httpRequest.getSession();
+		session.setAttribute("delegatorName", delegator.getDelegatorName());
+		session.setAttribute("delegator", delegator);
+		session.setAttribute("dispatcher", dispatcher);
+		session.setAttribute("security", security);
+		session.setAttribute("_WEBAPP_NAME_", UtilHttp.getApplicationName(request));
 
-        String webSiteId = (String) m_config.getServletContext().getAttribute("webSiteId");
-        String pathInfo = httpRequest.getPathInfo();
-        // get the WebSite id segment, cheat here and use existing logic
-        String webSiteAlias = RequestHandler.getRequestUri(pathInfo);
-        Delegator delegator = (Delegator) httpRequest.getSession().getServletContext().getAttribute("delegator");
-        LocalDispatcher dispatcher = (LocalDispatcher) request.getAttribute("dispatcher");
+		// get rid of the visit info since it was pointing to the previous database, and get a new one
+		session.removeAttribute("visitor");
+		session.removeAttribute("visit");
+		VisitHandler.getVisitor(request, response);
+		VisitHandler.getVisit(session);
+	}
 
-        setWebContextObjects(httpRequest, httpResponse, delegator, dispatcher);
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		m_config = filterConfig;
+		m_config.getServletContext().setAttribute("MULTI_SITE_ENABLED", true);
+	}
 
-        GenericValue webSite = null;
-        try {
-            if (UtilValidate.isNotEmpty(webSiteAlias) && webSite == null) {
-                webSite = EntityQuery.use(delegator).from("WebSite").where("hostedPathAlias", webSiteAlias).cache().queryFirst();
-            }
-            if (UtilValidate.isEmpty(webSite)) {
-                webSite = EntityQuery.use(delegator).from("WebSite").where("isDefault", "Y").cache().queryFirst();
-            }
-        } catch (GenericEntityException e) {
-            Debug.logError(e, MODULE);
-        }
-        if (webSite != null) {
-            webSiteId = webSite.getString("webSiteId");
-            GenericValue productStore = null;
-            try {
-                productStore = webSite.getRelatedOne("ProductStore", false);
-            } catch (GenericEntityException e) {
-                Debug.logError(e, MODULE);
-            }
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		HttpServletResponse httpResponse = (HttpServletResponse) response;
+		HttpSession session = httpRequest.getSession();
 
-            String newLocale = request.getParameter("newLocale");
-            if (productStore != null && newLocale == null && session.getAttribute("locale") == null) {
-                newLocale = productStore.getString("defaultLocaleString");
-            } else if (newLocale == null && session.getAttribute("locale") != null) {
-                newLocale = session.getAttribute("locale").toString();
-            }
+		String webSiteId = (String) m_config.getServletContext().getAttribute("webSiteId");
+		String pathInfo = httpRequest.getPathInfo();
+		// get the WebSite id segment, cheat here and use existing logic
+		String webSiteAlias = RequestHandler.getRequestUri(pathInfo);
+		Delegator delegator = (Delegator) httpRequest.getSession().getServletContext().getAttribute("delegator");
+		LocalDispatcher dispatcher = (LocalDispatcher) request.getAttribute("dispatcher");
 
-            if (newLocale == null)
-                newLocale = UtilHttp.getLocale(httpRequest).toString();
-            // If the webSiteId has changed then invalidate the existing session
-            if (!webSiteId.equals(session.getAttribute("webSiteId"))) {
-                ShoppingCart cart = (ShoppingCart) session.getAttribute("shoppingCart");
-                if (cart != null && !(webSite.getString("productStoreId").equals(cart.getProductStoreId())) ) {
-                    // clearing cart items from previous store 
-                    cart.clear();
-                    // Put product Store for this webSite in cart
-                    cart.setProductStoreId(webSite.getString("productStoreId"));
-                }
-                if (cart != null && productStore != null) {
-                    Locale localeObj = UtilMisc.parseLocale(newLocale);
-                    cart.setLocale(localeObj);
-                    try {
-                        cart.setCurrency(dispatcher, productStore.getString("defaultCurrencyUomId"));
-                    } catch (CartItemModifyException e) {
-                        Debug.logError(e, MODULE);
-                    }
-                }
-                session.removeAttribute("webSiteId");
-                session.setAttribute("webSiteId", webSiteId);
-                session.setAttribute("displayMaintenancePage", webSite.getString("displayMaintenancePage"));
-            }
-            request.setAttribute("webSiteId", webSiteId);
-            session.setAttribute("displayMaintenancePage", webSite.getString("displayMaintenancePage"));
-            if(UtilValidate.isEmpty(webSite.getString("hostedPathAlias"))) {
-                request.setAttribute("removePathAlias", false);
-            } else {
-                request.setAttribute("removePathAlias", true);
-            }
-            httpRequest = new MultiSiteRequestWrapper(httpRequest);
-            UtilHttp.setLocale(httpRequest, newLocale);
-        }
-        if (webSiteId != null) {
-            request.setAttribute("webSiteId", webSiteId);
-        }
-        chain.doFilter(httpRequest, response);
-    }
+		setWebContextObjects(httpRequest, httpResponse, delegator, dispatcher);
 
-    private static void setWebContextObjects(HttpServletRequest request, HttpServletResponse response, Delegator delegator, LocalDispatcher dispatcher) {
-        HttpSession session = request.getSession();
-        Security security = null;
-        try {
-            security = SecurityFactory.getInstance(delegator);
-        } catch (SecurityConfigurationException e) {
-            Debug.logError(e, MODULE);
-        }
-        request.setAttribute("delegator", delegator);
-        request.setAttribute("dispatcher", dispatcher);
-        request.setAttribute("security", security);
+		GenericValue webSite = null;
+		try {
+			if (UtilValidate.isNotEmpty(webSiteAlias) && webSite == null) {
+				webSite = EntityQuery.use(delegator).from("WebSite").where("hostedPathAlias", webSiteAlias).cache().queryFirst();
+			}
+			if (UtilValidate.isEmpty(webSite)) {
+				webSite = EntityQuery.use(delegator).from("WebSite").where("isDefault", "Y").cache().queryFirst();
+			}
+		} catch (GenericEntityException e) {
+			Debug.logError(e, MODULE);
+		}
+		if (webSite != null) {
+			webSiteId = webSite.getString("webSiteId");
+			GenericValue productStore = null;
+			try {
+				productStore = webSite.getRelatedOne("ProductStore", false);
+			} catch (GenericEntityException e) {
+				Debug.logError(e, MODULE);
+			}
 
-        session.setAttribute("delegatorName", delegator.getDelegatorName());
-        session.setAttribute("delegator", delegator);
-        session.setAttribute("dispatcher", dispatcher);
-        session.setAttribute("security", security);
-        session.setAttribute("_WEBAPP_NAME_", UtilHttp.getApplicationName(request));
-        
-        // get rid of the visit info since it was pointing to the previous database, and get a new one
-        session.removeAttribute("visitor");
-        session.removeAttribute("visit");
-        VisitHandler.getVisitor(request, response);
-        VisitHandler.getVisit(session);
-    }
-    @Override
-    public void destroy() {
-    }
+			String newLocale = request.getParameter("newLocale");
+			if (productStore != null && newLocale == null && session.getAttribute("locale") == null) {
+				newLocale = productStore.getString("defaultLocaleString");
+			} else if (newLocale == null && session.getAttribute("locale") != null) {
+				newLocale = session.getAttribute("locale").toString();
+			}
+
+			if (newLocale == null)
+				newLocale = UtilHttp.getLocale(httpRequest).toString();
+			// If the webSiteId has changed then invalidate the existing session
+			if (!webSiteId.equals(session.getAttribute("webSiteId"))) {
+				ShoppingCart cart = (ShoppingCart) session.getAttribute("shoppingCart");
+				if (cart != null && !(webSite.getString("productStoreId").equals(cart.getProductStoreId()))) {
+					// clearing cart items from previous store
+					cart.clear();
+					// Put product Store for this webSite in cart
+					cart.setProductStoreId(webSite.getString("productStoreId"));
+				}
+				if (cart != null && productStore != null) {
+					Locale localeObj = UtilMisc.parseLocale(newLocale);
+					cart.setLocale(localeObj);
+					try {
+						cart.setCurrency(dispatcher, productStore.getString("defaultCurrencyUomId"));
+					} catch (CartItemModifyException e) {
+						Debug.logError(e, MODULE);
+					}
+				}
+				session.removeAttribute("webSiteId");
+				session.setAttribute("webSiteId", webSiteId);
+				session.setAttribute("displayMaintenancePage", webSite.getString("displayMaintenancePage"));
+			}
+			request.setAttribute("webSiteId", webSiteId);
+			session.setAttribute("displayMaintenancePage", webSite.getString("displayMaintenancePage"));
+			if (UtilValidate.isEmpty(webSite.getString("hostedPathAlias"))) {
+				request.setAttribute("removePathAlias", false);
+			} else {
+				request.setAttribute("removePathAlias", true);
+			}
+			httpRequest = new MultiSiteRequestWrapper(httpRequest);
+			UtilHttp.setLocale(httpRequest, newLocale);
+		}
+		if (webSiteId != null) {
+			request.setAttribute("webSiteId", webSiteId);
+		}
+		chain.doFilter(httpRequest, response);
+	}
+
+	@Override
+	public void destroy() {
+	}
 }

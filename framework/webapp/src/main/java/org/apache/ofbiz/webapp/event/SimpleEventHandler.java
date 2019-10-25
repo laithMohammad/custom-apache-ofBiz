@@ -18,12 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.webapp.event;
 
-import java.util.Locale;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilHttp;
 import org.apache.ofbiz.base.util.UtilProperties;
@@ -35,60 +29,67 @@ import org.apache.ofbiz.webapp.control.ConfigXMLReader;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader.Event;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader.RequestMap;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Locale;
+
 /**
  * SimpleEventHandler - Simple Event Mini-Lang Handler
  */
 public class SimpleEventHandler implements EventHandler {
 
-    public static final String module = SimpleEventHandler.class.getName();
-    /** Contains the property file name for translation of error messages. */
-    public static final String err_resource = "WebappUiLabels";
+	public static final String module = SimpleEventHandler.class.getName();
+	/**
+	 * Contains the property file name for translation of error messages.
+	 */
+	public static final String err_resource = "WebappUiLabels";
 
-    /**
-     * @see org.apache.ofbiz.webapp.event.EventHandler#init(javax.servlet.ServletContext)
-     */
-    public void init(ServletContext context) throws EventHandlerException {
-    }
+	/**
+	 * @see org.apache.ofbiz.webapp.event.EventHandler#init(javax.servlet.ServletContext)
+	 */
+	public void init(ServletContext context) throws EventHandlerException {
+	}
 
-    /**
-     * @see org.apache.ofbiz.webapp.event.EventHandler#invoke(ConfigXMLReader.Event, ConfigXMLReader.RequestMap, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-     */
-    public String invoke(Event event, RequestMap requestMap, HttpServletRequest request, HttpServletResponse response) throws EventHandlerException {
-        boolean beganTransaction = false;
+	/**
+	 * @see org.apache.ofbiz.webapp.event.EventHandler#invoke(ConfigXMLReader.Event, ConfigXMLReader.RequestMap, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	public String invoke(Event event, RequestMap requestMap, HttpServletRequest request, HttpServletResponse response) throws EventHandlerException {
+		boolean beganTransaction = false;
 
-        String xmlResource = event.path;
-        String eventName = event.invoke;
-        Locale locale = UtilHttp.getLocale(request);
+		String xmlResource = event.path;
+		String eventName = event.invoke;
+		Locale locale = UtilHttp.getLocale(request);
 
-        if (Debug.verboseOn()) Debug.logVerbose("[Set path/method]: " + xmlResource + " / " + eventName, module);
+		if (Debug.verboseOn()) Debug.logVerbose("[Set path/method]: " + xmlResource + " / " + eventName, module);
 
-        if (xmlResource == null) {
-            throw new EventHandlerException("XML Resource (eventPath) cannot be null");
-        }
-        if (eventName == null) {
-            throw new EventHandlerException("Event Name (eventMethod) cannot be null");
-        }
+		if (xmlResource == null) {
+			throw new EventHandlerException("XML Resource (eventPath) cannot be null");
+		}
+		if (eventName == null) {
+			throw new EventHandlerException("Event Name (eventMethod) cannot be null");
+		}
 
-        Debug.logVerbose("[Processing]: SIMPLE Event", module);
-        try {
-            beganTransaction = TransactionUtil.begin();
-            String eventReturn = SimpleMethod.runSimpleEvent(xmlResource, eventName, request, response);
-            if (Debug.verboseOn()) Debug.logVerbose("[Event Return]: " + eventReturn, module);
-            return eventReturn;
-        } catch (MiniLangException e) {
-            Debug.logError(e, module);
-            String errMsg = UtilProperties.getMessage(SimpleEventHandler.err_resource, "simpleEventHandler.event_not_completed", (locale != null ? locale : Locale.getDefault())) + ": ";
-            request.setAttribute("_ERROR_MESSAGE_", errMsg + e.getMessage());
-            return "error";
-        } catch (GenericTransactionException e) {
-            Debug.logError(e, module);
-            return "error";
-        } finally {
-            try {
-                TransactionUtil.commit(beganTransaction);
-            } catch (GenericTransactionException e) {
-                Debug.logError(e, module);
-            }
-        }
-    }
+		Debug.logVerbose("[Processing]: SIMPLE Event", module);
+		try {
+			beganTransaction = TransactionUtil.begin();
+			String eventReturn = SimpleMethod.runSimpleEvent(xmlResource, eventName, request, response);
+			if (Debug.verboseOn()) Debug.logVerbose("[Event Return]: " + eventReturn, module);
+			return eventReturn;
+		} catch (MiniLangException e) {
+			Debug.logError(e, module);
+			String errMsg = UtilProperties.getMessage(SimpleEventHandler.err_resource, "simpleEventHandler.event_not_completed", (locale != null ? locale : Locale.getDefault())) + ": ";
+			request.setAttribute("_ERROR_MESSAGE_", errMsg + e.getMessage());
+			return "error";
+		} catch (GenericTransactionException e) {
+			Debug.logError(e, module);
+			return "error";
+		} finally {
+			try {
+				TransactionUtil.commit(beganTransaction);
+			} catch (GenericTransactionException e) {
+				Debug.logError(e, module);
+			}
+		}
+	}
 }

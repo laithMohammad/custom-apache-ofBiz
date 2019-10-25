@@ -19,18 +19,6 @@
 
 package org.apache.ofbiz.content.content;
 
-import java.io.IOException;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilHttp;
 import org.apache.ofbiz.base.util.UtilValidate;
@@ -41,67 +29,72 @@ import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.webapp.WebAppUtil;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 public class ContentUrlFilter implements Filter {
-    public final static String module = ContentUrlFilter.class.getName();
-    private FilterConfig config;
+	public final static String module = ContentUrlFilter.class.getName();
+	private FilterConfig config;
 
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        this.config = filterConfig;
-    }
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		this.config = filterConfig;
+	}
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)  throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        Delegator delegator = (Delegator) httpRequest.getSession().getServletContext().getAttribute("delegator");
-        
-        String urlContentId = null;
-        String pathInfo = UtilHttp.getFullRequestUrl(httpRequest);
-        if (UtilValidate.isNotEmpty(pathInfo)) {
-            String alternativeUrl = pathInfo.substring(pathInfo.lastIndexOf("/"));
-            if (alternativeUrl.endsWith("-content")) {
-                try {
-                    GenericValue contentDataResourceView = EntityQuery.use(delegator).from("ContentDataResourceView")
-                            .where("drObjectInfo", alternativeUrl)
-                            .orderBy("createdDate DESC").queryFirst();
-                    if (contentDataResourceView != null) {
-                        GenericValue content = EntityQuery.use(delegator).from("ContentAssoc")
-                                .where("contentAssocTypeId", "ALTERNATIVE_URL", 
-                                        "contentIdTo", contentDataResourceView.get("contentId"))
-                                .filterByDate().queryFirst();
-                        if (content != null) {
-                            urlContentId = content.getString("contentId");
-                        }
-                    }
-                } catch (GenericEntityException gee) {
-                    Debug.logWarning(gee.getMessage(), module);
-                } catch (Exception e) {
-                    Debug.logWarning(e.getMessage(), module);
-                }
-            }
-            if (UtilValidate.isNotEmpty(urlContentId)) {
-                StringBuilder urlBuilder = new StringBuilder();
-                urlBuilder.append("/" + WebAppUtil.CONTROL_MOUNT_POINT);
-                urlBuilder.append("/" + config.getInitParameter("viewRequest") + "?contentId=" + urlContentId);
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		HttpServletResponse httpResponse = (HttpServletResponse) response;
+		Delegator delegator = (Delegator) httpRequest.getSession().getServletContext().getAttribute("delegator");
 
-                //Set view query parameters
-                UrlServletHelper.setViewQueryParameters(request, urlBuilder);
-                Debug.logInfo("[Filtered request]: " + pathInfo + " (" + urlBuilder + ")", module);
-                RequestDispatcher dispatch = request.getRequestDispatcher(urlBuilder.toString());
-                dispatch.forward(request, response);
-                return;
-            }
-            
-            //Check path alias
-            UrlServletHelper.checkPathAlias(request, httpResponse, delegator, pathInfo);
-        }
-        // we're done checking; continue on
-        chain.doFilter(request, response);
-    }
+		String urlContentId = null;
+		String pathInfo = UtilHttp.getFullRequestUrl(httpRequest);
+		if (UtilValidate.isNotEmpty(pathInfo)) {
+			String alternativeUrl = pathInfo.substring(pathInfo.lastIndexOf("/"));
+			if (alternativeUrl.endsWith("-content")) {
+				try {
+					GenericValue contentDataResourceView = EntityQuery.use(delegator).from("ContentDataResourceView")
+							.where("drObjectInfo", alternativeUrl)
+							.orderBy("createdDate DESC").queryFirst();
+					if (contentDataResourceView != null) {
+						GenericValue content = EntityQuery.use(delegator).from("ContentAssoc")
+								.where("contentAssocTypeId", "ALTERNATIVE_URL",
+										"contentIdTo", contentDataResourceView.get("contentId"))
+								.filterByDate().queryFirst();
+						if (content != null) {
+							urlContentId = content.getString("contentId");
+						}
+					}
+				} catch (GenericEntityException gee) {
+					Debug.logWarning(gee.getMessage(), module);
+				} catch (Exception e) {
+					Debug.logWarning(e.getMessage(), module);
+				}
+			}
+			if (UtilValidate.isNotEmpty(urlContentId)) {
+				StringBuilder urlBuilder = new StringBuilder();
+				urlBuilder.append("/" + WebAppUtil.CONTROL_MOUNT_POINT);
+				urlBuilder.append("/" + config.getInitParameter("viewRequest") + "?contentId=" + urlContentId);
 
-    @Override
-    public void destroy() {
+				//Set view query parameters
+				UrlServletHelper.setViewQueryParameters(request, urlBuilder);
+				Debug.logInfo("[Filtered request]: " + pathInfo + " (" + urlBuilder + ")", module);
+				RequestDispatcher dispatch = request.getRequestDispatcher(urlBuilder.toString());
+				dispatch.forward(request, response);
+				return;
+			}
 
-    }
+			//Check path alias
+			UrlServletHelper.checkPathAlias(request, httpResponse, delegator, pathInfo);
+		}
+		// we're done checking; continue on
+		chain.doFilter(request, response);
+	}
+
+	@Override
+	public void destroy() {
+
+	}
 }

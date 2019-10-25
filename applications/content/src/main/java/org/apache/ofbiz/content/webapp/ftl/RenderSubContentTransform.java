@@ -18,17 +18,8 @@
  *******************************************************************************/
 package org.apache.ofbiz.content.webapp.ftl;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-
+import freemarker.core.Environment;
+import freemarker.template.TemplateTransformModel;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.base.util.UtilDateTime;
@@ -40,8 +31,15 @@ import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.webapp.website.WebSiteWorker;
 
-import freemarker.core.Environment;
-import freemarker.template.TemplateTransformModel;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.Writer;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * RenderSubContentTransform - Freemarker Transform for Content rendering
@@ -49,115 +47,115 @@ import freemarker.template.TemplateTransformModel;
  */
 public class RenderSubContentTransform implements TemplateTransformModel {
 
-    public static final String module = RenderSubContentTransform.class.getName();
+	public static final String module = RenderSubContentTransform.class.getName();
 
-    /**
-     * @deprecated use FreeMarkerWorker.getArg()
-     * Does a conditional search to return a value for a parameter with the passed name. Looks first to see if it was passed as an argument to the transform.
-     * Secondly, it looks to see if it is passed as a parameter in the template context object.
-     * <p/>
-     * Note that this is different from the getArg method of EditRenderDataResourceTransform, which checks the request object instead of the template context
-     * object.
-     */
-    @Deprecated
-    public static String getArg(Map<String, Object> args, String key, Environment env) {
-        return FreeMarkerWorker.getArg(args, key, env);
-    }
+	/**
+	 * @deprecated use FreeMarkerWorker.getArg()
+	 * Does a conditional search to return a value for a parameter with the passed name. Looks first to see if it was passed as an argument to the transform.
+	 * Secondly, it looks to see if it is passed as a parameter in the template context object.
+	 * <p/>
+	 * Note that this is different from the getArg method of EditRenderDataResourceTransform, which checks the request object instead of the template context
+	 * object.
+	 */
+	@Deprecated
+	public static String getArg(Map<String, Object> args, String key, Environment env) {
+		return FreeMarkerWorker.getArg(args, key, env);
+	}
 
-    /**
-     * @deprecated use FreeMarkerWorker.getArg()
-     */
-    @Deprecated
-    public static String getArg(Map<String, Object> args, String key, Map<String, Object> ctx) {
-        return FreeMarkerWorker.getArg(args, key, ctx);
-    }
+	/**
+	 * @deprecated use FreeMarkerWorker.getArg()
+	 */
+	@Deprecated
+	public static String getArg(Map<String, Object> args, String key, Map<String, Object> ctx) {
+		return FreeMarkerWorker.getArg(args, key, ctx);
+	}
 
-    @SuppressWarnings("unchecked")
-    public Writer getWriter(final Writer out, Map args) {
-        final Environment env = Environment.getCurrentEnvironment();
-        Map<String, Object> ctx = FreeMarkerWorker.getWrappedObject("context", env);
-        if (ctx == null) {
-            ctx = new HashMap<String, Object>();
-        }
-        final String mapKey = FreeMarkerWorker.getArg(args, "mapKey", ctx);
-        final String subContentId = FreeMarkerWorker.getArg(args, "subContentId", ctx);
-        final String contentId = FreeMarkerWorker.getArg(args, "contentId", ctx);
-        final String mimeTypeId = FreeMarkerWorker.getArg(args, "mimeTypeId", ctx);
-        final String throwExceptionOnError = FreeMarkerWorker.getArg(args, "throwExceptionOnError", ctx);
-        final Locale locale = FreeMarkerWorker.getWrappedObject("locale", env);
-        final HttpServletRequest request = FreeMarkerWorker.getWrappedObject("request", env);
-        final LocalDispatcher dispatcher = FreeMarkerWorker.getWrappedObject("dispatcher", env);
-        final Delegator delegator = FreeMarkerWorker.getWrappedObject("delegator", env);
-        final GenericValue userLogin = FreeMarkerWorker.getWrappedObject("userLogin", env);
-        GenericValue subContentDataResourceViewTemp = FreeMarkerWorker.getWrappedObject("subContentDataResourceView", env);
-        if (subContentDataResourceViewTemp == null) {
-            List<String> assocTypes = UtilMisc.toList("SUB_CONTENT");
-            Timestamp fromDate = UtilDateTime.nowTimestamp();
-            try {
-                subContentDataResourceViewTemp = ContentWorker.getSubContent(delegator, contentId, mapKey, subContentId, userLogin, assocTypes, fromDate);
-            } catch (IOException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        }
+	@SuppressWarnings("unchecked")
+	public Writer getWriter(final Writer out, Map args) {
+		final Environment env = Environment.getCurrentEnvironment();
+		Map<String, Object> ctx = FreeMarkerWorker.getWrappedObject("context", env);
+		if (ctx == null) {
+			ctx = new HashMap<String, Object>();
+		}
+		final String mapKey = FreeMarkerWorker.getArg(args, "mapKey", ctx);
+		final String subContentId = FreeMarkerWorker.getArg(args, "subContentId", ctx);
+		final String contentId = FreeMarkerWorker.getArg(args, "contentId", ctx);
+		final String mimeTypeId = FreeMarkerWorker.getArg(args, "mimeTypeId", ctx);
+		final String throwExceptionOnError = FreeMarkerWorker.getArg(args, "throwExceptionOnError", ctx);
+		final Locale locale = FreeMarkerWorker.getWrappedObject("locale", env);
+		final HttpServletRequest request = FreeMarkerWorker.getWrappedObject("request", env);
+		final LocalDispatcher dispatcher = FreeMarkerWorker.getWrappedObject("dispatcher", env);
+		final Delegator delegator = FreeMarkerWorker.getWrappedObject("delegator", env);
+		final GenericValue userLogin = FreeMarkerWorker.getWrappedObject("userLogin", env);
+		GenericValue subContentDataResourceViewTemp = FreeMarkerWorker.getWrappedObject("subContentDataResourceView", env);
+		if (subContentDataResourceViewTemp == null) {
+			List<String> assocTypes = UtilMisc.toList("SUB_CONTENT");
+			Timestamp fromDate = UtilDateTime.nowTimestamp();
+			try {
+				subContentDataResourceViewTemp = ContentWorker.getSubContent(delegator, contentId, mapKey, subContentId, userLogin, assocTypes, fromDate);
+			} catch (IOException e) {
+				throw new RuntimeException(e.getMessage());
+			}
+		}
 
-        final GenericValue subContentDataResourceView = subContentDataResourceViewTemp;
+		final GenericValue subContentDataResourceView = subContentDataResourceViewTemp;
 
 
-        final Map<String, Object> templateContext = ctx;
+		final Map<String, Object> templateContext = ctx;
 
-        return new Writer(out) {
+		return new Writer(out) {
 
-            @Override
-            public void write(char cbuf[], int off, int len) {
-            }
+			@Override
+			public void write(char cbuf[], int off, int len) {
+			}
 
-            @Override
-            public void flush() throws IOException {
-                out.flush();
-            }
+			@Override
+			public void flush() throws IOException {
+				out.flush();
+			}
 
-            @Override
-            public void close() throws IOException {
-                try {
-                    renderSubContent();
-                } catch (IOException e) {
-                    if (!"false".equals(throwExceptionOnError)) {
-                        throw new IOException(e.getMessage());
-                    }
-                }
-            }
+			@Override
+			public void close() throws IOException {
+				try {
+					renderSubContent();
+				} catch (IOException e) {
+					if (!"false".equals(throwExceptionOnError)) {
+						throw new IOException(e.getMessage());
+					}
+				}
+			}
 
-            public void renderSubContent() throws IOException {
-                ServletContext servletContext = request.getSession().getServletContext();
-                String rootDir = servletContext.getRealPath("/");
-                String webSiteId = WebSiteWorker.getWebSiteId(request);
-                String https = (String) servletContext.getAttribute("https");
-                templateContext.put("webSiteId", webSiteId);
-                templateContext.put("https", https);
-                templateContext.put("rootDir", rootDir);
+			public void renderSubContent() throws IOException {
+				ServletContext servletContext = request.getSession().getServletContext();
+				String rootDir = servletContext.getRealPath("/");
+				String webSiteId = WebSiteWorker.getWebSiteId(request);
+				String https = (String) servletContext.getAttribute("https");
+				templateContext.put("webSiteId", webSiteId);
+				templateContext.put("https", https);
+				templateContext.put("rootDir", rootDir);
 
-                Map<String, Object> templateRoot = FreeMarkerWorker.createEnvironmentMap(env);
+				Map<String, Object> templateRoot = FreeMarkerWorker.createEnvironmentMap(env);
 
-                templateRoot.put("context", templateContext);
-                if (subContentDataResourceView != null) {
-                }
-                try {
-                    if (subContentId != null) {
-                        ContentWorker.renderContentAsText(dispatcher, delegator, subContentId, out, templateRoot, locale, mimeTypeId, null, null, false);
-                    } else {
-                        ContentWorker.renderSubContentAsText(dispatcher, delegator, contentId, out, mapKey, templateRoot, locale, mimeTypeId, false);
-                    }
-                } catch (GeneralException e) {
-                    Debug.logError(e, "Error rendering content", module);
-                    throw new IOException("Error rendering content" + e.toString());
-                }
-                templateContext.put("mapKey", null);
-                templateContext.put("subContentId", null);
-                templateContext.put("subDataResourceTypeId", null);
-                templateContext.put("contentId", contentId);
-                templateContext.put("mimeTypeId", null);
-                templateContext.put("locale", locale);
-            }
-        };
-    }
+				templateRoot.put("context", templateContext);
+				if (subContentDataResourceView != null) {
+				}
+				try {
+					if (subContentId != null) {
+						ContentWorker.renderContentAsText(dispatcher, delegator, subContentId, out, templateRoot, locale, mimeTypeId, null, null, false);
+					} else {
+						ContentWorker.renderSubContentAsText(dispatcher, delegator, contentId, out, mapKey, templateRoot, locale, mimeTypeId, false);
+					}
+				} catch (GeneralException e) {
+					Debug.logError(e, "Error rendering content", module);
+					throw new IOException("Error rendering content" + e.toString());
+				}
+				templateContext.put("mapKey", null);
+				templateContext.put("subContentId", null);
+				templateContext.put("subDataResourceTypeId", null);
+				templateContext.put("contentId", contentId);
+				templateContext.put("mimeTypeId", null);
+				templateContext.put("locale", locale);
+			}
+		};
+	}
 }

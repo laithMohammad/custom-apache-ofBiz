@@ -30,19 +30,19 @@ import org.apache.ofbiz.base.util.GeneralException;
 @SuppressWarnings("serial")
 public class ScreenRenderException extends GeneralException {
 
-    public ScreenRenderException() {
-        super();
-    }
+	public ScreenRenderException() {
+		super();
+	}
 
-    public ScreenRenderException(Throwable nested) {
-        super(nested);
-    }
+	public ScreenRenderException(Throwable nested) {
+		super(nested);
+	}
 
-    public ScreenRenderException(String str) {
-        super(str);
-    }
+	public ScreenRenderException(String str) {
+		super(str);
+	}
 
-    public ScreenRenderException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public ScreenRenderException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

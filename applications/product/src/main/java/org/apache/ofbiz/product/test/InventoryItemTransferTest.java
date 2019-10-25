@@ -19,57 +19,57 @@
 
 package org.apache.ofbiz.product.test;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.UtilDateTime;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.service.testtools.OFBizTestCase;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+
 public class InventoryItemTransferTest extends OFBizTestCase {
 
-    protected GenericValue userLogin = null;
-    protected static String inventoryTransferId = null;
-    protected BigDecimal transferQty = BigDecimal.ONE;
+	protected static String inventoryTransferId = null;
+	protected GenericValue userLogin = null;
+	protected BigDecimal transferQty = BigDecimal.ONE;
 
-    public InventoryItemTransferTest(String name) {
-        super(name);
-    }
+	public InventoryItemTransferTest(String name) {
+		super(name);
+	}
 
-    @Override
-    protected void setUp() throws Exception {
-        userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").queryOne();
-    }
+	@Override
+	protected void setUp() throws Exception {
+		userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").queryOne();
+	}
 
-    @Override
-    protected void tearDown() throws Exception {
-    }
+	@Override
+	protected void tearDown() throws Exception {
+	}
 
-    public void testCreateInventoryItemsTransfer() throws Exception {
-        // create
-        Map<String, Object> ctx = new HashMap<String, Object>();
-        String inventoryItemId = "9005";
-        ctx.put("inventoryItemId", inventoryItemId);
-        ctx.put("statusId", "IXF_REQUESTED");
-        ctx.put("facilityId", "WebStoreWarehouse");
-        ctx.put("facilityIdTo", "WebStoreWarehouse");
-        ctx.put("receiveDate", UtilDateTime.nowTimestamp());
-        ctx.put("xferQty", transferQty);
-        ctx.put("userLogin", userLogin);
-        Map<String, Object> resp = dispatcher.runSync("createInventoryTransfer", ctx);
-        inventoryTransferId = (String) resp.get("inventoryTransferId");
-        assertNotNull(inventoryTransferId);
+	public void testCreateInventoryItemsTransfer() throws Exception {
+		// create
+		Map<String, Object> ctx = new HashMap<String, Object>();
+		String inventoryItemId = "9005";
+		ctx.put("inventoryItemId", inventoryItemId);
+		ctx.put("statusId", "IXF_REQUESTED");
+		ctx.put("facilityId", "WebStoreWarehouse");
+		ctx.put("facilityIdTo", "WebStoreWarehouse");
+		ctx.put("receiveDate", UtilDateTime.nowTimestamp());
+		ctx.put("xferQty", transferQty);
+		ctx.put("userLogin", userLogin);
+		Map<String, Object> resp = dispatcher.runSync("createInventoryTransfer", ctx);
+		inventoryTransferId = (String) resp.get("inventoryTransferId");
+		assertNotNull(inventoryTransferId);
 
-        // transfer
-        ctx = new HashMap<String, Object>();
-        ctx.put("inventoryTransferId", inventoryTransferId);
-        ctx.put("inventoryItemId", inventoryItemId);
-        ctx.put("statusId", "IXF_COMPLETE");
-        ctx.put("userLogin", userLogin);
-        resp = dispatcher.runSync("updateInventoryTransfer", ctx);
-        String respMsg = (String) resp.get("responseMessage");
-        assertNotSame("error", respMsg);
-    }
+		// transfer
+		ctx = new HashMap<String, Object>();
+		ctx.put("inventoryTransferId", inventoryTransferId);
+		ctx.put("inventoryItemId", inventoryItemId);
+		ctx.put("statusId", "IXF_COMPLETE");
+		ctx.put("userLogin", userLogin);
+		resp = dispatcher.runSync("updateInventoryTransfer", ctx);
+		String respMsg = (String) resp.get("responseMessage");
+		assertNotSame("error", respMsg);
+	}
 }

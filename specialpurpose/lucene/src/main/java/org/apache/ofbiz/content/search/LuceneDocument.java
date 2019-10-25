@@ -18,14 +18,13 @@
  *******************************************************************************/
 package org.apache.ofbiz.content.search;
 
-import org.apache.ofbiz.entity.Delegator;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
+import org.apache.ofbiz.entity.Delegator;
 
 public interface LuceneDocument {
 
-    public Term getDocumentIdentifier();
+	public Term getDocumentIdentifier();
 
-    public Document prepareDocument(Delegator delegator);
+	public Document prepareDocument(Delegator delegator);
 }

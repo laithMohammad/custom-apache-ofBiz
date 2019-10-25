@@ -18,16 +18,14 @@
  */
 package org.apache.ofbiz.base.lang;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
-/** Identifies the valid state(s) of a field or variable. */
+/**
+ * Identifies the valid state(s) of a field or variable.
+ */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target({ElementType.FIELD, ElementType.LOCAL_VARIABLE})
 public @interface ClassInvariant {
-    String value();
+	String value();
 }

@@ -28,30 +28,32 @@ import org.w3c.dom.Element;
  */
 public final class StringObject extends MethodObject<String> {
 
-    private final FlexibleStringExpander cdataValueFse;
-    private final FlexibleStringExpander valueFse;
+	private final FlexibleStringExpander cdataValueFse;
+	private final FlexibleStringExpander valueFse;
 
-    public StringObject(Element element, SimpleMethod simpleMethod) {
-        super(element, simpleMethod);
-        this.cdataValueFse = FlexibleStringExpander.getInstance(UtilXml.elementValue(element));
-        this.valueFse = FlexibleStringExpander.getInstance(element.getAttribute("value"));
-    }
+	public StringObject(Element element, SimpleMethod simpleMethod) {
+		super(element, simpleMethod);
+		this.cdataValueFse = FlexibleStringExpander.getInstance(UtilXml.elementValue(element));
+		this.valueFse = FlexibleStringExpander.getInstance(element.getAttribute("value"));
+	}
 
-    @Override
-    public String getObject(MethodContext methodContext) {
-        String value = this.valueFse.expandString(methodContext.getEnvMap());
-        String cdataValue = this.cdataValueFse.expandString(methodContext.getEnvMap());
-        return value.concat(cdataValue);
-    }
+	@Override
+	public String getObject(MethodContext methodContext) {
+		String value = this.valueFse.expandString(methodContext.getEnvMap());
+		String cdataValue = this.cdataValueFse.expandString(methodContext.getEnvMap());
+		return value.concat(cdataValue);
+	}
 
-    @Override
-    public Class<String> getTypeClass(MethodContext methodContext) throws ClassNotFoundException {
-        return java.lang.String.class;
-    }
+	@Override
+	public Class<String> getTypeClass(MethodContext methodContext) throws ClassNotFoundException {
+		return java.lang.String.class;
+	}
 
-    /** Get the name for the type of the object */
-    @Override
-    public String getTypeName() {
-        return "java.lang.String";
-    }
+	/**
+	 * Get the name for the type of the object
+	 */
+	@Override
+	public String getTypeName() {
+		return "java.lang.String";
+	}
 }

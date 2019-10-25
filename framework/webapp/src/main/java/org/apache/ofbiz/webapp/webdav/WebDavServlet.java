@@ -18,18 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.webapp.webdav;
 
-import java.io.IOException;
-
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.DelegatorFactory;
@@ -38,7 +26,14 @@ import org.apache.ofbiz.security.SecurityFactory;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ServiceContainer;
 
-/** Implements a WebDAV servlet. The servlet simply forwards WebDAV requests
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+
+/**
+ * Implements a WebDAV servlet. The servlet simply forwards WebDAV requests
  * to a <code>RequestHandlerFactory</code> instance, whose class is specified
  * in the web application's web.xml file:<p><code>
  * &lt;context-param&gt;<br>
@@ -49,61 +44,61 @@ import org.apache.ofbiz.service.ServiceContainer;
 @SuppressWarnings("serial")
 public class WebDavServlet extends GenericServlet {
 
-    public static final String module = WebDavServlet.class.getName();
+	public static final String module = WebDavServlet.class.getName();
 
-    protected Delegator delegator = null;
-    protected LocalDispatcher dispatcher = null;
-    protected RequestHandlerFactory handlerFactory = null;
-    protected Security security = null;
+	protected Delegator delegator = null;
+	protected LocalDispatcher dispatcher = null;
+	protected RequestHandlerFactory handlerFactory = null;
+	protected Security security = null;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException{
-        try {
-            super.init(config);
-            ServletContext context = this.getServletContext();
-            String delegatorName = context.getInitParameter("entityDelegatorName");
-            this.delegator = DelegatorFactory.getDelegator(delegatorName);
-            String dispatcherName = context.getInitParameter("localDispatcherName");
-            this.dispatcher = ServiceContainer.getLocalDispatcher(dispatcherName, this.delegator);
-            this.security = SecurityFactory.getInstance(this.delegator);
-            String factoryClassName = context.getInitParameter("requestHandlerFactoryClass");
-            this.handlerFactory = (RequestHandlerFactory) Class.forName(factoryClassName).newInstance();
-        } catch (Exception e) {
-            Debug.logError(e, "Error while initializing WebDAV servlet: ", module);
-            throw new ServletException(e);
-        }
-        if (Debug.verboseOn()) {
-            StringBuilder buff = new StringBuilder("WebDAV servlet initialized: delegator = ");
-            buff.append(this.delegator.getDelegatorName());
-            buff.append(", dispatcher = ");
-            buff.append(this.dispatcher.getName());
-            buff.append(", security = ");
-            buff.append(this.security.getClass().getName());
-            buff.append(", handler factory = ");
-            buff.append(this.handlerFactory.getClass().getName());
-            Debug.logVerbose(buff.toString(), module);
-        }
-    }
+	@Override
+	public void init(ServletConfig config) throws ServletException {
+		try {
+			super.init(config);
+			ServletContext context = this.getServletContext();
+			String delegatorName = context.getInitParameter("entityDelegatorName");
+			this.delegator = DelegatorFactory.getDelegator(delegatorName);
+			String dispatcherName = context.getInitParameter("localDispatcherName");
+			this.dispatcher = ServiceContainer.getLocalDispatcher(dispatcherName, this.delegator);
+			this.security = SecurityFactory.getInstance(this.delegator);
+			String factoryClassName = context.getInitParameter("requestHandlerFactoryClass");
+			this.handlerFactory = (RequestHandlerFactory) Class.forName(factoryClassName).newInstance();
+		} catch (Exception e) {
+			Debug.logError(e, "Error while initializing WebDAV servlet: ", module);
+			throw new ServletException(e);
+		}
+		if (Debug.verboseOn()) {
+			StringBuilder buff = new StringBuilder("WebDAV servlet initialized: delegator = ");
+			buff.append(this.delegator.getDelegatorName());
+			buff.append(", dispatcher = ");
+			buff.append(this.dispatcher.getName());
+			buff.append(", security = ");
+			buff.append(this.security.getClass().getName());
+			buff.append(", handler factory = ");
+			buff.append(this.handlerFactory.getClass().getName());
+			Debug.logVerbose(buff.toString(), module);
+		}
+	}
 
-    @Override
-    public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
-        request.setAttribute("delegator", this.delegator);
-        request.setAttribute("dispatcher", this.dispatcher);
-        request.setAttribute("security", this.security);
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        RequestHandler handler = this.handlerFactory.getHandler(httpRequest.getMethod());
-        try {
-            handler.handleRequest(httpRequest, (HttpServletResponse) response, this.getServletContext());
-        } catch (IOException e) {
-            throw e;
-        } catch (ServletException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServletException(e);
-        } finally {
-            HttpSession session = httpRequest.getSession();
-            session.invalidate();
-        }
-    }
+	@Override
+	public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+		request.setAttribute("delegator", this.delegator);
+		request.setAttribute("dispatcher", this.dispatcher);
+		request.setAttribute("security", this.security);
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		RequestHandler handler = this.handlerFactory.getHandler(httpRequest.getMethod());
+		try {
+			handler.handleRequest(httpRequest, (HttpServletResponse) response, this.getServletContext());
+		} catch (IOException e) {
+			throw e;
+		} catch (ServletException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ServletException(e);
+		} finally {
+			HttpSession session = httpRequest.getSession();
+			session.invalidate();
+		}
+	}
 
 }

@@ -18,275 +18,273 @@
  *******************************************************************************/
 package org.apache.ofbiz.content.content;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.UtilGenerics;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.entity.GenericValue;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 /**
  * PermissionRecorder Class
- *
+ * <p>
  * Services for granting operation permissions on Content entities in a data-driven manner.
  */
 public class PermissionRecorder {
 
 
-    protected boolean isOn = false;
-    protected GenericValue userLogin;
-    protected List<Map<String, Object>> permCheckResults = new LinkedList<Map<String,Object>>();
-    protected boolean entityPermCheckResult = false;
-    protected String currentContentId = "";
-    protected Map<String, Object> currentContentMap;
-    protected String privilegeEnumId;
-    protected int currentCheckMode;
-    protected GenericValue [] contentPurposeOperations;
-    protected String [] statusTargets;
-    protected String [] targetOperations;
+	public static final String module = PermissionRecorder.class.getName();
+	public static final String[] opFields = {"contentPurposeTypeId", "contentOperationId", "roleTypeId", "statusId", "privilegeEnumId"};
+	public static final String[] fieldTitles = {"Purpose", "Operation", "Role", "Status", "Privilege"};
+	protected boolean isOn = false;
+	protected GenericValue userLogin;
+	protected List<Map<String, Object>> permCheckResults = new LinkedList<Map<String, Object>>();
+	protected boolean entityPermCheckResult = false;
+	protected String currentContentId = "";
+	protected Map<String, Object> currentContentMap;
+	protected String privilegeEnumId;
+	protected int currentCheckMode;
+	protected GenericValue[] contentPurposeOperations;
+	protected String[] statusTargets;
+	protected String[] targetOperations;
 
-    public static final String module = PermissionRecorder.class.getName();
+	public PermissionRecorder() {
+		isOn = UtilProperties.propertyValueEqualsIgnoreCase("content", "permissionRecorderOn", "true");
+	}
 
-    public static final String [] opFields = { "contentPurposeTypeId", "contentOperationId", "roleTypeId", "statusId", "privilegeEnumId"};
-    public static final String [] fieldTitles = { "Purpose", "Operation", "Role", "Status", "Privilege"};
+	public int getCheckMode() {
+		return currentCheckMode;
+	}
 
-    public PermissionRecorder() {
-        isOn = UtilProperties.propertyValueEqualsIgnoreCase("content", "permissionRecorderOn", "true");
-    }
+	public void setCheckMode(int val) {
+		currentCheckMode = val;
+	}
 
-    public void setCheckMode(int val) {
-        currentCheckMode = val;
-    }
+	public boolean isOn() {
+		return isOn;
+	}
 
-    public int getCheckMode() {
-        return currentCheckMode;
-    }
+	public void setOn(boolean b) {
+		isOn = b;
+	}
 
-    public boolean isOn() {
-        return isOn;
-    }
+	public GenericValue getUserLogin() {
+		return userLogin;
+	}
 
-    public void setOn(boolean b) {
-        isOn = b;
-    }
+	public void setUserLogin(GenericValue user) {
+		userLogin = user;
+	}
 
-    public void setUserLogin(GenericValue user) {
-        userLogin = user;
-    }
+	public boolean getEntityPermCheckResult() {
+		return entityPermCheckResult;
+	}
 
-    public GenericValue getUserLogin() {
-        return userLogin;
-    }
+	public void setEntityPermCheckResult(boolean b) {
+		entityPermCheckResult = b;
+	}
 
-    public boolean getEntityPermCheckResult() {
-        return entityPermCheckResult;
-    }
+	public GenericValue[] getContentPurposeOperations() {
+		return contentPurposeOperations;
+	}
 
-    public void setEntityPermCheckResult(boolean b) {
-        entityPermCheckResult = b;
-    }
+	public void setContentPurposeOperations(List<GenericValue> opList) {
+		contentPurposeOperations = opList.toArray(new GenericValue[opList.size()]);
+	}
 
-    public GenericValue [] getContentPurposeOperations() {
-       return contentPurposeOperations;
-    }
+	public String getPrivilegeEnumId() {
+		return privilegeEnumId;
+	}
 
-    public void setContentPurposeOperations(List<GenericValue> opList) {
-       contentPurposeOperations = opList.toArray(new GenericValue[opList.size()]);
-    }
+	public void setPrivilegeEnumId(String id) {
+		privilegeEnumId = id;
+	}
 
-    public void setPrivilegeEnumId(String id) {
-        privilegeEnumId = id;
-    }
+	public String[] getStatusTargets() {
+		return statusTargets;
+	}
 
-    public String getPrivilegeEnumId() {
-        return privilegeEnumId;
-    }
+	public void setStatusTargets(List<String> opList) {
+		statusTargets = opList.toArray(new String[opList.size()]);
+	}
 
-    public String [] getStatusTargets() {
-       return statusTargets;
-    }
+	public String[] getTargetOperations() {
+		return targetOperations;
+	}
 
-    public void setStatusTargets(List<String> opList) {
-       statusTargets = opList.toArray(new String[opList.size()]);
-    }
+	public void setTargetOperations(List<String> opList) {
+		targetOperations = opList.toArray(new String[opList.size()]);
+	}
 
-    public String [] getTargetOperations() {
-       return targetOperations;
-    }
+	public String getCurrentContentId() {
+		return currentContentId;
+	}
 
-    public void setTargetOperations(List<String> opList) {
-       targetOperations = opList.toArray(new String[opList.size()]);
-    }
+	public void setCurrentContentId(String id) {
+		if (!currentContentId.equals(id)) {
+			currentContentMap = new HashMap<String, Object>();
+			permCheckResults.add(currentContentMap);
+			currentContentMap.put("contentId", id);
+			currentContentMap.put("checkResults", new LinkedList());
+		}
+		currentContentId = id;
+	}
 
-    public void setCurrentContentId(String id) {
-        if (!currentContentId.equals(id)) {
-            currentContentMap = new HashMap<String, Object>();
-            permCheckResults.add(currentContentMap);
-            currentContentMap.put("contentId", id);
-            currentContentMap.put("checkResults", new LinkedList());
-        }
-        currentContentId = id;
-    }
+	public void setRoles(List<String> roles) {
+		if (currentContentMap != null) {
+			if (roles != null)
+				currentContentMap.put("roles", roles.toArray());
+			else
+				currentContentMap.put("roles", null);
+		}
+	}
 
-    public String getCurrentContentId() {
-        return currentContentId;
-    }
+	public void setPurposes(List<String> purposes) {
+		if (currentContentMap != null) {
+			if (purposes != null)
+				currentContentMap.put("purposes", purposes.toArray());
+			else
+				currentContentMap.put("purposes", null);
+		}
+	}
 
-    public void setRoles(List<String> roles) {
-        if (currentContentMap != null) {
-            if (roles != null)
-                currentContentMap.put("roles", roles.toArray());
-            else
-                currentContentMap.put("roles", null);
-        }
-    }
+	public void startMatchGroup(List<String> targetOperations, List<String> purposes, List<String> roles, List<String> targStatusList, String targPrivilegeEnumId, String contentId) {
+		currentContentMap = new HashMap<String, Object>();
+		permCheckResults.add(currentContentMap);
+		String s = null;
+		if (targetOperations != null) {
+			s = targetOperations.toString();
+			currentContentMap.put("contentOperationId", s);
+		}
+		if (purposes != null) {
+			s = purposes.toString();
+			currentContentMap.put("contentPurposeTypeId", s);
+		}
+		if (roles != null) {
+			s = roles.toString();
+			currentContentMap.put("roleTypeId", s);
+		}
+		if (targStatusList != null) {
+			s = targStatusList.toString();
+			currentContentMap.put("statusId", s);
+		}
+		List<Map<String, Object>> checkResultList = new LinkedList<Map<String, Object>>();
+		currentContentMap.put("privilegeEnumId", privilegeEnumId);
+		currentContentMap.put("contentId", contentId);
+		currentContentMap.put("checkResultList", checkResultList);
+		currentContentMap.put("matches", null);
+		currentContentId = contentId;
+	}
 
-    public void setPurposes(List<String> purposes) {
-        if (currentContentMap != null) {
-            if (purposes != null)
-                currentContentMap.put("purposes", purposes.toArray());
-            else
-                currentContentMap.put("purposes", null);
-        }
-    }
+	public void record(GenericValue purposeOp, boolean targetOpCond, boolean purposeCond, boolean statusCond, boolean privilegeCond, boolean roleCond) {
+		Map<String, Object> map = UtilMisc.makeMapWritable(purposeOp);
+		map.put("contentOperationIdCond", Boolean.valueOf(targetOpCond));
+		map.put("contentPurposeTypeIdCond", Boolean.valueOf(purposeCond));
+		map.put("statusIdCond", Boolean.valueOf(statusCond));
+		map.put("privilegeEnumIdCond", Boolean.valueOf(privilegeCond));
+		map.put("roleTypeIdCond", Boolean.valueOf(roleCond));
+		map.put("contentId", currentContentId);
+		List<Map<String, Object>> checkResultList = UtilGenerics.checkList(currentContentMap.get("checkResultList"));
+		checkResultList.add(map);
+	}
 
-    public void startMatchGroup(List<String> targetOperations, List<String> purposes, List<String> roles, List<String> targStatusList, String targPrivilegeEnumId, String contentId) {
-        currentContentMap = new HashMap<String, Object>();
-        permCheckResults.add(currentContentMap);
-        String s = null;
-        if (targetOperations != null) {
-            s = targetOperations.toString();
-            currentContentMap.put("contentOperationId", s);
-        }
-        if (purposes != null) {
-            s = purposes.toString();
-            currentContentMap.put("contentPurposeTypeId", s);
-        }
-        if (roles != null) {
-            s = roles.toString();
-            currentContentMap.put("roleTypeId", s);
-        }
-        if (targStatusList != null) {
-            s = targStatusList.toString();
-            currentContentMap.put("statusId", s);
-        }
-        List<Map<String, Object>> checkResultList = new LinkedList<Map<String,Object>>();
-        currentContentMap.put("privilegeEnumId", privilegeEnumId);
-        currentContentMap.put("contentId", contentId);
-        currentContentMap.put("checkResultList", checkResultList);
-        currentContentMap.put("matches", null);
-        currentContentId = contentId;
-    }
+	public String toHtml() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<style type=\"text/css\">");
+		sb.append(".pass {background-color:lime; font-family:Verdana,Arial,sans-serif; font-size:10px; }");
+		sb.append(".fail {background-color:red; font-family:Verdana,Arial,sans-serif; font-size:10px; }");
+		sb.append(".target {background-color:lightgrey; font-family:Verdana,Arial,sans-serif; font-size:10px; }");
+		sb.append(".headr {background-color:white; font-weight:bold; font-family:Verdana,Arial,sans-serif; font-size:12px; }");
+		sb.append("</style>");
 
-    public void record(GenericValue purposeOp, boolean targetOpCond, boolean purposeCond, boolean statusCond, boolean privilegeCond, boolean roleCond) {
-        Map<String, Object> map = UtilMisc.makeMapWritable(purposeOp);
-        map.put("contentOperationIdCond", Boolean.valueOf(targetOpCond));
-        map.put("contentPurposeTypeIdCond", Boolean.valueOf(purposeCond));
-        map.put("statusIdCond", Boolean.valueOf(statusCond));
-        map.put("privilegeEnumIdCond", Boolean.valueOf(privilegeCond));
-        map.put("roleTypeIdCond", Boolean.valueOf(roleCond));
-        map.put("contentId", currentContentId);
-        List<Map<String, Object>> checkResultList = UtilGenerics.checkList(currentContentMap.get("checkResultList"));
-        checkResultList.add(map);
-    }
+		sb.append("<table border=\"1\" >");
+		// Do header row
+		sb.append("<tr>");
 
-    public String toHtml() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<style type=\"text/css\">");
-        sb.append(".pass {background-color:lime; font-family:Verdana,Arial,sans-serif; font-size:10px; }");
-        sb.append(".fail {background-color:red; font-family:Verdana,Arial,sans-serif; font-size:10px; }");
-        sb.append(".target {background-color:lightgrey; font-family:Verdana,Arial,sans-serif; font-size:10px; }");
-        sb.append(".headr {background-color:white; font-weight:bold; font-family:Verdana,Arial,sans-serif; font-size:12px; }");
-        sb.append("</style>");
+		sb.append("<td class=\"headr\">");
+		sb.append("Content Id");
+		sb.append("</td>");
 
-        sb.append("<table border=\"1\" >");
-        // Do header row
-        sb.append("<tr>");
+		for (int i = 0; i < fieldTitles.length; i++) {
+			String opField = fieldTitles[i];
+			sb.append("<td class=\"headr\">");
+			sb.append(opField);
+			sb.append("</td>");
+		}
+		sb.append("<td class=\"headr\" >Pass/Fail</td>");
+		sb.append("</tr>");
 
-        sb.append("<td class=\"headr\">");
-        sb.append("Content Id");
-        sb.append("</td>");
+		for (Map<String, Object> cMap : permCheckResults) {
+			sb.append(renderCurrentContentMapHtml(cMap));
+		}
+		sb.append("</table>");
+		return sb.toString();
+	}
 
-        for (int i=0; i < fieldTitles.length; i++) {
-            String opField = fieldTitles[i];
-            sb.append("<td class=\"headr\">");
-            sb.append(opField);
-            sb.append("</td>");
-        }
-        sb.append("<td class=\"headr\" >Pass/Fail</td>");
-        sb.append("</tr>");
+	public String renderCurrentContentMapHtml(Map<String, Object> cMap) {
+		StringBuilder sb = new StringBuilder();
+		List<Map<String, Object>> resultList = UtilGenerics.checkList(cMap.get("checkResultList"));
+		for (Map<String, Object> rMap : resultList) {
+			sb.append(renderResultRowHtml(rMap, cMap));
+		}
 
-        for (Map<String, Object> cMap : permCheckResults) {
-            sb.append(renderCurrentContentMapHtml(cMap));
-        }
-        sb.append("</table>");
-        return sb.toString();
-    }
-
-    public String renderCurrentContentMapHtml(Map<String, Object> cMap) {
-        StringBuilder sb = new StringBuilder();
-        List<Map<String, Object>> resultList = UtilGenerics.checkList(cMap.get("checkResultList"));
-        for (Map<String, Object> rMap : resultList) {
-            sb.append(renderResultRowHtml(rMap, cMap));
-        }
-
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 
 
-    public String renderResultRowHtml(Map<String, Object> rMap, Map<String, Object> currentContentResultMap) {
-        StringBuilder sb = new StringBuilder();
+	public String renderResultRowHtml(Map<String, Object> rMap, Map<String, Object> currentContentResultMap) {
+		StringBuilder sb = new StringBuilder();
 
-        // Do target row
-        sb.append("<tr>");
+		// Do target row
+		sb.append("<tr>");
 
-        sb.append("<td class=\"target\">");
-        sb.append((String)rMap.get("contentId"));
-        sb.append("</td>");
+		sb.append("<td class=\"target\">");
+		sb.append((String) rMap.get("contentId"));
+		sb.append("</td>");
 
-        //if (Debug.infoOn()) Debug.logInfo("renderResultRowHtml, (1):" + sb.toString(), module);
-        String str = null;
-        String s = null;
-        for (int i=0; i < opFields.length; i++) {
-            String opField = opFields[i];
-            sb.append("<td class=\"target\">");
-            s = (String)currentContentResultMap.get(opField);
-            if (s != null)
-                str = s;
-            else
-                str = "&nbsp;";
-            sb.append(str);
-            sb.append("</td>");
-        }
-        sb.append("<td class=\"target\" >&nbsp;</td>");
-        sb.append("</tr>");
+		//if (Debug.infoOn()) Debug.logInfo("renderResultRowHtml, (1):" + sb.toString(), module);
+		String str = null;
+		String s = null;
+		for (int i = 0; i < opFields.length; i++) {
+			String opField = opFields[i];
+			sb.append("<td class=\"target\">");
+			s = (String) currentContentResultMap.get(opField);
+			if (s != null)
+				str = s;
+			else
+				str = "&nbsp;";
+			sb.append(str);
+			sb.append("</td>");
+		}
+		sb.append("<td class=\"target\" >&nbsp;</td>");
+		sb.append("</tr>");
 
-        // Do UUT row
-        sb.append("<tr>");
+		// Do UUT row
+		sb.append("<tr>");
 
-        sb.append("<td class=\"target\">");
-        sb.append((String)currentContentResultMap.get("contentId"));
-        sb.append("</td>");
+		sb.append("<td class=\"target\">");
+		sb.append((String) currentContentResultMap.get("contentId"));
+		sb.append("</td>");
 
-        boolean isPass = true;
-        for (int i=0; i < opFields.length; i++) {
-            String opField = opFields[i];
-            Boolean bool = (Boolean)rMap.get(opField + "Cond");
-            String cls = (bool.booleanValue()) ? "pass" : "fail";
-            if (!bool.booleanValue())
-                isPass = false;
-            sb.append("<td class=\"" + cls + "\">");
-            s = (String)rMap.get(opField);
-            sb.append(s);
-            sb.append("</td>");
-        }
-        String passFailCls = (isPass) ? "pass" : "fail";
-        sb.append("<td class=\"" + passFailCls +"\">" + passFailCls.toUpperCase() + "</td>");
-        sb.append("</tr>");
+		boolean isPass = true;
+		for (int i = 0; i < opFields.length; i++) {
+			String opField = opFields[i];
+			Boolean bool = (Boolean) rMap.get(opField + "Cond");
+			String cls = (bool.booleanValue()) ? "pass" : "fail";
+			if (!bool.booleanValue())
+				isPass = false;
+			sb.append("<td class=\"" + cls + "\">");
+			s = (String) rMap.get(opField);
+			sb.append(s);
+			sb.append("</td>");
+		}
+		String passFailCls = (isPass) ? "pass" : "fail";
+		sb.append("<td class=\"" + passFailCls + "\">" + passFailCls.toUpperCase() + "</td>");
+		sb.append("</tr>");
 
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 }

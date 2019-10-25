@@ -18,16 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.entity.connection;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.transaction.TransactionManager;
-
 import org.apache.commons.dbcp2.DriverConnectionFactory;
 import org.apache.commons.dbcp2.PoolableConnection;
 import org.apache.commons.dbcp2.PoolableConnectionFactory;
@@ -46,130 +36,139 @@ import org.apache.ofbiz.entity.datasource.GenericHelperInfo;
 import org.apache.ofbiz.entity.transaction.TransactionFactoryLoader;
 import org.apache.ofbiz.entity.transaction.TransactionUtil;
 
+import javax.transaction.TransactionManager;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Apache Commons DBCP connection factory.
- * 
+ *
  * @see <a href="http://commons.apache.org/proper/commons-dbcp/">Apache Commons DBCP</a>
  */
 public class DBCPConnectionFactory implements ConnectionFactory {
 
-    public static final String module = DBCPConnectionFactory.class.getName();
-    // ManagedDataSource is useful to debug the usage of connections in the pool (must be verbose)
-    // In case you don't want to be disturbed in the log (focusing on something else), it's still easy to comment out the line from DebugManagedDataSource
-    protected static final ConcurrentHashMap<String, DebugManagedDataSource> dsCache = new ConcurrentHashMap<String, DebugManagedDataSource>();
+	public static final String module = DBCPConnectionFactory.class.getName();
+	// ManagedDataSource is useful to debug the usage of connections in the pool (must be verbose)
+	// In case you don't want to be disturbed in the log (focusing on something else), it's still easy to comment out the line from DebugManagedDataSource
+	protected static final ConcurrentHashMap<String, DebugManagedDataSource> dsCache = new ConcurrentHashMap<String, DebugManagedDataSource>();
 
-    public Connection getConnection(GenericHelperInfo helperInfo, JdbcElement abstractJdbc) throws SQLException, GenericEntityException {
-        String cacheKey = helperInfo.getHelperFullName();
-        DebugManagedDataSource mds = dsCache.get(cacheKey);
-        if (mds != null) {
-            return TransactionUtil.getCursorConnection(helperInfo, mds.getConnection());
-        }
-        if (!(abstractJdbc instanceof InlineJdbc)) {
-            throw new GenericEntityConfException("DBCP requires an <inline-jdbc> child element in the <datasource> element");
-        }
-        InlineJdbc jdbcElement = (InlineJdbc) abstractJdbc;
-        // connection properties
-        TransactionManager txMgr = TransactionFactoryLoader.getInstance().getTransactionManager();
-        String driverName = jdbcElement.getJdbcDriver();
+	public static Map<String, Object> getDataSourceInfo(String helperName) {
+		Map<String, Object> dataSourceInfo = new HashMap<String, Object>();
+		DebugManagedDataSource mds = dsCache.get(helperName);
+		if (mds instanceof DebugManagedDataSource) {
+			dataSourceInfo = mds.getInfo();
+		}
+		return dataSourceInfo;
+	}
 
-        String jdbcUri = helperInfo.getOverrideJdbcUri(jdbcElement.getJdbcUri());
-        String jdbcUsername = helperInfo.getOverrideUsername(jdbcElement.getJdbcUsername());
-        String jdbcPassword = helperInfo.getOverridePassword(EntityConfig.getJdbcPassword(jdbcElement));
+	public Connection getConnection(GenericHelperInfo helperInfo, JdbcElement abstractJdbc) throws SQLException, GenericEntityException {
+		String cacheKey = helperInfo.getHelperFullName();
+		DebugManagedDataSource mds = dsCache.get(cacheKey);
+		if (mds != null) {
+			return TransactionUtil.getCursorConnection(helperInfo, mds.getConnection());
+		}
+		if (!(abstractJdbc instanceof InlineJdbc)) {
+			throw new GenericEntityConfException("DBCP requires an <inline-jdbc> child element in the <datasource> element");
+		}
+		InlineJdbc jdbcElement = (InlineJdbc) abstractJdbc;
+		// connection properties
+		TransactionManager txMgr = TransactionFactoryLoader.getInstance().getTransactionManager();
+		String driverName = jdbcElement.getJdbcDriver();
 
-        // pool settings
-        int maxSize = jdbcElement.getPoolMaxsize();
-        int minSize = jdbcElement.getPoolMinsize();
-        int maxIdle = jdbcElement.getIdleMaxsize();
-        // maxIdle must be greater than pool-minsize
-        maxIdle = maxIdle > minSize ? maxIdle : minSize;
-        // load the driver
-        Driver jdbcDriver;
-        synchronized (DBCPConnectionFactory.class) {
-            // Sync needed for MS SQL JDBC driver. See OFBIZ-5216.
-            try {
-                jdbcDriver = (Driver) Class.forName(driverName, true, Thread.currentThread().getContextClassLoader()).newInstance();
-            } catch (Exception e) {
-                Debug.logError(e, module);
-                throw new GenericEntityException(e.getMessage(), e);
-            }
-        }
+		String jdbcUri = helperInfo.getOverrideJdbcUri(jdbcElement.getJdbcUri());
+		String jdbcUsername = helperInfo.getOverrideUsername(jdbcElement.getJdbcUsername());
+		String jdbcPassword = helperInfo.getOverridePassword(EntityConfig.getJdbcPassword(jdbcElement));
 
-        // connection factory properties
-        Properties cfProps = new Properties();
-        cfProps.put("user", jdbcUsername);
-        cfProps.put("password", jdbcPassword);
+		// pool settings
+		int maxSize = jdbcElement.getPoolMaxsize();
+		int minSize = jdbcElement.getPoolMinsize();
+		int maxIdle = jdbcElement.getIdleMaxsize();
+		// maxIdle must be greater than pool-minsize
+		maxIdle = maxIdle > minSize ? maxIdle : minSize;
+		// load the driver
+		Driver jdbcDriver;
+		synchronized (DBCPConnectionFactory.class) {
+			// Sync needed for MS SQL JDBC driver. See OFBIZ-5216.
+			try {
+				jdbcDriver = (Driver) Class.forName(driverName, true, Thread.currentThread().getContextClassLoader()).newInstance();
+			} catch (Exception e) {
+				Debug.logError(e, module);
+				throw new GenericEntityException(e.getMessage(), e);
+			}
+		}
 
-        // create the connection factory
-        org.apache.commons.dbcp2.ConnectionFactory cf = new DriverConnectionFactory(jdbcDriver, jdbcUri, cfProps);
+		// connection factory properties
+		Properties cfProps = new Properties();
+		cfProps.put("user", jdbcUsername);
+		cfProps.put("password", jdbcPassword);
 
-        // wrap it with a LocalXAConnectionFactory
-        XAConnectionFactory xacf = new LocalXAConnectionFactory(txMgr, cf);
+		// create the connection factory
+		org.apache.commons.dbcp2.ConnectionFactory cf = new DriverConnectionFactory(jdbcDriver, jdbcUri, cfProps);
 
-        // create the pool object factory
-        PoolableConnectionFactory factory = new PoolableManagedConnectionFactory(xacf, null);
-        factory.setValidationQuery(jdbcElement.getPoolJdbcTestStmt());
-        factory.setDefaultReadOnly(false);
-        factory.setRollbackOnReturn(false);
-        factory.setEnableAutoCommitOnReturn(false);
-        String transIso = jdbcElement.getIsolationLevel();
-        if (!transIso.isEmpty()) {
-            if ("Serializable".equals(transIso)) {
-                factory.setDefaultTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            } else if ("RepeatableRead".equals(transIso)) {
-                factory.setDefaultTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-            } else if ("ReadUncommitted".equals(transIso)) {
-                factory.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-            } else if ("ReadCommitted".equals(transIso)) {
-                factory.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            } else if ("None".equals(transIso)) {
-                factory.setDefaultTransactionIsolation(Connection.TRANSACTION_NONE);
-            }
-        }
+		// wrap it with a LocalXAConnectionFactory
+		XAConnectionFactory xacf = new LocalXAConnectionFactory(txMgr, cf);
 
-        // configure the pool settings
-        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
-        poolConfig.setMaxTotal(maxSize);
-        // settings for idle connections
-        poolConfig.setMaxIdle(maxIdle);
-        poolConfig.setMinIdle(minSize);
-        poolConfig.setTimeBetweenEvictionRunsMillis(jdbcElement.getTimeBetweenEvictionRunsMillis());
-        poolConfig.setMinEvictableIdleTimeMillis(-1); // disabled in favour of setSoftMinEvictableIdleTimeMillis(...)
-        poolConfig.setSoftMinEvictableIdleTimeMillis(jdbcElement.getSoftMinEvictableIdleTimeMillis());
-        poolConfig.setNumTestsPerEvictionRun(maxSize); // test all the idle connections
-        // settings for when the pool is exhausted
-        poolConfig.setBlockWhenExhausted(true); // the thread requesting the connection waits if no connection is available
-        poolConfig.setMaxWaitMillis(jdbcElement.getPoolSleeptime()); // throw an exception if, after getPoolSleeptime() ms, no connection is available for the requesting thread
-        // settings for the execution of the validation query
-        poolConfig.setTestOnCreate(jdbcElement.getTestOnCreate());
-        poolConfig.setTestOnBorrow(jdbcElement.getTestOnBorrow());
-        poolConfig.setTestOnReturn(jdbcElement.getTestOnReturn());
-        poolConfig.setTestWhileIdle(jdbcElement.getTestWhileIdle());
+		// create the pool object factory
+		PoolableConnectionFactory factory = new PoolableManagedConnectionFactory(xacf, null);
+		factory.setValidationQuery(jdbcElement.getPoolJdbcTestStmt());
+		factory.setDefaultReadOnly(false);
+		factory.setRollbackOnReturn(false);
+		factory.setEnableAutoCommitOnReturn(false);
+		String transIso = jdbcElement.getIsolationLevel();
+		if (!transIso.isEmpty()) {
+			if ("Serializable".equals(transIso)) {
+				factory.setDefaultTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+			} else if ("RepeatableRead".equals(transIso)) {
+				factory.setDefaultTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+			} else if ("ReadUncommitted".equals(transIso)) {
+				factory.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+			} else if ("ReadCommitted".equals(transIso)) {
+				factory.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+			} else if ("None".equals(transIso)) {
+				factory.setDefaultTransactionIsolation(Connection.TRANSACTION_NONE);
+			}
+		}
 
-        GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<PoolableConnection>(factory, poolConfig);
-        factory.setPool(pool);
+		// configure the pool settings
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(maxSize);
+		// settings for idle connections
+		poolConfig.setMaxIdle(maxIdle);
+		poolConfig.setMinIdle(minSize);
+		poolConfig.setTimeBetweenEvictionRunsMillis(jdbcElement.getTimeBetweenEvictionRunsMillis());
+		poolConfig.setMinEvictableIdleTimeMillis(-1); // disabled in favour of setSoftMinEvictableIdleTimeMillis(...)
+		poolConfig.setSoftMinEvictableIdleTimeMillis(jdbcElement.getSoftMinEvictableIdleTimeMillis());
+		poolConfig.setNumTestsPerEvictionRun(maxSize); // test all the idle connections
+		// settings for when the pool is exhausted
+		poolConfig.setBlockWhenExhausted(true); // the thread requesting the connection waits if no connection is available
+		poolConfig.setMaxWaitMillis(jdbcElement.getPoolSleeptime()); // throw an exception if, after getPoolSleeptime() ms, no connection is available for the requesting thread
+		// settings for the execution of the validation query
+		poolConfig.setTestOnCreate(jdbcElement.getTestOnCreate());
+		poolConfig.setTestOnBorrow(jdbcElement.getTestOnBorrow());
+		poolConfig.setTestOnReturn(jdbcElement.getTestOnReturn());
+		poolConfig.setTestWhileIdle(jdbcElement.getTestWhileIdle());
 
-        mds = new DebugManagedDataSource(pool, xacf.getTransactionRegistry());
-        mds.setAccessToUnderlyingConnectionAllowed(true);
+		GenericObjectPool<PoolableConnection> pool = new GenericObjectPool<PoolableConnection>(factory, poolConfig);
+		factory.setPool(pool);
 
-        // cache the pool
-        dsCache.putIfAbsent(cacheKey, mds);
-        mds = dsCache.get(cacheKey);
+		mds = new DebugManagedDataSource(pool, xacf.getTransactionRegistry());
+		mds.setAccessToUnderlyingConnectionAllowed(true);
 
-        return TransactionUtil.getCursorConnection(helperInfo, mds.getConnection());
-    }
+		// cache the pool
+		dsCache.putIfAbsent(cacheKey, mds);
+		mds = dsCache.get(cacheKey);
 
-    public void closeAll() {
-        // no methods on the pool to shutdown; so just clearing for GC
-        dsCache.clear();
-    }
+		return TransactionUtil.getCursorConnection(helperInfo, mds.getConnection());
+	}
 
-    public static Map<String, Object> getDataSourceInfo(String helperName) {
-        Map<String, Object> dataSourceInfo = new HashMap<String, Object>();
-        DebugManagedDataSource mds = dsCache.get(helperName);
-        if (mds instanceof DebugManagedDataSource) {
-            dataSourceInfo = mds.getInfo();
-        }
-        return dataSourceInfo;
-    }
+	public void closeAll() {
+		// no methods on the pool to shutdown; so just clearing for GC
+		dsCache.clear();
+	}
 
 }

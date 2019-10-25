@@ -18,11 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.order.shoppingcart.shipping;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
@@ -35,104 +30,109 @@ import org.apache.ofbiz.product.store.ProductStoreWorker;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ServiceUtil;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ShippingEstimateWrapper {
 
-    public static final String module = ShippingEstimateWrapper.class.getName();
+	public static final String module = ShippingEstimateWrapper.class.getName();
 
-    protected Delegator delegator = null;
-    protected LocalDispatcher dispatcher = null;
+	protected Delegator delegator = null;
+	protected LocalDispatcher dispatcher = null;
 
-    protected Map<GenericValue, BigDecimal> shippingEstimates = null;
-    protected List<GenericValue> shippingMethods = null;
+	protected Map<GenericValue, BigDecimal> shippingEstimates = null;
+	protected List<GenericValue> shippingMethods = null;
 
-    protected GenericValue shippingAddress = null;
-    protected Map<String, BigDecimal> shippableItemFeatures = null;
-    protected List<BigDecimal> shippableItemSizes = null;
-    protected List<Map<String, Object>> shippableItemInfo = null;
-    protected String productStoreId = null;
-    protected BigDecimal shippableQuantity = BigDecimal.ZERO;
-    protected BigDecimal shippableWeight = BigDecimal.ZERO;
-    protected BigDecimal shippableTotal = BigDecimal.ZERO;
-    protected String partyId = null;
-    protected String supplierPartyId = null;
+	protected GenericValue shippingAddress = null;
+	protected Map<String, BigDecimal> shippableItemFeatures = null;
+	protected List<BigDecimal> shippableItemSizes = null;
+	protected List<Map<String, Object>> shippableItemInfo = null;
+	protected String productStoreId = null;
+	protected BigDecimal shippableQuantity = BigDecimal.ZERO;
+	protected BigDecimal shippableWeight = BigDecimal.ZERO;
+	protected BigDecimal shippableTotal = BigDecimal.ZERO;
+	protected String partyId = null;
+	protected String supplierPartyId = null;
 
-    public static ShippingEstimateWrapper getWrapper(LocalDispatcher dispatcher, ShoppingCart cart, int shipGroup) {
-        return new ShippingEstimateWrapper(dispatcher, cart, shipGroup);
-    }
+	public ShippingEstimateWrapper(LocalDispatcher dispatcher, ShoppingCart cart, int shipGroup) {
+		this.dispatcher = dispatcher;
+		this.delegator = cart.getDelegator();
 
-    public ShippingEstimateWrapper(LocalDispatcher dispatcher, ShoppingCart cart, int shipGroup) {
-        this.dispatcher = dispatcher;
-        this.delegator = cart.getDelegator();
+		this.shippableItemFeatures = cart.getFeatureIdQtyMap(shipGroup);
+		this.shippableItemSizes = cart.getShippableSizes(shipGroup);
+		this.shippableItemInfo = cart.getShippableItemInfo(shipGroup);
+		this.shippableQuantity = cart.getShippableQuantity(shipGroup);
+		this.shippableWeight = cart.getShippableWeight(shipGroup);
+		this.shippableTotal = cart.getShippableTotal(shipGroup);
+		this.shippingAddress = cart.getShippingAddress(shipGroup);
+		this.productStoreId = cart.getProductStoreId();
+		this.partyId = cart.getPartyId();
+		this.supplierPartyId = cart.getSupplierPartyId(shipGroup);
 
-        this.shippableItemFeatures = cart.getFeatureIdQtyMap(shipGroup);
-        this.shippableItemSizes = cart.getShippableSizes(shipGroup);
-        this.shippableItemInfo = cart.getShippableItemInfo(shipGroup);
-        this.shippableQuantity = cart.getShippableQuantity(shipGroup);
-        this.shippableWeight = cart.getShippableWeight(shipGroup);
-        this.shippableTotal = cart.getShippableTotal(shipGroup);
-        this.shippingAddress = cart.getShippingAddress(shipGroup);
-        this.productStoreId = cart.getProductStoreId();
-        this.partyId = cart.getPartyId();
-        this.supplierPartyId = cart.getSupplierPartyId(shipGroup);
+		BigDecimal totalAllowance = BigDecimal.ZERO;
+		if (UtilValidate.isNotEmpty(cart.getShipGroupItems(shipGroup))) {
+			try {
+				for (ShoppingCartItem item : cart.getShipGroupItems(shipGroup).keySet()) {
+					GenericValue allowanceProductPrice = EntityQuery.use(delegator).from("ProductPrice").where("productPriceTypeId", "SHIPPING_ALLOWANCE", "productId", item.getProductId()).filterByDate().queryFirst();
+					if (allowanceProductPrice != null && UtilValidate.isNotEmpty(allowanceProductPrice.get("price"))) {
+						totalAllowance = totalAllowance.add(allowanceProductPrice.getBigDecimal("price")).multiply(item.getQuantity());
+					}
+				}
+			} catch (GenericEntityException gee) {
+				Debug.logError(gee.getMessage(), module);
+			}
+		}
+		this.loadShippingMethods();
+		this.loadEstimates(totalAllowance);
+	}
 
-        BigDecimal totalAllowance = BigDecimal.ZERO;
-        if (UtilValidate.isNotEmpty(cart.getShipGroupItems(shipGroup))) {
-            try {
-                for (ShoppingCartItem item : cart.getShipGroupItems(shipGroup).keySet()) {
-                    GenericValue allowanceProductPrice = EntityQuery.use(delegator).from("ProductPrice").where("productPriceTypeId", "SHIPPING_ALLOWANCE", "productId", item.getProductId()).filterByDate().queryFirst();
-                    if (allowanceProductPrice != null && UtilValidate.isNotEmpty(allowanceProductPrice.get("price"))) {
-                        totalAllowance = totalAllowance.add(allowanceProductPrice.getBigDecimal("price")).multiply(item.getQuantity());
-                    }
-                }
-            } catch (GenericEntityException gee) {
-                Debug.logError(gee.getMessage(), module);
-            }
-        }
-        this.loadShippingMethods();
-        this.loadEstimates(totalAllowance);
-    }
+	public static ShippingEstimateWrapper getWrapper(LocalDispatcher dispatcher, ShoppingCart cart, int shipGroup) {
+		return new ShippingEstimateWrapper(dispatcher, cart, shipGroup);
+	}
 
-    protected void loadShippingMethods() {
-        try {
-            this.shippingMethods = ProductStoreWorker.getAvailableStoreShippingMethods(delegator, productStoreId,
-                    shippingAddress, shippableItemSizes, shippableItemFeatures, shippableWeight, shippableTotal);
-        } catch (Throwable t) {
-            Debug.logError(t, module);
-        }
-    }
+	protected void loadShippingMethods() {
+		try {
+			this.shippingMethods = ProductStoreWorker.getAvailableStoreShippingMethods(delegator, productStoreId,
+					shippingAddress, shippableItemSizes, shippableItemFeatures, shippableWeight, shippableTotal);
+		} catch (Throwable t) {
+			Debug.logError(t, module);
+		}
+	}
 
-    protected void loadEstimates(BigDecimal totalAllowance) {
-        this.shippingEstimates = new HashMap<GenericValue, BigDecimal>();
-        if (shippingMethods != null) {
-            for (GenericValue shipMethod : shippingMethods) {
-                String shippingMethodTypeId = shipMethod.getString("shipmentMethodTypeId");
-                String carrierRoleTypeId = shipMethod.getString("roleTypeId");
-                String carrierPartyId = shipMethod.getString("partyId");
-                String productStoreShipMethId = shipMethod.getString("productStoreShipMethId");
-                String shippingCmId = shippingAddress != null ? shippingAddress.getString("contactMechId") : null;
+	protected void loadEstimates(BigDecimal totalAllowance) {
+		this.shippingEstimates = new HashMap<GenericValue, BigDecimal>();
+		if (shippingMethods != null) {
+			for (GenericValue shipMethod : shippingMethods) {
+				String shippingMethodTypeId = shipMethod.getString("shipmentMethodTypeId");
+				String carrierRoleTypeId = shipMethod.getString("roleTypeId");
+				String carrierPartyId = shipMethod.getString("partyId");
+				String productStoreShipMethId = shipMethod.getString("productStoreShipMethId");
+				String shippingCmId = shippingAddress != null ? shippingAddress.getString("contactMechId") : null;
 
-                Map<String, Object> estimateMap = ShippingEvents.getShipGroupEstimate(dispatcher, delegator, "SALES_ORDER",
-                        shippingMethodTypeId, carrierPartyId, carrierRoleTypeId, shippingCmId, productStoreId,
-                        supplierPartyId, shippableItemInfo, shippableWeight, shippableQuantity, shippableTotal, partyId, productStoreShipMethId, totalAllowance);
+				Map<String, Object> estimateMap = ShippingEvents.getShipGroupEstimate(dispatcher, delegator, "SALES_ORDER",
+						shippingMethodTypeId, carrierPartyId, carrierRoleTypeId, shippingCmId, productStoreId,
+						supplierPartyId, shippableItemInfo, shippableWeight, shippableQuantity, shippableTotal, partyId, productStoreShipMethId, totalAllowance);
 
-                if (!ServiceUtil.isError(estimateMap)) {
-                    BigDecimal shippingTotal = (BigDecimal) estimateMap.get("shippingTotal");
-                    shippingEstimates.put(shipMethod, shippingTotal);
-                }
-            }
-        }
-    }
+				if (!ServiceUtil.isError(estimateMap)) {
+					BigDecimal shippingTotal = (BigDecimal) estimateMap.get("shippingTotal");
+					shippingEstimates.put(shipMethod, shippingTotal);
+				}
+			}
+		}
+	}
 
-    public List<GenericValue> getShippingMethods() {
-        return shippingMethods;
-    }
+	public List<GenericValue> getShippingMethods() {
+		return shippingMethods;
+	}
 
-    public Map<GenericValue, BigDecimal> getAllEstimates() {
-        return shippingEstimates;
-    }
+	public Map<GenericValue, BigDecimal> getAllEstimates() {
+		return shippingEstimates;
+	}
 
-    public BigDecimal getShippingEstimate(GenericValue storeCarrierShipMethod) {
-        return shippingEstimates.get(storeCarrierShipMethod);
-    }
+	public BigDecimal getShippingEstimate(GenericValue storeCarrierShipMethod) {
+		return shippingEstimates.get(storeCarrierShipMethod);
+	}
 
 }

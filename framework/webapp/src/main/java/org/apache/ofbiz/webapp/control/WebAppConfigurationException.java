@@ -20,14 +20,14 @@ package org.apache.ofbiz.webapp.control;
 
 /**
  * Web application configuration exception.
- * 
+ *
  * @see <code>site-conf.xsd</code>
  */
 @SuppressWarnings("serial")
 public class WebAppConfigurationException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public WebAppConfigurationException(Throwable t) {
-        super(t);
-    }
+	public WebAppConfigurationException(Throwable t) {
+		super(t);
+	}
 }
 

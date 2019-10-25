@@ -18,10 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.manufacturing.jobshopmgt;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilValidate;
@@ -32,79 +28,84 @@ import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.entity.util.EntityUtil;
 import org.apache.ofbiz.service.LocalDispatcher;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * Helper for Production Run maintenance
- *
  */
 public final class ProductionRunHelper {
 
-    public static final String module = ProductionRunHelper.class.getName();
+	public static final String module = ProductionRunHelper.class.getName();
 
-    private ProductionRunHelper() {}
+	private ProductionRunHelper() {
+	}
 
-    /**
-     * Get a Production Run.
-     *  <li> check if routing - product link exist
-     * @param delegator the delegator
-     * @param productionRunId the production run id
-     * @return Map with the result of the service, the output parameters are
-     * <li> the productionRun
-     * <li> the productionRunProduct
-     */
-    public static Map<String, Object> getProductionRun(Delegator delegator, String productionRunId) {
-        Map<String, Object> result = new HashMap<String, Object>();
-        
-        try {
-            if (productionRunId != null) {
-                GenericValue productionRun = EntityQuery.use(delegator).from("WorkEffort").where("workEffortId", productionRunId).queryOne();
-                if (productionRun != null) {
-                    List<GenericValue> productionRunProducts = productionRun.getRelated("WorkEffortGoodStandard", UtilMisc.toMap("workEffortGoodStdTypeId", "PRUN_PROD_DELIV"),null, false);
-                    GenericValue productionRunProduct = EntityUtil.getFirst(productionRunProducts);
-                    GenericValue productProduced = productionRunProduct.getRelatedOne("Product", true);
-                    List<GenericValue> productionRunComponents = productionRun.getRelated("WorkEffortGoodStandard", UtilMisc.toMap("workEffortGoodStdTypeId", "PRUNT_PROD_NEEDED"),null, false);
-                    List<GenericValue> productionRunRoutingTasks = productionRun.getRelated("FromWorkEffortAssoc",UtilMisc.toMap("workEffortTypeId","PROD_ORDER_TASK"),null, false);
-                    result.put("productionRunProduct", productionRunProduct);
-                    result.put("productProduced", productProduced);
-                    result.put("productionRunComponents", productionRunComponents);
-                    result.put("productionRunRoutingTasks", productionRunRoutingTasks);
-                }
-            }
-        } catch (GenericEntityException e) {
-            Debug.logWarning(e.getMessage(), module);
-        }
-        return result;
-    }
+	/**
+	 * Get a Production Run.
+	 * <li> check if routing - product link exist
+	 *
+	 * @param delegator       the delegator
+	 * @param productionRunId the production run id
+	 * @return Map with the result of the service, the output parameters are
+	 * <li> the productionRun
+	 * <li> the productionRunProduct
+	 */
+	public static Map<String, Object> getProductionRun(Delegator delegator, String productionRunId) {
+		Map<String, Object> result = new HashMap<String, Object>();
 
-    public static boolean hasTask(Delegator delegator, String taskName, String workEffortId) throws GenericEntityException {
-        List<GenericValue> tasks = EntityQuery.use(delegator).from("WorkEffort")
-                .where("workEffortParentId", workEffortId,
-                        "workEffortTypeId", "PROD_ORDER_TASK",
-                        "workEffortName", taskName)
-                .queryList();
-        return (UtilValidate.isNotEmpty(tasks));
-    }
+		try {
+			if (productionRunId != null) {
+				GenericValue productionRun = EntityQuery.use(delegator).from("WorkEffort").where("workEffortId", productionRunId).queryOne();
+				if (productionRun != null) {
+					List<GenericValue> productionRunProducts = productionRun.getRelated("WorkEffortGoodStandard", UtilMisc.toMap("workEffortGoodStdTypeId", "PRUN_PROD_DELIV"), null, false);
+					GenericValue productionRunProduct = EntityUtil.getFirst(productionRunProducts);
+					GenericValue productProduced = productionRunProduct.getRelatedOne("Product", true);
+					List<GenericValue> productionRunComponents = productionRun.getRelated("WorkEffortGoodStandard", UtilMisc.toMap("workEffortGoodStdTypeId", "PRUNT_PROD_NEEDED"), null, false);
+					List<GenericValue> productionRunRoutingTasks = productionRun.getRelated("FromWorkEffortAssoc", UtilMisc.toMap("workEffortTypeId", "PROD_ORDER_TASK"), null, false);
+					result.put("productionRunProduct", productionRunProduct);
+					result.put("productProduced", productProduced);
+					result.put("productionRunComponents", productionRunComponents);
+					result.put("productionRunRoutingTasks", productionRunRoutingTasks);
+				}
+			}
+		} catch (GenericEntityException e) {
+			Debug.logWarning(e.getMessage(), module);
+		}
+		return result;
+	}
 
-    public static void getLinkedProductionRuns(Delegator delegator, LocalDispatcher dispatcher, String productionRunId, List<ProductionRun> productionRuns)  throws GenericEntityException {
-        productionRuns.add(new ProductionRun(productionRunId, delegator, dispatcher));
-        List<GenericValue> linkedWorkEfforts = EntityQuery.use(delegator).from("WorkEffortAssoc")
-                .where("workEffortIdTo", productionRunId, 
-                        "workEffortAssocTypeId", "WORK_EFF_PRECEDENCY")
-                .filterByDate().queryList();
-        for (int i = 0; i < linkedWorkEfforts.size(); i++) {
-            GenericValue link = linkedWorkEfforts.get(i);
-            getLinkedProductionRuns(delegator, dispatcher, link.getString("workEffortIdFrom"), productionRuns);
-        }
-    }
+	public static boolean hasTask(Delegator delegator, String taskName, String workEffortId) throws GenericEntityException {
+		List<GenericValue> tasks = EntityQuery.use(delegator).from("WorkEffort")
+				.where("workEffortParentId", workEffortId,
+						"workEffortTypeId", "PROD_ORDER_TASK",
+						"workEffortName", taskName)
+				.queryList();
+		return (UtilValidate.isNotEmpty(tasks));
+	}
 
-    public static String getRootProductionRun(Delegator delegator, String productionRunId)  throws GenericEntityException {
-        GenericValue linkedWorkEffort = EntityQuery.use(delegator).from("WorkEffortAssoc")
-                .where("workEffortIdFrom", productionRunId, "workEffortAssocTypeId", "WORK_EFF_PRECEDENCY")
-                .queryFirst();
-        if (linkedWorkEffort != null) {
-            productionRunId = getRootProductionRun(delegator, linkedWorkEffort.getString("workEffortIdTo"));
-        }
-        return productionRunId;
-    }
+	public static void getLinkedProductionRuns(Delegator delegator, LocalDispatcher dispatcher, String productionRunId, List<ProductionRun> productionRuns) throws GenericEntityException {
+		productionRuns.add(new ProductionRun(productionRunId, delegator, dispatcher));
+		List<GenericValue> linkedWorkEfforts = EntityQuery.use(delegator).from("WorkEffortAssoc")
+				.where("workEffortIdTo", productionRunId,
+						"workEffortAssocTypeId", "WORK_EFF_PRECEDENCY")
+				.filterByDate().queryList();
+		for (int i = 0; i < linkedWorkEfforts.size(); i++) {
+			GenericValue link = linkedWorkEfforts.get(i);
+			getLinkedProductionRuns(delegator, dispatcher, link.getString("workEffortIdFrom"), productionRuns);
+		}
+	}
+
+	public static String getRootProductionRun(Delegator delegator, String productionRunId) throws GenericEntityException {
+		GenericValue linkedWorkEffort = EntityQuery.use(delegator).from("WorkEffortAssoc")
+				.where("workEffortIdFrom", productionRunId, "workEffortAssocTypeId", "WORK_EFF_PRECEDENCY")
+				.queryFirst();
+		if (linkedWorkEffort != null) {
+			productionRunId = getRootProductionRun(delegator, linkedWorkEffort.getString("workEffortIdTo"));
+		}
+		return productionRunId;
+	}
 
 }

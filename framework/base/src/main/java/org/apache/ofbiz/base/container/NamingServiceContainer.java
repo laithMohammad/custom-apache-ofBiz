@@ -18,6 +18,10 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.container;
 
+import org.apache.ofbiz.base.start.Start;
+import org.apache.ofbiz.base.start.StartupCommand;
+import org.apache.ofbiz.base.util.RMIExtendedSocketFactory;
+
 import java.net.UnknownHostException;
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
@@ -26,82 +30,77 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 
-import org.apache.ofbiz.base.start.Start;
-import org.apache.ofbiz.base.start.StartupCommand;
-import org.apache.ofbiz.base.util.RMIExtendedSocketFactory;
-
 /**
  * NamingServiceContainer
- *
  */
 
 public class NamingServiceContainer implements Container {
 
-    public static final String module = NamingServiceContainer.class.getName();
+	public static final String module = NamingServiceContainer.class.getName();
 
-    protected String configFileLocation = null;
-    protected boolean isRunning = false;
-    protected Registry registry = null;
-    protected int namingPort = 1099;
-    protected String namingHost = null;
+	protected String configFileLocation = null;
+	protected boolean isRunning = false;
+	protected Registry registry = null;
+	protected int namingPort = 1099;
+	protected String namingHost = null;
 
-    protected RMIExtendedSocketFactory rmiSocketFactory;
+	protected RMIExtendedSocketFactory rmiSocketFactory;
 
-    private String name;
+	private String name;
 
-    public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
-        this.name =name;
-        this.configFileLocation = configFile;
+	public void init(List<StartupCommand> ofbizCommands, String name, String configFile) throws ContainerException {
+		this.name = name;
+		this.configFileLocation = configFile;
 
-        ContainerConfig.Configuration cfg = ContainerConfig.getConfiguration(name, configFileLocation);
+		ContainerConfig.Configuration cfg = ContainerConfig.getConfiguration(name, configFileLocation);
 
-        // get the naming (JNDI) port
-        
-        ContainerConfig.Configuration.Property port = cfg.getProperty("port");
-        if (port.value != null) {
-            try {
-                this.namingPort = Integer.parseInt(port.value) + Start.getInstance().getConfig().portOffset;
-            } catch (Exception e) {
-                throw new ContainerException("Invalid port defined in container [naming-container] configuration or as portOffset; not a valid int");
-            }
-        }
+		// get the naming (JNDI) port
 
-        // get the naming (JNDI) server
-        ContainerConfig.Configuration.Property host = cfg.getProperty("host");
-        if (host != null && host.value != null) {
-            this.namingHost =  host.value ;
-        }
+		ContainerConfig.Configuration.Property port = cfg.getProperty("port");
+		if (port.value != null) {
+			try {
+				this.namingPort = Integer.parseInt(port.value) + Start.getInstance().getConfig().portOffset;
+			} catch (Exception e) {
+				throw new ContainerException("Invalid port defined in container [naming-container] configuration or as portOffset; not a valid int");
+			}
+		}
 
-        try {
-            rmiSocketFactory = new RMIExtendedSocketFactory( namingHost );
-        } catch ( UnknownHostException uhEx ) {
-            throw new ContainerException("Invalid host defined in container [naming-container] configuration; not a valid IP address", uhEx);
-        }
+		// get the naming (JNDI) server
+		ContainerConfig.Configuration.Property host = cfg.getProperty("host");
+		if (host != null && host.value != null) {
+			this.namingHost = host.value;
+		}
 
-    }
+		try {
+			rmiSocketFactory = new RMIExtendedSocketFactory(namingHost);
+		} catch (UnknownHostException uhEx) {
+			throw new ContainerException("Invalid host defined in container [naming-container] configuration; not a valid IP address", uhEx);
+		}
 
-    public boolean start() throws ContainerException {
-        try {
-            registry = LocateRegistry.createRegistry(namingPort, rmiSocketFactory, rmiSocketFactory);
-        } catch (RemoteException e) {
-            throw new ContainerException("Unable to locate naming service", e);
-        }
+	}
 
-        isRunning = true;
-        return isRunning;
-    }
+	public boolean start() throws ContainerException {
+		try {
+			registry = LocateRegistry.createRegistry(namingPort, rmiSocketFactory, rmiSocketFactory);
+		} catch (RemoteException e) {
+			throw new ContainerException("Unable to locate naming service", e);
+		}
 
-    public void stop() throws ContainerException {
-        if (isRunning) {
-            try {
-                isRunning = !UnicastRemoteObject.unexportObject(registry, true);
-            } catch (NoSuchObjectException e) {
-                throw new ContainerException("Unable to shutdown naming registry");
-            }
-        }
-    }
+		isRunning = true;
+		return isRunning;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void stop() throws ContainerException {
+		if (isRunning) {
+			try {
+				isRunning = !UnicastRemoteObject.unexportObject(registry, true);
+			} catch (NoSuchObjectException e) {
+				throw new ContainerException("Unable to shutdown naming registry");
+			}
+		}
+	}
+
+	public String getName() {
+		return name;
+	}
 }

@@ -18,49 +18,48 @@
  *******************************************************************************/
 package org.apache.ofbiz.webapp.event;
 
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.ServletContext;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.GeneralRuntimeException;
 import org.apache.ofbiz.base.util.ObjectType;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader;
+
+import javax.servlet.ServletContext;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * EventFactory - Event Handler Factory
  */
 public class EventFactory {
 
-    public static final String module = EventFactory.class.getName();
+	public static final String module = EventFactory.class.getName();
 
-    private final Map<String, EventHandler> handlers = new HashMap<String, EventHandler>();
+	private final Map<String, EventHandler> handlers = new HashMap<String, EventHandler>();
 
-    public EventFactory(ServletContext context, URL controllerConfigURL) {
-        // load all the event handlers
-        try {
-            Set<Map.Entry<String,String>> handlerEntries = ConfigXMLReader.getControllerConfig(controllerConfigURL).getEventHandlerMap().entrySet();
-            if (handlerEntries != null) {
-                for (Map.Entry<String,String> handlerEntry: handlerEntries) {
-                    EventHandler handler = (EventHandler) ObjectType.getInstance(handlerEntry.getValue());
-                    handler.init(context);
-                    this.handlers.put(handlerEntry.getKey(), handler);
-                }
-            }
-        } catch (Exception e) {
-            Debug.logError(e, module);
-            throw new GeneralRuntimeException(e);
-        }
-    }
+	public EventFactory(ServletContext context, URL controllerConfigURL) {
+		// load all the event handlers
+		try {
+			Set<Map.Entry<String, String>> handlerEntries = ConfigXMLReader.getControllerConfig(controllerConfigURL).getEventHandlerMap().entrySet();
+			if (handlerEntries != null) {
+				for (Map.Entry<String, String> handlerEntry : handlerEntries) {
+					EventHandler handler = (EventHandler) ObjectType.getInstance(handlerEntry.getValue());
+					handler.init(context);
+					this.handlers.put(handlerEntry.getKey(), handler);
+				}
+			}
+		} catch (Exception e) {
+			Debug.logError(e, module);
+			throw new GeneralRuntimeException(e);
+		}
+	}
 
-    public EventHandler getEventHandler(String type) throws EventHandlerException {
-        EventHandler handler = handlers.get(type);
-        if (handler == null) {
-            throw new EventHandlerException("No handler found for type: " + type);
-        }
-        return handler;
-    }
+	public EventHandler getEventHandler(String type) throws EventHandlerException {
+		EventHandler handler = handlers.get(type);
+		if (handler == null) {
+			throw new EventHandlerException("No handler found for type: " + type);
+		}
+		return handler;
+	}
 }

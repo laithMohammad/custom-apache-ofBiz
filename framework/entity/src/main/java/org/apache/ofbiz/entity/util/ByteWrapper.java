@@ -21,32 +21,32 @@ package org.apache.ofbiz.entity.util;
 import java.io.Serializable;
 
 /**
- * @deprecated
- * NOTE DEJ20071022: deprecating this because we want to save the byte[] directly instead of inside a serialized
+ * @deprecated NOTE DEJ20071022: deprecating this because we want to save the byte[] directly instead of inside a serialized
  * object, which makes it hard for other apps to use the data, and causes problems if this object is ever updated
- *
+ * <p>
  * A very simple class to wrap a byte array for persistence.
  */
 @SuppressWarnings("serial")
 @Deprecated
 public class ByteWrapper implements Serializable {
-    protected byte[] bytes;
+	protected byte[] bytes;
 
-    protected ByteWrapper() {}
+	protected ByteWrapper() {
+	}
 
-    public ByteWrapper(byte[] bytes) {
-        this.bytes = bytes;
-    }
+	public ByteWrapper(byte[] bytes) {
+		this.bytes = bytes;
+	}
 
-    public byte[] getBytes() {
-        return bytes;
-    }
+	public byte[] getBytes() {
+		return bytes;
+	}
 
-    public byte getByte(int pos) {
-        return bytes[pos];
-    }
+	public byte getByte(int pos) {
+		return bytes[pos];
+	}
 
-    public int getLength() {
-        return bytes.length;
-    }
+	public int getLength() {
+		return bytes.length;
+	}
 }

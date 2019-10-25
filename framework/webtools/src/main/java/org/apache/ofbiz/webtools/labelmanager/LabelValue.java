@@ -20,29 +20,29 @@ package org.apache.ofbiz.webtools.labelmanager;
 
 public class LabelValue {
 
-    public static final String module = LabelValue.class.getName();
+	public static final String module = LabelValue.class.getName();
 
-    protected String labelValue = "";
-    protected String labelComment = "";
+	protected String labelValue = "";
+	protected String labelComment = "";
 
-    public LabelValue(String labelValue, String labelComment) {
-        this.labelValue = labelValue;
-        this.labelComment = labelComment;
-    }
+	public LabelValue(String labelValue, String labelComment) {
+		this.labelValue = labelValue;
+		this.labelComment = labelComment;
+	}
 
-    public String getLabelValue() {
-        return labelValue;
-    }
+	public String getLabelValue() {
+		return labelValue;
+	}
 
-    public String getLabelComment() {
-        return labelComment;
-    }
+	public void setLabelValue(String labelValue) {
+		this.labelValue = labelValue;
+	}
 
-    public void setLabelValue(String labelValue) {
-        this.labelValue = labelValue;
-    }
+	public String getLabelComment() {
+		return labelComment;
+	}
 
-    public void setLabelComment(String labelComment) {
-        this.labelComment = labelComment;
-    }
+	public void setLabelComment(String labelComment) {
+		this.labelComment = labelComment;
+	}
 }

@@ -20,24 +20,24 @@ package org.apache.ofbiz.base.util.cache;
 
 @SuppressWarnings("serial")
 public abstract class SoftRefCacheLine<V> extends CacheLine<V> {
-    public final CacheSoftReference<V> ref;
+	public final CacheSoftReference<V> ref;
 
-    public SoftRefCacheLine(V value, long loadTimeNanos, long expireTimeNanos) {
-        super(loadTimeNanos, expireTimeNanos);
-        this.ref = new CacheSoftReference<V>(value) {
-            public void remove() {
-                SoftRefCacheLine.this.remove();
-            }
-        };
-    }
+	public SoftRefCacheLine(V value, long loadTimeNanos, long expireTimeNanos) {
+		super(loadTimeNanos, expireTimeNanos);
+		this.ref = new CacheSoftReference<V>(value) {
+			public void remove() {
+				SoftRefCacheLine.this.remove();
+			}
+		};
+	}
 
-    @Override
-    void cancel() {
-        ref.clear();
-    }
+	@Override
+	void cancel() {
+		ref.clear();
+	}
 
-    @Override
-    public V getValue() {
-        return ref.get();
-    }
+	@Override
+	public V getValue() {
+		return ref.get();
+	}
 }

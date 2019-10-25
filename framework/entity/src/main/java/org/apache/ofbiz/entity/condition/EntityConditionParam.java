@@ -18,39 +18,39 @@
  *******************************************************************************/
 package org.apache.ofbiz.entity.condition;
 
-import java.io.Serializable;
-
 import org.apache.ofbiz.entity.model.ModelField;
+
+import java.io.Serializable;
 
 /**
  * Represents a single parameter to be used in the preparedStatement
- *
  */
 @SuppressWarnings("serial")
 public class EntityConditionParam implements Serializable {
-    protected ModelField modelField;
-    protected Object fieldValue;
+	protected ModelField modelField;
+	protected Object fieldValue;
 
-    protected EntityConditionParam() {}
+	protected EntityConditionParam() {
+	}
 
-    public EntityConditionParam(ModelField modelField, Object fieldValue) {
-        if (modelField == null) {
-            throw new IllegalArgumentException("modelField cannot be null");
-        }
-        this.modelField = modelField;
-        this.fieldValue = fieldValue;
-    }
+	public EntityConditionParam(ModelField modelField, Object fieldValue) {
+		if (modelField == null) {
+			throw new IllegalArgumentException("modelField cannot be null");
+		}
+		this.modelField = modelField;
+		this.fieldValue = fieldValue;
+	}
 
-    public ModelField getModelField() {
-        return modelField;
-    }
+	public ModelField getModelField() {
+		return modelField;
+	}
 
-    public Object getFieldValue() {
-        return fieldValue;
-    }
+	public Object getFieldValue() {
+		return fieldValue;
+	}
 
-    @Override
-    public String toString() {
-        return modelField.getColName() + "=" + fieldValue.toString();
-    }
+	@Override
+	public String toString() {
+		return modelField.getColName() + "=" + fieldValue.toString();
+	}
 }

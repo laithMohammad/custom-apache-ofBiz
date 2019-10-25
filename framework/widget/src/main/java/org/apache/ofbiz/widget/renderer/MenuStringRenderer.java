@@ -18,24 +18,31 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.renderer;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.ofbiz.widget.model.CommonWidgetModels.Image;
 import org.apache.ofbiz.widget.model.ModelMenu;
 import org.apache.ofbiz.widget.model.ModelMenuItem;
+
+import java.io.IOException;
+import java.util.Map;
 
 
 /**
  * Widget Library - Form String Renderer interface
  */
 public interface MenuStringRenderer {
-    public void renderMenuItem(Appendable writer, Map<String, Object> context, ModelMenuItem menuItem) throws IOException ;
-    public void renderMenuOpen(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException ;
-    public void renderMenuClose(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException ;
-    public void renderFormatSimpleWrapperOpen(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException ;
-    public void renderFormatSimpleWrapperClose(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException ;
-    public void renderFormatSimpleWrapperRows(Appendable writer, Map<String, Object> context, Object menu) throws IOException ;
-    public void renderLink(Appendable writer, Map<String, Object> context, ModelMenuItem.MenuLink link) throws IOException ;
-    public void renderImage(Appendable writer, Map<String, Object> context, Image image) throws IOException ;
+	public void renderMenuItem(Appendable writer, Map<String, Object> context, ModelMenuItem menuItem) throws IOException;
+
+	public void renderMenuOpen(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException;
+
+	public void renderMenuClose(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException;
+
+	public void renderFormatSimpleWrapperOpen(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException;
+
+	public void renderFormatSimpleWrapperClose(Appendable writer, Map<String, Object> context, ModelMenu menu) throws IOException;
+
+	public void renderFormatSimpleWrapperRows(Appendable writer, Map<String, Object> context, Object menu) throws IOException;
+
+	public void renderLink(Appendable writer, Map<String, Object> context, ModelMenuItem.MenuLink link) throws IOException;
+
+	public void renderImage(Appendable writer, Map<String, Object> context, Image image) throws IOException;
 }

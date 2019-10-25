@@ -18,63 +18,63 @@
  *******************************************************************************/
 package org.apache.ofbiz.service;
 
-import java.sql.Timestamp;
-
 import org.apache.ofbiz.base.util.UtilDateTime;
+
+import java.sql.Timestamp;
 
 public class RunningService {
 
-    protected ModelService model;
-    protected String name;
-    protected int mode;
+	protected ModelService model;
+	protected String name;
+	protected int mode;
 
-    protected Timestamp startStamp;
-    protected Timestamp endStamp;
+	protected Timestamp startStamp;
+	protected Timestamp endStamp;
 
-    private RunningService() {
-        this.startStamp = UtilDateTime.nowTimestamp();
-        this.endStamp = null;
-    }
+	private RunningService() {
+		this.startStamp = UtilDateTime.nowTimestamp();
+		this.endStamp = null;
+	}
 
-    public RunningService(String localName, ModelService model, int mode) {
-        this();
-        this.name = localName;
-        this.model = model;
-        this.mode = mode;
-    }
+	public RunningService(String localName, ModelService model, int mode) {
+		this();
+		this.name = localName;
+		this.model = model;
+		this.mode = mode;
+	}
 
-    public ModelService getModelService() {
-        return this.model;
-    }
+	public ModelService getModelService() {
+		return this.model;
+	}
 
-    public String getLocalName() {
-        return this.name;
-    }
+	public String getLocalName() {
+		return this.name;
+	}
 
-    public int getMode() {
-        return mode;
-    }
+	public int getMode() {
+		return mode;
+	}
 
-    public Timestamp getStartStamp() {
-        return this.startStamp;
-    }
+	public Timestamp getStartStamp() {
+		return this.startStamp;
+	}
 
-    public Timestamp getEndStamp() {
-        return this.endStamp;
-    }
+	public Timestamp getEndStamp() {
+		return this.endStamp;
+	}
 
-    public void setEndStamp() {
-        this.endStamp = UtilDateTime.nowTimestamp();
-    }
+	public void setEndStamp() {
+		this.endStamp = UtilDateTime.nowTimestamp();
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (o != null && o instanceof RunningService) {
-            RunningService x = (RunningService) o;
-            if (this.model.equals(x.getModelService()) && this.mode == x.getMode() && this.startStamp.equals(x.getStartStamp())) {
-                return true;
-            }
-        }
-        return false;
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (o != null && o instanceof RunningService) {
+			RunningService x = (RunningService) o;
+			if (this.model.equals(x.getModelService()) && this.mode == x.getMode() && this.startStamp.equals(x.getStartStamp())) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

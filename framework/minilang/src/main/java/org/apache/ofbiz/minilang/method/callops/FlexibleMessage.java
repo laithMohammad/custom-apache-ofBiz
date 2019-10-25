@@ -18,8 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.minilang.method.callops;
 
-import java.io.Serializable;
-
 import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.base.util.UtilXml;
 import org.apache.ofbiz.base.util.string.FlexibleStringExpander;
@@ -27,53 +25,55 @@ import org.apache.ofbiz.minilang.MiniLangValidate;
 import org.apache.ofbiz.minilang.method.MethodContext;
 import org.w3c.dom.Element;
 
+import java.io.Serializable;
+
 /**
  * Simple class to wrap messages that come either from a straight string or a properties file
  */
 @SuppressWarnings("serial")
 public final class FlexibleMessage implements Serializable {
 
-    private final FlexibleStringExpander messageFse;
-    private final FlexibleStringExpander keyFse;
-    private final String propertyResource;
-    private String propertykey;
+	private final FlexibleStringExpander messageFse;
+	private final FlexibleStringExpander keyFse;
+	private final String propertyResource;
+	private String propertykey;
 
-    public FlexibleMessage(Element element, String defaultProperty) {
-        if (element != null) {
-            String message = UtilXml.elementValue(element);
-            if (message != null) {
-                messageFse = FlexibleStringExpander.getInstance(message);
-                keyFse = null;
-                propertykey = null;
-                propertyResource = null;
-            } else {
-                messageFse = null;
-                propertykey = MiniLangValidate.checkAttribute(element.getAttribute("property"), defaultProperty);
-                int exprStart = propertykey.indexOf(FlexibleStringExpander.openBracket);
-                int exprEnd = propertykey.indexOf(FlexibleStringExpander.closeBracket, exprStart);
-                if (exprStart > -1 && exprStart < exprEnd) {
-                    keyFse = FlexibleStringExpander.getInstance(propertykey);
-                } else {
-                    keyFse = null;
-                }
-                propertyResource = MiniLangValidate.checkAttribute(element.getAttribute("resource"), "DefaultMessagesUiLabels");
-            }
-        } else {
-            messageFse = null;
-            keyFse = null;
-            propertykey = defaultProperty;
-            propertyResource = "DefaultMessagesUiLabels";
-        }
-    }
+	public FlexibleMessage(Element element, String defaultProperty) {
+		if (element != null) {
+			String message = UtilXml.elementValue(element);
+			if (message != null) {
+				messageFse = FlexibleStringExpander.getInstance(message);
+				keyFse = null;
+				propertykey = null;
+				propertyResource = null;
+			} else {
+				messageFse = null;
+				propertykey = MiniLangValidate.checkAttribute(element.getAttribute("property"), defaultProperty);
+				int exprStart = propertykey.indexOf(FlexibleStringExpander.openBracket);
+				int exprEnd = propertykey.indexOf(FlexibleStringExpander.closeBracket, exprStart);
+				if (exprStart > -1 && exprStart < exprEnd) {
+					keyFse = FlexibleStringExpander.getInstance(propertykey);
+				} else {
+					keyFse = null;
+				}
+				propertyResource = MiniLangValidate.checkAttribute(element.getAttribute("resource"), "DefaultMessagesUiLabels");
+			}
+		} else {
+			messageFse = null;
+			keyFse = null;
+			propertykey = defaultProperty;
+			propertyResource = "DefaultMessagesUiLabels";
+		}
+	}
 
-    public String getMessage(ClassLoader loader, MethodContext methodContext) {
-        if (messageFse != null) {
-            return messageFse.expandString(methodContext.getEnvMap());
-        } else {
-            if (keyFse != null) {
-                propertykey = keyFse.expandString(methodContext.getEnvMap());
-            }
-            return UtilProperties.getMessage(propertyResource, propertykey, methodContext.getEnvMap(), methodContext.getLocale());
-        }
-    }
+	public String getMessage(ClassLoader loader, MethodContext methodContext) {
+		if (messageFse != null) {
+			return messageFse.expandString(methodContext.getEnvMap());
+		} else {
+			if (keyFse != null) {
+				propertykey = keyFse.expandString(methodContext.getEnvMap());
+			}
+			return UtilProperties.getMessage(propertyResource, propertykey, methodContext.getEnvMap(), methodContext.getLocale());
+		}
+	}
 }

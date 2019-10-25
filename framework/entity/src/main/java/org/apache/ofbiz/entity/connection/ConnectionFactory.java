@@ -18,18 +18,19 @@
  *******************************************************************************/
 package org.apache.ofbiz.entity.connection;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.config.model.JdbcElement;
 import org.apache.ofbiz.entity.datasource.GenericHelperInfo;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * ConnectionFactory
  */
 public interface ConnectionFactory {
 
-    public Connection getConnection(GenericHelperInfo helperInfo, JdbcElement jdbcElement) throws SQLException, GenericEntityException;
-    public void closeAll();
+	public Connection getConnection(GenericHelperInfo helperInfo, JdbcElement jdbcElement) throws SQLException, GenericEntityException;
+
+	public void closeAll();
 }

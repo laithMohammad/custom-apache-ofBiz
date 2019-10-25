@@ -19,5 +19,5 @@
 package org.apache.ofbiz.base.lang;
 
 public interface Appender<T> {
-    T appendTo(T target);
+	T appendTo(T target);
 }

@@ -26,36 +26,35 @@ import java.net.URL;
 
 /**
  * A special location resolver that uses Strings like URLs, but with more options
- *
  */
 
 public class OFBizHomeLocationResolver implements LocationResolver {
 
-    public static final String envName = "ofbiz.home";
+	public static final String envName = "ofbiz.home";
 
-    public URL resolveLocation(String location) throws MalformedURLException {
-        String propValue = System.getProperty(envName);
-        if (propValue == null) {
-            String errMsg = "The Java environment (-Dxxx=yyy) variable with name " + envName + " is not set, cannot resolve location.";
-            throw new MalformedURLException(errMsg);
-        }
-        StringBuilder baseLocation = new StringBuilder(FlexibleLocation.stripLocationType(location));
-        // if there is not a forward slash between the two, add it
-        if (baseLocation.charAt(0) != '/' && propValue.charAt(propValue.length() - 1) != '/') {
-            baseLocation.insert(0, '/');
-        }
-        baseLocation.insert(0, propValue);
-        String fileLocation = baseLocation.toString();
-        if (File.separatorChar != '/') {
-            fileLocation = fileLocation.replace(File.separatorChar, '/');
-        }
-        if (!fileLocation.startsWith("/")) {
-            fileLocation = "/".concat(fileLocation);
-        }
-        try {
-            return new URI("file", null, fileLocation, null).toURL();
-        } catch (URISyntaxException e) {
-            throw new MalformedURLException(e.getMessage());
-        }
-    }
+	public URL resolveLocation(String location) throws MalformedURLException {
+		String propValue = System.getProperty(envName);
+		if (propValue == null) {
+			String errMsg = "The Java environment (-Dxxx=yyy) variable with name " + envName + " is not set, cannot resolve location.";
+			throw new MalformedURLException(errMsg);
+		}
+		StringBuilder baseLocation = new StringBuilder(FlexibleLocation.stripLocationType(location));
+		// if there is not a forward slash between the two, add it
+		if (baseLocation.charAt(0) != '/' && propValue.charAt(propValue.length() - 1) != '/') {
+			baseLocation.insert(0, '/');
+		}
+		baseLocation.insert(0, propValue);
+		String fileLocation = baseLocation.toString();
+		if (File.separatorChar != '/') {
+			fileLocation = fileLocation.replace(File.separatorChar, '/');
+		}
+		if (!fileLocation.startsWith("/")) {
+			fileLocation = "/".concat(fileLocation);
+		}
+		try {
+			return new URI("file", null, fileLocation, null).toURL();
+		} catch (URISyntaxException e) {
+			throw new MalformedURLException(e.getMessage());
+		}
+	}
 }

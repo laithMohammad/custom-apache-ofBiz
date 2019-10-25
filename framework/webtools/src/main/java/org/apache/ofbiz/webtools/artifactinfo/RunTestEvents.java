@@ -18,47 +18,47 @@
  *******************************************************************************/
 package org.apache.ofbiz.webtools.artifactinfo;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.ofbiz.base.container.ContainerException;
 import org.apache.ofbiz.base.start.StartupCommand;
 import org.apache.ofbiz.base.util.UtilMisc;
-import org.apache.ofbiz.testtools.*;
+import org.apache.ofbiz.testtools.TestRunContainer;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Event used to run a Junit test
  */
 public class RunTestEvents {
 
-    public static final String module = RunTestEvents.class.getName();
+	public static final String module = RunTestEvents.class.getName();
 
-    public static String runTest(HttpServletRequest request, HttpServletResponse response) throws ContainerException {
-        
-        String component = request.getParameter("compName");
-        String suiteName = request.getParameter("suiteName");
-        String caseName = request.getParameter("caseName");
-        String result = null;
+	public static String runTest(HttpServletRequest request, HttpServletResponse response) throws ContainerException {
 
-        List<StartupCommand> ofbizCommands = new ArrayList<StartupCommand>();
-        if (caseName == null) {
-            ofbizCommands.add(new StartupCommand.Builder("test").properties(
-                    UtilMisc.toMap("component", component, "suitename", suiteName)).build());
-        } else {
-            ofbizCommands.add(new StartupCommand.Builder("test").properties(
-                    UtilMisc.toMap("component", component, "suitename", suiteName, "case", caseName)).build());
-        }
+		String component = request.getParameter("compName");
+		String suiteName = request.getParameter("suiteName");
+		String caseName = request.getParameter("caseName");
+		String result = null;
 
-        TestRunContainer testRunContainer = new TestRunContainer();
-        testRunContainer.init(ofbizCommands, "frontend test run", "   ");
-        if (testRunContainer.start() == false) {
-            result = "error";
-        } else {
-            result = "success";
-        }
+		List<StartupCommand> ofbizCommands = new ArrayList<StartupCommand>();
+		if (caseName == null) {
+			ofbizCommands.add(new StartupCommand.Builder("test").properties(
+					UtilMisc.toMap("component", component, "suitename", suiteName)).build());
+		} else {
+			ofbizCommands.add(new StartupCommand.Builder("test").properties(
+					UtilMisc.toMap("component", component, "suitename", suiteName, "case", caseName)).build());
+		}
 
-        return result;
-    }
+		TestRunContainer testRunContainer = new TestRunContainer();
+		testRunContainer.init(ofbizCommands, "frontend test run", "   ");
+		if (testRunContainer.start() == false) {
+			result = "error";
+		} else {
+			result = "success";
+		}
+
+		return result;
+	}
 }

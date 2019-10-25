@@ -18,15 +18,7 @@
  *******************************************************************************/
 package org.apache.ofbiz.webpos.session;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.base.util.GeneralException;
-import org.apache.ofbiz.base.util.UtilMisc;
-import org.apache.ofbiz.base.util.UtilProperties;
-import org.apache.ofbiz.base.util.UtilValidate;
+import org.apache.ofbiz.base.util.*;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.DelegatorFactory;
 import org.apache.ofbiz.entity.GenericEntityException;
@@ -38,233 +30,237 @@ import org.apache.ofbiz.service.ServiceUtil;
 import org.apache.ofbiz.webapp.control.LoginWorker;
 import org.apache.ofbiz.webpos.transaction.WebPosTransaction;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 public class WebPosSession {
 
-    public static final String module = WebPosSession.class.getName();
+	public static final String module = WebPosSession.class.getName();
 
-    private String id = null;
-    private Map<String, Object> attributes = new HashMap<String, Object>();
-    private GenericValue userLogin = null;
-    private Locale locale = null;
-    private String productStoreId = null;
-    private String facilityId = null;
-    private String currencyUomId = null;
-    private transient Delegator delegator = null;
-    private String delegatorName = null;
-    private LocalDispatcher dispatcher = null;
-    private Boolean mgrLoggedIn = null;
-    private WebPosTransaction webPosTransaction = null;
-    private ShoppingCart cart = null;
+	private String id = null;
+	private Map<String, Object> attributes = new HashMap<String, Object>();
+	private GenericValue userLogin = null;
+	private Locale locale = null;
+	private String productStoreId = null;
+	private String facilityId = null;
+	private String currencyUomId = null;
+	private transient Delegator delegator = null;
+	private String delegatorName = null;
+	private LocalDispatcher dispatcher = null;
+	private Boolean mgrLoggedIn = null;
+	private WebPosTransaction webPosTransaction = null;
+	private ShoppingCart cart = null;
 
-    public WebPosSession(String id, Map<String, Object> attributes, GenericValue userLogin, Locale locale, String productStoreId, String facilityId, String currencyUomId, Delegator delegator, LocalDispatcher dispatcher, ShoppingCart cart) {
-        this.id = id;
-        this.attributes = attributes;
-        this.userLogin = userLogin;
-        this.locale = locale;
-        this.productStoreId = productStoreId;
-        this.facilityId = facilityId;
-        this.currencyUomId = currencyUomId;
+	public WebPosSession(String id, Map<String, Object> attributes, GenericValue userLogin, Locale locale, String productStoreId, String facilityId, String currencyUomId, Delegator delegator, LocalDispatcher dispatcher, ShoppingCart cart) {
+		this.id = id;
+		this.attributes = attributes;
+		this.userLogin = userLogin;
+		this.locale = locale;
+		this.productStoreId = productStoreId;
+		this.facilityId = facilityId;
+		this.currencyUomId = currencyUomId;
 
-        if (UtilValidate.isNotEmpty(delegator)) {
-            this.delegator = delegator;
-            this.delegatorName = delegator.getDelegatorName();
-        } else {
-            this.delegator = this.getDelegator();
-            this.delegatorName = delegator.getDelegatorName();
-        }
+		if (UtilValidate.isNotEmpty(delegator)) {
+			this.delegator = delegator;
+			this.delegatorName = delegator.getDelegatorName();
+		} else {
+			this.delegator = this.getDelegator();
+			this.delegatorName = delegator.getDelegatorName();
+		}
 
-        this.dispatcher = dispatcher;
-        this.cart = cart;
-        Debug.logInfo("Created WebPosSession [" + id + "]", module);
-    }
+		this.dispatcher = dispatcher;
+		this.cart = cart;
+		Debug.logInfo("Created WebPosSession [" + id + "]", module);
+	}
 
-    public GenericValue getUserLogin() {
-        return this.userLogin;
-    }
-    
-    public void setUserLogin(GenericValue userLogin) {
-        this.userLogin = userLogin;
-    }
+	public GenericValue getUserLogin() {
+		return this.userLogin;
+	}
 
-    public void setAttribute(String name, Object value) {
-        this.attributes.put(name, value);
-    }
+	public void setUserLogin(GenericValue userLogin) {
+		this.userLogin = userLogin;
+	}
 
-    public Object getAttribute(String name) {
-        return this.attributes.get(name);
-    }
+	public void setAttribute(String name, Object value) {
+		this.attributes.put(name, value);
+	}
 
-    public String getId() {
-        return this.id;
-    }
+	public Object getAttribute(String name) {
+		return this.attributes.get(name);
+	}
 
-    public String getUserLoginId() {
-        if (UtilValidate.isEmpty(getUserLogin())) {
-            return null;
-        } else {
-            return this.getUserLogin().getString("userLoginId");
-        }
-    }
+	public String getId() {
+		return this.id;
+	}
 
-    public String getUserPartyId() {
-        if (UtilValidate.isEmpty(getUserLogin())) {
-            return null;
-        } else {
-            return this.getUserLogin().getString("partyId");
-        }
-    }
+	public String getUserLoginId() {
+		if (UtilValidate.isEmpty(getUserLogin())) {
+			return null;
+		} else {
+			return this.getUserLogin().getString("userLoginId");
+		}
+	}
 
-    public Locale getLocale() {
-        return this.locale;
-    }
+	public String getUserPartyId() {
+		if (UtilValidate.isEmpty(getUserLogin())) {
+			return null;
+		} else {
+			return this.getUserLogin().getString("partyId");
+		}
+	}
 
-    public void setLocale(Locale locale) {
-        this.locale = locale;
-    }
+	public Locale getLocale() {
+		return this.locale;
+	}
 
-    public String getProductStoreId() {
-        return this.productStoreId;
-    }
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
 
-    public void setProductStoreId(String productStoreId) {
-        this.productStoreId = productStoreId;
-    }
+	public String getProductStoreId() {
+		return this.productStoreId;
+	}
 
-    public String getFacilityId() {
-        return this.facilityId;
-    }
+	public void setProductStoreId(String productStoreId) {
+		this.productStoreId = productStoreId;
+	}
 
-    public void setFacilityId(String facilityId) {
-        this.facilityId = facilityId;
-    }
+	public String getFacilityId() {
+		return this.facilityId;
+	}
 
-    public String getCurrencyUomId() {
-        return this.currencyUomId;
-    }
+	public void setFacilityId(String facilityId) {
+		this.facilityId = facilityId;
+	}
 
-    public void setCurrencyUomId(String currencyUomId) {
-        this.currencyUomId = currencyUomId;
-    }
+	public String getCurrencyUomId() {
+		return this.currencyUomId;
+	}
 
-    public Delegator getDelegator() {
-        if (UtilValidate.isEmpty(delegator)) {
-            delegator = DelegatorFactory.getDelegator(delegatorName);
-        }
-        return delegator;
-    }
+	public void setCurrencyUomId(String currencyUomId) {
+		this.currencyUomId = currencyUomId;
+	}
 
-    public LocalDispatcher getDispatcher() {
-        return dispatcher;
-    }
+	public Delegator getDelegator() {
+		if (UtilValidate.isEmpty(delegator)) {
+			delegator = DelegatorFactory.getDelegator(delegatorName);
+		}
+		return delegator;
+	}
 
-    public ShoppingCart getCart() {
-        return this.cart;
-    }
+	public LocalDispatcher getDispatcher() {
+		return dispatcher;
+	}
 
-    public void logout() {
-        if (UtilValidate.isNotEmpty(webPosTransaction)) {
-            webPosTransaction.closeTx();
-            webPosTransaction = null;
-        }
+	public ShoppingCart getCart() {
+		return this.cart;
+	}
 
-        if (UtilValidate.isNotEmpty(getUserLogin())) {
-            LoginWorker.setLoggedOut(this.getUserLogin().getString("userLoginId"), this.getDelegator());
-        }
-    }
+	public void logout() {
+		if (UtilValidate.isNotEmpty(webPosTransaction)) {
+			webPosTransaction.closeTx();
+			webPosTransaction = null;
+		}
 
-    public void login(String username, String password, LocalDispatcher dispatcher) throws UserLoginFailure {
-        this.checkLogin(username, password, dispatcher);
-    }
+		if (UtilValidate.isNotEmpty(getUserLogin())) {
+			LoginWorker.setLoggedOut(this.getUserLogin().getString("userLoginId"), this.getDelegator());
+		}
+	}
 
-    public GenericValue checkLogin(String username, String password, LocalDispatcher dispatcher) throws UserLoginFailure {
-        // check the required parameters and objects
-        if (UtilValidate.isEmpty(dispatcher)) {
-            throw new UserLoginFailure(UtilProperties.getMessage("WebPosUiLabels", "WebPosUnableToLogIn", getLocale()));
-        }
-        if (UtilValidate.isEmpty(username)) {
-            throw new UserLoginFailure(UtilProperties.getMessage("PartyUiLabels", "PartyUserNameMissing", getLocale()));
-        }
-        if (UtilValidate.isEmpty(password)) {
-            throw new UserLoginFailure(UtilProperties.getMessage("PartyUiLabels", "PartyPasswordMissing", getLocale()));
-        }
+	public void login(String username, String password, LocalDispatcher dispatcher) throws UserLoginFailure {
+		this.checkLogin(username, password, dispatcher);
+	}
 
-        // call the login service
-        Map<String, Object> result = null;
-        try {
-            result = dispatcher.runSync("userLogin", UtilMisc.toMap("login.username", username, "login.password", password));
-        } catch (GenericServiceException e) {
-            Debug.logError(e, module);
-            throw new UserLoginFailure(e);
-        } catch (Throwable t) {
-            Debug.logError(t, "Throwable caught!", module);
-        }
+	public GenericValue checkLogin(String username, String password, LocalDispatcher dispatcher) throws UserLoginFailure {
+		// check the required parameters and objects
+		if (UtilValidate.isEmpty(dispatcher)) {
+			throw new UserLoginFailure(UtilProperties.getMessage("WebPosUiLabels", "WebPosUnableToLogIn", getLocale()));
+		}
+		if (UtilValidate.isEmpty(username)) {
+			throw new UserLoginFailure(UtilProperties.getMessage("PartyUiLabels", "PartyUserNameMissing", getLocale()));
+		}
+		if (UtilValidate.isEmpty(password)) {
+			throw new UserLoginFailure(UtilProperties.getMessage("PartyUiLabels", "PartyPasswordMissing", getLocale()));
+		}
 
-        // check for errors
-        if (ServiceUtil.isError(result)) {
-            throw new UserLoginFailure(ServiceUtil.getErrorMessage(result));
-        } else {
-            GenericValue ul = (GenericValue) result.get("userLogin");
-            if (ul == null) {
-                throw new UserLoginFailure(UtilProperties.getMessage("WebPosUiLabels", "WebPosUserLoginNotValid", getLocale()));
-            }
-            return ul;
-        }
-    }
+		// call the login service
+		Map<String, Object> result = null;
+		try {
+			result = dispatcher.runSync("userLogin", UtilMisc.toMap("login.username", username, "login.password", password));
+		} catch (GenericServiceException e) {
+			Debug.logError(e, module);
+			throw new UserLoginFailure(e);
+		} catch (Throwable t) {
+			Debug.logError(t, "Throwable caught!", module);
+		}
 
-    public boolean hasRole(GenericValue userLogin, String roleTypeId) {
-        if (UtilValidate.isEmpty(userLogin) || UtilValidate.isEmpty(roleTypeId)) {
-            return false;
-        }
-        String partyId = userLogin.getString("partyId");
-        GenericValue partyRole = null;
-        try {
-            partyRole = getDelegator().findOne("PartyRole", false, "partyId", partyId, "roleTypeId", roleTypeId);
-        } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return false;
-        }
+		// check for errors
+		if (ServiceUtil.isError(result)) {
+			throw new UserLoginFailure(ServiceUtil.getErrorMessage(result));
+		} else {
+			GenericValue ul = (GenericValue) result.get("userLogin");
+			if (ul == null) {
+				throw new UserLoginFailure(UtilProperties.getMessage("WebPosUiLabels", "WebPosUserLoginNotValid", getLocale()));
+			}
+			return ul;
+		}
+	}
 
-        if (UtilValidate.isEmpty(partyRole)) {
-            return false;
-        }
+	public boolean hasRole(GenericValue userLogin, String roleTypeId) {
+		if (UtilValidate.isEmpty(userLogin) || UtilValidate.isEmpty(roleTypeId)) {
+			return false;
+		}
+		String partyId = userLogin.getString("partyId");
+		GenericValue partyRole = null;
+		try {
+			partyRole = getDelegator().findOne("PartyRole", false, "partyId", partyId, "roleTypeId", roleTypeId);
+		} catch (GenericEntityException e) {
+			Debug.logError(e, module);
+			return false;
+		}
 
-        return true;
-    }
+		if (UtilValidate.isEmpty(partyRole)) {
+			return false;
+		}
 
-    public boolean isManagerLoggedIn() {
-        if (UtilValidate.isEmpty(mgrLoggedIn)) {
-            mgrLoggedIn = hasRole(getUserLogin(), "MANAGER");
-        }
-        return mgrLoggedIn.booleanValue();
-    }
+		return true;
+	}
 
-    public WebPosTransaction getCurrentTransaction() {
-        if (UtilValidate.isEmpty(webPosTransaction)) {
-            webPosTransaction = new WebPosTransaction(this);
-        }
-        return webPosTransaction;
-    }
+	public boolean isManagerLoggedIn() {
+		if (UtilValidate.isEmpty(mgrLoggedIn)) {
+			mgrLoggedIn = hasRole(getUserLogin(), "MANAGER");
+		}
+		return mgrLoggedIn.booleanValue();
+	}
 
-    public void setCurrentTransaction(WebPosTransaction webPosTransaction) {
-        this.webPosTransaction = webPosTransaction;
-    }
+	public WebPosTransaction getCurrentTransaction() {
+		if (UtilValidate.isEmpty(webPosTransaction)) {
+			webPosTransaction = new WebPosTransaction(this);
+		}
+		return webPosTransaction;
+	}
 
-    @SuppressWarnings("serial")
-    public class UserLoginFailure extends GeneralException {
-        public UserLoginFailure() {
-            super();
-        }
+	public void setCurrentTransaction(WebPosTransaction webPosTransaction) {
+		this.webPosTransaction = webPosTransaction;
+	}
 
-        public UserLoginFailure(String str) {
-            super(str);
-        }
+	@SuppressWarnings("serial")
+	public class UserLoginFailure extends GeneralException {
+		public UserLoginFailure() {
+			super();
+		}
 
-        public UserLoginFailure(String str, Throwable nested) {
-            super(str, nested);
-        }
+		public UserLoginFailure(String str) {
+			super(str);
+		}
 
-        public UserLoginFailure(Throwable nested) {
-            super(nested);
-        }
-    }
+		public UserLoginFailure(String str, Throwable nested) {
+			super(str, nested);
+		}
+
+		public UserLoginFailure(Throwable nested) {
+			super(nested);
+		}
+	}
 }

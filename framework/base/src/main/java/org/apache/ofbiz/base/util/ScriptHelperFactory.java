@@ -18,14 +18,14 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.util;
 
-import javax.script.ScriptContext;
-
 import org.apache.ofbiz.base.lang.Factory;
+
+import javax.script.ScriptContext;
 
 /**
  * A <code>ScriptHelper</code> factory.
  */
 public interface ScriptHelperFactory extends Factory<ScriptHelper, ScriptContext> {
 
-    ScriptHelper getInstance(ScriptContext context);
+	ScriptHelper getInstance(ScriptContext context);
 }

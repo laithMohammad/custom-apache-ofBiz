@@ -26,15 +26,15 @@ import org.apache.ofbiz.base.util.GeneralException;
 @SuppressWarnings("serial")
 public class DataFileException extends GeneralException {
 
-    public DataFileException() {
-        super();
-    }
+	public DataFileException() {
+		super();
+	}
 
-    public DataFileException(String str) {
-        super(str);
-    }
+	public DataFileException(String str) {
+		super(str);
+	}
 
-    public DataFileException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public DataFileException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

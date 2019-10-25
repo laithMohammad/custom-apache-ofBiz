@@ -25,11 +25,11 @@ import org.apache.ofbiz.service.config.model.ServiceConfig;
  */
 public interface ServiceConfigListener {
 
-    /**
-     * Processes <code>serviceengine.xml</code> changes.
-     * 
-     * @param serviceConfig The new <code>ServiceConfig</code> instance.
-     */
-    void onServiceConfigChange(ServiceConfig serviceConfig);
+	/**
+	 * Processes <code>serviceengine.xml</code> changes.
+	 *
+	 * @param serviceConfig The new <code>ServiceConfig</code> instance.
+	 */
+	void onServiceConfigChange(ServiceConfig serviceConfig);
 
 }

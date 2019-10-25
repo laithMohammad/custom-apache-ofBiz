@@ -24,17 +24,17 @@ import org.apache.ofbiz.service.LocalDispatcher;
 
 public class OFBizTestCase extends EntityTestCase {
 
-    protected LocalDispatcher dispatcher = null;
+	protected LocalDispatcher dispatcher = null;
 
-    public LocalDispatcher getDispatcher() {
-        return dispatcher;
-    }
+	public OFBizTestCase(String name) {
+		super(name);
+	}
 
-    public OFBizTestCase(String name) {
-        super(name);
-    }
+	public LocalDispatcher getDispatcher() {
+		return dispatcher;
+	}
 
-    public void setDispatcher(LocalDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
-    }
+	public void setDispatcher(LocalDispatcher dispatcher) {
+		this.dispatcher = dispatcher;
+	}
 }

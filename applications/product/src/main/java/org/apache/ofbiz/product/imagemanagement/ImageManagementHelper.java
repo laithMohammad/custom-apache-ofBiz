@@ -19,10 +19,6 @@
 
 package org.apache.ofbiz.product.imagemanagement;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
@@ -31,34 +27,39 @@ import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.entity.util.EntityUtil;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
 public final class ImageManagementHelper {
 
-    static String module = ImageManagementHelper.class.getName();
-    private ImageManagementHelper() {}
+	static String module = ImageManagementHelper.class.getName();
 
-    public static String getInternalImageUrl(HttpServletRequest request, String productId) {
-        String internalImageUrl = null;
-        if (request == null) return internalImageUrl; 
-        try {
-            Delegator delegator = (Delegator) request.getAttribute("delegator");
-            List<GenericValue> defaultImageList = EntityQuery.use(delegator).from("ProductContentAndInfo").where("productId", productId, "productContentTypeId", "DEFAULT_IMAGE", "statusId", "IM_APPROVED", "drIsPublic", "N").orderBy("sequenceNum").queryList();
-            if (UtilValidate.isNotEmpty(defaultImageList)) {
-                GenericValue productContent = EntityUtil.getFirst(defaultImageList);
-                if (UtilValidate.isNotEmpty(productContent.get("drObjectInfo"))) {
-                    internalImageUrl = (String) productContent.get("drObjectInfo");
-                }
-            } else {
-                List<GenericValue> productContentList = EntityQuery.use(delegator).from("ProductContentAndInfo").where("productId", productId, "productContentTypeId", "IMAGE", "statusId", "IM_APPROVED", "drIsPublic", "N").orderBy("sequenceNum").queryList();
-                if (UtilValidate.isNotEmpty(productContentList)) {
-                    GenericValue productContent = EntityUtil.getFirst(productContentList);
-                    if (UtilValidate.isNotEmpty(productContent.get("drObjectInfo"))) {
-                        internalImageUrl = (String) productContent.get("drObjectInfo");
-                    }
-                }
-            }
-        } catch (GenericEntityException e) {
-            Debug.logError(e, "Cannot get internal image url", module);
-        }
-        return internalImageUrl;
-    }
+	private ImageManagementHelper() {
+	}
+
+	public static String getInternalImageUrl(HttpServletRequest request, String productId) {
+		String internalImageUrl = null;
+		if (request == null) return internalImageUrl;
+		try {
+			Delegator delegator = (Delegator) request.getAttribute("delegator");
+			List<GenericValue> defaultImageList = EntityQuery.use(delegator).from("ProductContentAndInfo").where("productId", productId, "productContentTypeId", "DEFAULT_IMAGE", "statusId", "IM_APPROVED", "drIsPublic", "N").orderBy("sequenceNum").queryList();
+			if (UtilValidate.isNotEmpty(defaultImageList)) {
+				GenericValue productContent = EntityUtil.getFirst(defaultImageList);
+				if (UtilValidate.isNotEmpty(productContent.get("drObjectInfo"))) {
+					internalImageUrl = (String) productContent.get("drObjectInfo");
+				}
+			} else {
+				List<GenericValue> productContentList = EntityQuery.use(delegator).from("ProductContentAndInfo").where("productId", productId, "productContentTypeId", "IMAGE", "statusId", "IM_APPROVED", "drIsPublic", "N").orderBy("sequenceNum").queryList();
+				if (UtilValidate.isNotEmpty(productContentList)) {
+					GenericValue productContent = EntityUtil.getFirst(productContentList);
+					if (UtilValidate.isNotEmpty(productContent.get("drObjectInfo"))) {
+						internalImageUrl = (String) productContent.get("drObjectInfo");
+					}
+				}
+			}
+		} catch (GenericEntityException e) {
+			Debug.logError(e, "Cannot get internal image url", module);
+		}
+		return internalImageUrl;
+	}
 }

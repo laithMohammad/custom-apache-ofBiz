@@ -18,122 +18,119 @@
  *******************************************************************************/
 package org.apache.ofbiz.webapp.ftl;
 
+import freemarker.core.Environment;
+import freemarker.ext.beans.BeanModel;
+import freemarker.ext.beans.NumberModel;
+import freemarker.template.*;
+import org.apache.ofbiz.base.util.Debug;
+import org.apache.ofbiz.base.util.UtilFormatOut;
+import org.apache.ofbiz.base.util.UtilHttp;
+
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-
-import freemarker.core.Environment;
-import freemarker.ext.beans.BeanModel;
-import freemarker.ext.beans.NumberModel;
-import freemarker.template.SimpleNumber;
-import freemarker.template.SimpleScalar;
-import freemarker.template.TemplateModelException;
-import freemarker.template.TemplateScalarModel;
-import freemarker.template.TemplateTransformModel;
-
-import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.base.util.UtilFormatOut;
-import org.apache.ofbiz.base.util.UtilHttp;
 
 /**
  * OfbizAmountTransform - Freemarker Transform for content links
  */
 public class OfbizAmountTransform implements TemplateTransformModel {
 
-    public static final String module = OfbizAmountTransform.class.getName();
-    public static final String SPELLED_OUT_FORMAT = "spelled-out";
+	public static final String module = OfbizAmountTransform.class.getName();
+	public static final String SPELLED_OUT_FORMAT = "spelled-out";
 
-    private static String getArg(Map args, String key) {
-        String  result = "";
-        Object o = args.get(key);
-        if (o != null) {
-            if (Debug.verboseOn()) Debug.logVerbose("Arg Object : " + o.getClass().getName(), module);
-            if (o instanceof TemplateScalarModel) {
-                TemplateScalarModel s = (TemplateScalarModel) o;
-                try {
-                    result = s.getAsString();
-                } catch (TemplateModelException e) {
-                    Debug.logError(e, "Template Exception", module);
-                }
-            } else {
-              result = o.toString();
-            }
-        }
-        return result;
-    }
-    private static Double getAmount(Map args, String key) {
-        if (args.containsKey(key)) {
-            Object o = args.get(key);
-            if (Debug.verboseOn()) Debug.logVerbose("Amount Object : " + o.getClass().getName(), module);
+	private static String getArg(Map args, String key) {
+		String result = "";
+		Object o = args.get(key);
+		if (o != null) {
+			if (Debug.verboseOn()) Debug.logVerbose("Arg Object : " + o.getClass().getName(), module);
+			if (o instanceof TemplateScalarModel) {
+				TemplateScalarModel s = (TemplateScalarModel) o;
+				try {
+					result = s.getAsString();
+				} catch (TemplateModelException e) {
+					Debug.logError(e, "Template Exception", module);
+				}
+			} else {
+				result = o.toString();
+			}
+		}
+		return result;
+	}
 
-            // handle nulls better
-            if (o == null) {
-                o = Double.valueOf(0.00);
-            }
+	private static Double getAmount(Map args, String key) {
+		if (args.containsKey(key)) {
+			Object o = args.get(key);
+			if (Debug.verboseOn()) Debug.logVerbose("Amount Object : " + o.getClass().getName(), module);
 
-            if (o instanceof NumberModel) {
-                NumberModel s = (NumberModel) o;
-                return Double.valueOf(s.getAsNumber().doubleValue());
-            }
-            if (o instanceof SimpleNumber) {
-                SimpleNumber s = (SimpleNumber) o;
-                return Double.valueOf(s.getAsNumber().doubleValue());
-            }
-            if (o instanceof SimpleScalar) {
-                SimpleScalar s = (SimpleScalar) o;
-                return Double.valueOf(s.getAsString());
-            }
-            return Double.valueOf(o.toString());
-        }
-        return Double.valueOf(0.00);
-    }
-    public Writer getWriter(final Writer out, Map args) {
-        final StringBuilder buf = new StringBuilder();
+			// handle nulls better
+			if (o == null) {
+				o = Double.valueOf(0.00);
+			}
 
-        final Double amount = OfbizAmountTransform.getAmount(args, "amount");
-        final String locale = OfbizAmountTransform.getArg(args, "locale");
-        final String format = OfbizAmountTransform.getArg(args, "format");
+			if (o instanceof NumberModel) {
+				NumberModel s = (NumberModel) o;
+				return Double.valueOf(s.getAsNumber().doubleValue());
+			}
+			if (o instanceof SimpleNumber) {
+				SimpleNumber s = (SimpleNumber) o;
+				return Double.valueOf(s.getAsNumber().doubleValue());
+			}
+			if (o instanceof SimpleScalar) {
+				SimpleScalar s = (SimpleScalar) o;
+				return Double.valueOf(s.getAsString());
+			}
+			return Double.valueOf(o.toString());
+		}
+		return Double.valueOf(0.00);
+	}
 
-        return new Writer(out) {
-            @Override
-            public void write(char cbuf[], int off, int len) {
-                buf.append(cbuf, off, len);
-            }
+	public Writer getWriter(final Writer out, Map args) {
+		final StringBuilder buf = new StringBuilder();
 
-            @Override
-            public void flush() throws IOException {
-                out.flush();
-            }
+		final Double amount = OfbizAmountTransform.getAmount(args, "amount");
+		final String locale = OfbizAmountTransform.getArg(args, "locale");
+		final String format = OfbizAmountTransform.getArg(args, "format");
 
-            @Override
-            public void close() throws IOException {
-                try {
-                    if (Debug.verboseOn()) Debug.logVerbose("parms: " + amount + " " + format + " " + locale, module);
-                    Locale localeObj = null;
-                    if (locale.length() < 1) {
-                        // Load the locale from the session
-                        Environment env = Environment.getCurrentEnvironment();
-                        BeanModel req = (BeanModel) env.getVariable("request");
-                        if (req != null) {
-                            HttpServletRequest request = (HttpServletRequest) req.getWrappedObject();
-                            localeObj = UtilHttp.getLocale(request);
-                        } else {
-                            localeObj = env.getLocale();
-                        }
-                    } else {
-                        localeObj = new Locale(locale);
-                    }
-                    if (format.equals(OfbizAmountTransform.SPELLED_OUT_FORMAT)) {
-                        out.write(UtilFormatOut.formatSpelledOutAmount(amount.doubleValue(), localeObj));
-                    } else {
-                        out.write(UtilFormatOut.formatAmount(amount.doubleValue(), localeObj));
-                    }
-                } catch (TemplateModelException e) {
-                    throw new IOException(e.getMessage());
-                }
-            }
-        };
-    }
+		return new Writer(out) {
+			@Override
+			public void write(char cbuf[], int off, int len) {
+				buf.append(cbuf, off, len);
+			}
+
+			@Override
+			public void flush() throws IOException {
+				out.flush();
+			}
+
+			@Override
+			public void close() throws IOException {
+				try {
+					if (Debug.verboseOn()) Debug.logVerbose("parms: " + amount + " " + format + " " + locale, module);
+					Locale localeObj = null;
+					if (locale.length() < 1) {
+						// Load the locale from the session
+						Environment env = Environment.getCurrentEnvironment();
+						BeanModel req = (BeanModel) env.getVariable("request");
+						if (req != null) {
+							HttpServletRequest request = (HttpServletRequest) req.getWrappedObject();
+							localeObj = UtilHttp.getLocale(request);
+						} else {
+							localeObj = env.getLocale();
+						}
+					} else {
+						localeObj = new Locale(locale);
+					}
+					if (format.equals(OfbizAmountTransform.SPELLED_OUT_FORMAT)) {
+						out.write(UtilFormatOut.formatSpelledOutAmount(amount.doubleValue(), localeObj));
+					} else {
+						out.write(UtilFormatOut.formatAmount(amount.doubleValue(), localeObj));
+					}
+				} catch (TemplateModelException e) {
+					throw new IOException(e.getMessage());
+				}
+			}
+		};
+	}
 }

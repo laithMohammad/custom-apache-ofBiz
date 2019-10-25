@@ -20,8 +20,6 @@
 
 package org.apache.ofbiz.common.period;
 
-import java.sql.Timestamp;
-
 import org.apache.ofbiz.base.util.UtilDateTime;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.condition.EntityCondition;
@@ -29,29 +27,32 @@ import org.apache.ofbiz.entity.condition.EntityConditionList;
 import org.apache.ofbiz.entity.condition.EntityExpr;
 import org.apache.ofbiz.entity.condition.EntityOperator;
 
+import java.sql.Timestamp;
+
 public final class PeriodWorker {
 
-    public static String module = PeriodWorker.class.getName();
+	public static String module = PeriodWorker.class.getName();
 
-    private PeriodWorker() {}
+	private PeriodWorker() {
+	}
 
-    /**
-     * Method to get a condition that checks that the given fieldName is in a given timePeriod.
-     */
-    public static EntityCondition getFilterByPeriodExpr(String fieldName, GenericValue timePeriod) {
-        Timestamp fromDate;
-        Timestamp thruDate;
-        if (timePeriod.get("fromDate") instanceof Timestamp) {
-            fromDate = timePeriod.getTimestamp("fromDate");
-            thruDate = timePeriod.getTimestamp("thruDate");
-        } else {
-            fromDate = UtilDateTime.toTimestamp(timePeriod.getDate("fromDate"));
-            thruDate = UtilDateTime.toTimestamp(timePeriod.getDate("thruDate"));
-        }
+	/**
+	 * Method to get a condition that checks that the given fieldName is in a given timePeriod.
+	 */
+	public static EntityCondition getFilterByPeriodExpr(String fieldName, GenericValue timePeriod) {
+		Timestamp fromDate;
+		Timestamp thruDate;
+		if (timePeriod.get("fromDate") instanceof Timestamp) {
+			fromDate = timePeriod.getTimestamp("fromDate");
+			thruDate = timePeriod.getTimestamp("thruDate");
+		} else {
+			fromDate = UtilDateTime.toTimestamp(timePeriod.getDate("fromDate"));
+			thruDate = UtilDateTime.toTimestamp(timePeriod.getDate("thruDate"));
+		}
 
-        EntityConditionList<EntityExpr> betweenCondition = EntityCondition.makeCondition(
-                    EntityCondition.makeCondition(fieldName, EntityOperator.GREATER_THAN, fromDate),
-                    EntityCondition.makeCondition(fieldName, EntityOperator.LESS_THAN_EQUAL_TO, thruDate));
-        return EntityCondition.makeCondition(EntityCondition.makeCondition(fieldName, EntityOperator.NOT_EQUAL, null), betweenCondition);
-    }
+		EntityConditionList<EntityExpr> betweenCondition = EntityCondition.makeCondition(
+				EntityCondition.makeCondition(fieldName, EntityOperator.GREATER_THAN, fromDate),
+				EntityCondition.makeCondition(fieldName, EntityOperator.LESS_THAN_EQUAL_TO, thruDate));
+		return EntityCondition.makeCondition(EntityCondition.makeCondition(fieldName, EntityOperator.NOT_EQUAL, null), betweenCondition);
+	}
 }

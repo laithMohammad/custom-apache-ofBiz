@@ -18,8 +18,8 @@
  *******************************************************************************/
 package org.apache.ofbiz.minilang;
 
-import org.apache.ofbiz.minilang.artifact.ArtifactInfoContext;
 import org.apache.ofbiz.base.util.Debug;
+import org.apache.ofbiz.minilang.artifact.ArtifactInfoContext;
 import org.apache.ofbiz.minilang.method.MethodContext;
 import org.w3c.dom.Element;
 
@@ -28,70 +28,74 @@ import org.w3c.dom.Element;
  */
 public class MiniLangElement {
 
-    // This must be private so subclasses cannot reference it.
-    private static final String module = MiniLangElement.class.getName();
+	// This must be private so subclasses cannot reference it.
+	private static final String module = MiniLangElement.class.getName();
+	protected final SimpleMethod simpleMethod;
+	private final Object lineNumber;
+	private final String tagName;
 
-    private final Object lineNumber;
-    protected final SimpleMethod simpleMethod;
-    private final String tagName;
+	public MiniLangElement(Element element, SimpleMethod simpleMethod) {
+		this.lineNumber = element.getUserData("startLine");
+		this.simpleMethod = simpleMethod;
+		this.tagName = element.getTagName().intern();
+	}
 
-    public MiniLangElement(Element element, SimpleMethod simpleMethod) {
-        this.lineNumber = element.getUserData("startLine");
-        this.simpleMethod = simpleMethod;
-        this.tagName = element.getTagName().intern();
-    }
+	/**
+	 * Updates <code>aic</code> with this element's artifact information.
+	 *
+	 * @param aic The artifact information context
+	 */
+	public void gatherArtifactInfo(ArtifactInfoContext aic) {
+	}
 
-    /**
-     * Updates <code>aic</code> with this element's artifact information.
-     * @param aic The artifact information context
-     */
-    public void gatherArtifactInfo(ArtifactInfoContext aic) {
-    }
+	/**
+	 * Returns the source code line number for this element.
+	 *
+	 * @return The source code line number for this element
+	 */
+	public String getLineNumber() {
+		return this.lineNumber == null ? "unknown" : this.lineNumber.toString();
+	}
 
-    /**
-     * Returns the source code line number for this element.
-     * @return The source code line number for this element
-     */
-    public String getLineNumber() {
-        return this.lineNumber == null ? "unknown" : this.lineNumber.toString();
-    }
+	/**
+	 * Returns the containing {@link  SimpleMethod} object.
+	 *
+	 * @return The containing {@link  SimpleMethod} object
+	 */
+	public SimpleMethod getSimpleMethod() {
+		return this.simpleMethod;
+	}
 
-    /**
-     * Returns the containing {@link  SimpleMethod} object.
-     * @return The containing {@link  SimpleMethod} object
-     */
-    public SimpleMethod getSimpleMethod() {
-        return this.simpleMethod;
-    }
+	/**
+	 * Returns this element's tag name.
+	 *
+	 * @return This element's tag name
+	 */
+	public String getTagName() {
+		return this.tagName;
+	}
 
-    /**
-     * Returns this element's tag name.
-     * @return This element's tag name
-     */
-    public String getTagName() {
-        return this.tagName;
-    }
+	/**
+	 * Logs a trace message.
+	 *
+	 * @param methodContext
+	 * @param messages
+	 */
+	public void outputTraceMessage(MethodContext methodContext, String... messages) {
+		String lineSep = System.getProperty("line.separator");
+		StringBuilder buf = new StringBuilder(getSimpleMethod().getFileName());
+		buf.append(", Line ").append(getLineNumber()).append(" <").append(getTagName()).append("> element: ");
+		for (int i = 0; i < messages.length; i++) {
+			buf.append(messages[i]);
+			if (i < messages.length - 1 && messages.length > 1) {
+				buf.append(lineSep);
+			}
+		}
+		Debug.log(methodContext.getTraceLogLevel(), null, buf.toString(), module);
+	}
 
-    /**
-     * Logs a trace message.
-     * @param methodContext
-     * @param messages
-     */
-    public void outputTraceMessage(MethodContext methodContext, String... messages) {
-        String lineSep = System.getProperty("line.separator");
-        StringBuilder buf = new StringBuilder(getSimpleMethod().getFileName());
-        buf.append(", Line ").append(getLineNumber()).append(" <").append(getTagName()).append("> element: ");
-        for (int i = 0; i < messages.length; i++) {
-            buf.append(messages[i]);
-            if (i < messages.length - 1 && messages.length > 1) {
-                buf.append(lineSep);
-            }
-        }
-        Debug.log(methodContext.getTraceLogLevel(), null, buf.toString(), module);
-    }
-
-    @Override
-    public String toString() {
-        return "<".concat(this.tagName).concat(">");
-    }
+	@Override
+	public String toString() {
+		return "<".concat(this.tagName).concat(">");
+	}
 }

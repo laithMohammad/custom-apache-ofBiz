@@ -18,298 +18,315 @@
  */
 package org.apache.ofbiz.entity.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.ofbiz.base.lang.ThreadSafe;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.base.util.UtilXml;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.util.*;
+
 /**
  * An object that models the <code>&lt;relation&gt;</code> element.
- *
  */
 @ThreadSafe
 @SuppressWarnings("serial")
 public final class ModelRelation extends ModelChild {
 
-    /**
-     * Returns a new <code>ModelRelation</code> instance, initialized with the specified values.
-     * 
-     * @param modelEntity The <code>ModelEntity</code> this relation is a member of.
-     * @param description The relation description.
-     * @param type The relation type.
-     * @param title The relation title.
-     * @param relEntityName The related entity's name.
-     * @param fkName The foreign key name.
-     * @param keyMaps The key maps included in this relation.
-     * @param isAutoRelation <code>true</code> if this relation was generated automatically by the entity engine.
-     */
-    public static ModelRelation create(ModelEntity modelEntity, String description, String type, String title, String relEntityName, String fkName, List<ModelKeyMap> keyMaps, boolean isAutoRelation) {
-        if (description == null) {
-            description = "";
-        }
-        if (type == null) {
-            type = "";
-        }
-        if (title == null) {
-            title = "";
-        }
-        if (relEntityName == null) {
-            relEntityName = "";
-        }
-        if (fkName == null) {
-            fkName = "";
-        }
-        if (keyMaps == null) {
-            keyMaps = Collections.emptyList();
-        } else {
-            keyMaps = Collections.unmodifiableList(keyMaps);
-        }
-        return new ModelRelation(modelEntity, description, type, title, relEntityName, fkName, keyMaps, isAutoRelation);
-    }
+	/**
+	 * the title, gives a name/description to the relation
+	 */
+	private final String title;
+	/**
+	 * the type: either "one" or "many" or "one-nofk"
+	 */
+	private final String type;
 
-    /**
-     * Returns a new <code>ModelRelation</code> instance, initialized with the specified values.
-     * 
-     * @param modelEntity The <code>ModelEntity</code> this relation is a member of.
-     * @param relationElement The <code>&lt;relation&gt;</code> element containing the values for this relation.
-     * @param isAutoRelation <code>true</code> if this relation was generated automatically by the entity engine.
-     */
-    public static ModelRelation create(ModelEntity modelEntity, Element relationElement, boolean isAutoRelation) {
-        String type = relationElement.getAttribute("type").intern();
-        String title = relationElement.getAttribute("title").intern();
-        String relEntityName = relationElement.getAttribute("rel-entity-name").intern();
-        String fkName = relationElement.getAttribute("fk-name").intern();
-        String description = UtilXml.childElementValue(relationElement, "description");
-        List<ModelKeyMap >keyMaps = Collections.emptyList();
-        List<? extends Element> elementList = UtilXml.childElementList(relationElement, "key-map");
-        if (!elementList.isEmpty()) {
-            keyMaps = new ArrayList<ModelKeyMap>(elementList.size());
-            for (Element keyMapElement : elementList) {
-                keyMaps.add(new ModelKeyMap(keyMapElement));
-            }
-            keyMaps = Collections.unmodifiableList(keyMaps);
-        }
-        return new ModelRelation(modelEntity, description, type, title, relEntityName, fkName, keyMaps, isAutoRelation);
-    }
+	/*
+	 * Developers - this is an immutable class. Once constructed, the object should not change state.
+	 * Therefore, 'setter' methods are not allowed. If client code needs to modify the object's
+	 * state, then it can create a new copy with the changed values.
+	 */
+	/**
+	 * the name of the related entity
+	 */
+	private final String relEntityName;
+	/**
+	 * the name to use for a database foreign key, if applies
+	 */
+	private final String fkName;
+	/**
+	 * keyMaps defining how to lookup the relatedTable using columns from this table
+	 */
+	private final List<ModelKeyMap> keyMaps;
+	private final boolean isAutoRelation;
+	/**
+	 * A String to uniquely identify this relation.
+	 */
+	private final String fullName;
+	private final String combinedName;
 
-    /*
-     * Developers - this is an immutable class. Once constructed, the object should not change state.
-     * Therefore, 'setter' methods are not allowed. If client code needs to modify the object's
-     * state, then it can create a new copy with the changed values.
-     */
+	private ModelRelation(ModelEntity modelEntity, String description, String type, String title, String relEntityName, String fkName, List<ModelKeyMap> keyMaps, boolean isAutoRelation) {
+		super(modelEntity, description);
+		this.title = title;
+		this.type = type;
+		this.relEntityName = relEntityName;
+		this.fkName = fkName;
+		this.keyMaps = keyMaps;
+		this.isAutoRelation = isAutoRelation;
+		StringBuilder sb = new StringBuilder();
+		sb.append(modelEntity == null ? "Unknown" : modelEntity.getEntityName()).append("->").append(title).append(relEntityName).append("[");
+		Set<ModelKeyMap> keyMapSet = new TreeSet<ModelKeyMap>(keyMaps);
+		Iterator<ModelKeyMap> setIter = keyMapSet.iterator();
+		while (setIter.hasNext()) {
+			ModelKeyMap keyMap = setIter.next();
+			sb.append(keyMap);
+			if (setIter.hasNext()) {
+				sb.append(",");
+			}
+		}
+		sb.append("]");
+		this.fullName = sb.toString();
+		this.combinedName = title.concat(relEntityName);
+	}
 
-    /** the title, gives a name/description to the relation */
-    private final String title;
+	/**
+	 * Returns a new <code>ModelRelation</code> instance, initialized with the specified values.
+	 *
+	 * @param modelEntity    The <code>ModelEntity</code> this relation is a member of.
+	 * @param description    The relation description.
+	 * @param type           The relation type.
+	 * @param title          The relation title.
+	 * @param relEntityName  The related entity's name.
+	 * @param fkName         The foreign key name.
+	 * @param keyMaps        The key maps included in this relation.
+	 * @param isAutoRelation <code>true</code> if this relation was generated automatically by the entity engine.
+	 */
+	public static ModelRelation create(ModelEntity modelEntity, String description, String type, String title, String relEntityName, String fkName, List<ModelKeyMap> keyMaps, boolean isAutoRelation) {
+		if (description == null) {
+			description = "";
+		}
+		if (type == null) {
+			type = "";
+		}
+		if (title == null) {
+			title = "";
+		}
+		if (relEntityName == null) {
+			relEntityName = "";
+		}
+		if (fkName == null) {
+			fkName = "";
+		}
+		if (keyMaps == null) {
+			keyMaps = Collections.emptyList();
+		} else {
+			keyMaps = Collections.unmodifiableList(keyMaps);
+		}
+		return new ModelRelation(modelEntity, description, type, title, relEntityName, fkName, keyMaps, isAutoRelation);
+	}
 
-    /** the type: either "one" or "many" or "one-nofk" */
-    private final String type;
+	/**
+	 * Returns a new <code>ModelRelation</code> instance, initialized with the specified values.
+	 *
+	 * @param modelEntity     The <code>ModelEntity</code> this relation is a member of.
+	 * @param relationElement The <code>&lt;relation&gt;</code> element containing the values for this relation.
+	 * @param isAutoRelation  <code>true</code> if this relation was generated automatically by the entity engine.
+	 */
+	public static ModelRelation create(ModelEntity modelEntity, Element relationElement, boolean isAutoRelation) {
+		String type = relationElement.getAttribute("type").intern();
+		String title = relationElement.getAttribute("title").intern();
+		String relEntityName = relationElement.getAttribute("rel-entity-name").intern();
+		String fkName = relationElement.getAttribute("fk-name").intern();
+		String description = UtilXml.childElementValue(relationElement, "description");
+		List<ModelKeyMap> keyMaps = Collections.emptyList();
+		List<? extends Element> elementList = UtilXml.childElementList(relationElement, "key-map");
+		if (!elementList.isEmpty()) {
+			keyMaps = new ArrayList<ModelKeyMap>(elementList.size());
+			for (Element keyMapElement : elementList) {
+				keyMaps.add(new ModelKeyMap(keyMapElement));
+			}
+			keyMaps = Collections.unmodifiableList(keyMaps);
+		}
+		return new ModelRelation(modelEntity, description, type, title, relEntityName, fkName, keyMaps, isAutoRelation);
+	}
 
-    /** the name of the related entity */
-    private final String relEntityName;
+	/**
+	 * Returns the combined name (title + related entity name).
+	 */
+	public String getCombinedName() {
+		return this.combinedName;
+	}
 
-    /** the name to use for a database foreign key, if applies */
-    private final String fkName;
+	/**
+	 * Returns the title.
+	 */
+	public String getTitle() {
+		return this.title;
+	}
 
-    /** keyMaps defining how to lookup the relatedTable using columns from this table */
-    private final List<ModelKeyMap> keyMaps;
+	/**
+	 * Returns the type.
+	 */
+	public String getType() {
+		return this.type;
+	}
 
-    private final boolean isAutoRelation;
+	/**
+	 * Returns the related entity name.
+	 */
+	public String getRelEntityName() {
+		return this.relEntityName;
+	}
 
-    /** A String to uniquely identify this relation. */
-    private final String fullName;
+	/**
+	 * Returns the foreign key name.
+	 */
+	public String getFkName() {
+		return this.fkName;
+	}
 
-    private final String combinedName;
+	/**
+	 * Returns the key maps.
+	 */
+	public List<ModelKeyMap> getKeyMaps() {
+		return this.keyMaps;
+	}
 
-    private ModelRelation(ModelEntity modelEntity, String description, String type, String title, String relEntityName, String fkName, List<ModelKeyMap> keyMaps, boolean isAutoRelation) {
-        super(modelEntity, description);
-        this.title = title;
-        this.type = type;
-        this.relEntityName = relEntityName;
-        this.fkName = fkName;
-        this.keyMaps = keyMaps;
-        this.isAutoRelation = isAutoRelation;
-        StringBuilder sb = new StringBuilder();
-        sb.append(modelEntity == null ? "Unknown" : modelEntity.getEntityName()).append("->").append(title).append(relEntityName).append("[");
-        Set<ModelKeyMap> keyMapSet = new TreeSet<ModelKeyMap>(keyMaps);
-        Iterator<ModelKeyMap> setIter = keyMapSet.iterator();
-        while (setIter.hasNext()) {
-            ModelKeyMap keyMap = setIter.next();
-            sb.append(keyMap);
-            if (setIter.hasNext()) {
-                sb.append(",");
-            }
-        }
-        sb.append("]");
-        this.fullName = sb.toString();
-        this.combinedName = title.concat(relEntityName);
-    }
+	/**
+	 * Returns <code>true</code> if this relation was generated automatically by the entity engine.
+	 */
+	public boolean isAutoRelation() {
+		return isAutoRelation;
+	}
 
-    /** Returns the combined name (title + related entity name). */
-    public String getCombinedName() {
-        return this.combinedName;
-    }
+	/**
+	 * Find a KeyMap with the specified fieldName
+	 */
+	public ModelKeyMap findKeyMap(String fieldName) {
+		for (ModelKeyMap keyMap : keyMaps) {
+			if (keyMap.getFieldName().equals(fieldName)) return keyMap;
+		}
+		return null;
+	}
 
-    /** Returns the title. */
-    public String getTitle() {
-        return this.title;
-    }
+	/**
+	 * Find a KeyMap with the specified relFieldName
+	 */
+	public ModelKeyMap findKeyMapByRelated(String relFieldName) {
+		for (ModelKeyMap keyMap : keyMaps) {
+			if (keyMap.getRelFieldName().equals(relFieldName))
+				return keyMap;
+		}
+		return null;
+	}
 
-    /** Returns the type. */
-    public String getType() {
-        return this.type;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof ModelRelation) {
+			ModelRelation that = (ModelRelation) obj;
+			return this.fullName.equals(that.fullName);
+		}
+		return false;
+	}
 
-    /** Returns the related entity name. */
-    public String getRelEntityName() {
-        return this.relEntityName;
-    }
+	@Override
+	public int hashCode() {
+		return this.fullName.hashCode();
+	}
 
-    /** Returns the foreign key name. */
-    public String getFkName() {
-        return this.fkName;
-    }
+	@Override
+	public String toString() {
+		return this.fullName;
+	}
 
-    /** Returns the key maps. */
-    public List<ModelKeyMap> getKeyMaps() {
-        return this.keyMaps;
-    }
+	// TODO: Externalize this.
+	public String keyMapString(String separator, String afterLast) {
+		StringBuilder stringBuilder = new StringBuilder("");
 
-    /** Returns <code>true</code> if this relation was generated automatically by the entity engine. */
-    public boolean isAutoRelation() {
-        return isAutoRelation;
-    }
+		if (keyMaps.size() < 1) {
+			return "";
+		}
 
-    /** Find a KeyMap with the specified fieldName */
-    public ModelKeyMap findKeyMap(String fieldName) {
-        for (ModelKeyMap keyMap: keyMaps) {
-            if (keyMap.getFieldName().equals(fieldName)) return keyMap;
-        }
-        return null;
-    }
+		int i = 0;
 
-    /** Find a KeyMap with the specified relFieldName */
-    public ModelKeyMap findKeyMapByRelated(String relFieldName) {
-        for (ModelKeyMap keyMap: keyMaps) {
-            if (keyMap.getRelFieldName().equals(relFieldName))
-                return keyMap;
-        }
-        return null;
-    }
+		for (; i < keyMaps.size() - 1; i++) {
+			stringBuilder.append(keyMaps.get(i).getFieldName());
+			stringBuilder.append(separator);
+		}
+		stringBuilder.append(keyMaps.get(i).getFieldName());
+		stringBuilder.append(afterLast);
+		return stringBuilder.toString();
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof ModelRelation) {
-            ModelRelation that = (ModelRelation) obj;
-            return this.fullName.equals(that.fullName);
-        }
-        return false;
-    }
+	// TODO: Externalize this.
+	public String keyMapUpperString(String separator, String afterLast) {
+		if (keyMaps.size() < 1)
+			return "";
 
-    @Override
-    public int hashCode() {
-        return this.fullName.hashCode();
-    }
+		StringBuilder returnString = new StringBuilder(keyMaps.size() * 10);
+		int i = 0;
+		while (true) {
+			ModelKeyMap kmap = keyMaps.get(i);
+			returnString.append(ModelUtil.upperFirstChar(kmap.getFieldName()));
 
-    @Override
-    public String toString() {
-        return this.fullName;
-    }
+			i++;
+			if (i >= keyMaps.size()) {
+				returnString.append(afterLast);
+				break;
+			}
 
-    // TODO: Externalize this.
-    public String keyMapString(String separator, String afterLast) {
-        StringBuilder stringBuilder = new StringBuilder("");
+			returnString.append(separator);
+		}
 
-        if (keyMaps.size() < 1) {
-            return "";
-        }
+		return returnString.toString();
+	}
 
-        int i = 0;
+	// TODO: Externalize this.
+	public String keyMapRelatedUpperString(String separator, String afterLast) {
+		if (keyMaps.size() < 1)
+			return "";
 
-        for (; i < keyMaps.size() - 1; i++) {
-            stringBuilder.append(keyMaps.get(i).getFieldName());
-            stringBuilder.append(separator);
-        }
-        stringBuilder.append(keyMaps.get(i).getFieldName());
-        stringBuilder.append(afterLast);
-        return stringBuilder.toString();
-    }
+		StringBuilder returnString = new StringBuilder(keyMaps.size() * 10);
+		int i = 0;
+		while (true) {
+			ModelKeyMap kmap = keyMaps.get(i);
+			returnString.append(ModelUtil.upperFirstChar(kmap.getRelFieldName()));
 
-    // TODO: Externalize this.
-    public String keyMapUpperString(String separator, String afterLast) {
-        if (keyMaps.size() < 1)
-            return "";
+			i++;
+			if (i >= keyMaps.size()) {
+				returnString.append(afterLast);
+				break;
+			}
 
-        StringBuilder returnString = new StringBuilder(keyMaps.size() * 10);
-        int i=0;
-        while (true) {
-            ModelKeyMap kmap = keyMaps.get(i);
-            returnString.append(ModelUtil.upperFirstChar(kmap.getFieldName()));
+			returnString.append(separator);
+		}
 
-            i++;
-            if (i >= keyMaps.size()) {
-                returnString.append(afterLast);
-                break;
-            }
+		return returnString.toString();
+	}
 
-            returnString.append(separator);
-        }
+	// TODO: Externalize this.
+	public Element toXmlElement(Document document) {
+		Element root = document.createElement("relation");
+		root.setAttribute("type", this.getType());
+		if (UtilValidate.isNotEmpty(this.getTitle())) {
+			root.setAttribute("title", this.getTitle());
+		}
+		root.setAttribute("rel-entity-name", this.getRelEntityName());
 
-        return returnString.toString();
-    }
+		if (UtilValidate.isNotEmpty(this.getFkName())) {
+			root.setAttribute("fk-name", this.getFkName());
+		}
 
-    // TODO: Externalize this.
-    public String keyMapRelatedUpperString(String separator, String afterLast) {
-        if (keyMaps.size() < 1)
-            return "";
+		Iterator<ModelKeyMap> kmIter = this.keyMaps.iterator();
+		while (kmIter != null && kmIter.hasNext()) {
+			ModelKeyMap km = kmIter.next();
+			root.appendChild(km.toXmlElement(document));
+		}
 
-        StringBuilder returnString = new StringBuilder(keyMaps.size() * 10);
-        int i=0;
-        while (true) {
-            ModelKeyMap kmap = keyMaps.get(i);
-            returnString.append(ModelUtil.upperFirstChar(kmap.getRelFieldName()));
-
-            i++;
-            if (i >= keyMaps.size()) {
-                returnString.append(afterLast);
-                break;
-            }
-
-            returnString.append(separator);
-        }
-
-        return returnString.toString();
-    }
-
-    // TODO: Externalize this.
-    public Element toXmlElement(Document document) {
-        Element root = document.createElement("relation");
-        root.setAttribute("type", this.getType());
-        if (UtilValidate.isNotEmpty(this.getTitle())) {
-            root.setAttribute("title", this.getTitle());
-        }
-        root.setAttribute("rel-entity-name", this.getRelEntityName());
-
-        if (UtilValidate.isNotEmpty(this.getFkName())) {
-            root.setAttribute("fk-name", this.getFkName());
-        }
-
-        Iterator<ModelKeyMap> kmIter = this.keyMaps.iterator();
-        while (kmIter != null && kmIter.hasNext()) {
-            ModelKeyMap km = kmIter.next();
-            root.appendChild(km.toXmlElement(document));
-        }
-
-        return root;
-    }
+		return root;
+	}
 }

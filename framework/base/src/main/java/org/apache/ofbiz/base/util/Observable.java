@@ -30,92 +30,89 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <li>The <code>notifyObservers</code> method does not clear the changed flag</li>
  * <li>Protected methods have been made public</li>
  * </ul></p>
- *
  */
 public final class Observable {
 
-    private final AtomicBoolean changed = new AtomicBoolean();
-    private final CopyOnWriteArrayList<Observer> observers = new CopyOnWriteArrayList<Observer>();
+	private final AtomicBoolean changed = new AtomicBoolean();
+	private final CopyOnWriteArrayList<Observer> observers = new CopyOnWriteArrayList<Observer>();
 
-    public Observable() {}
+	public Observable() {
+	}
 
-    public Observable(Observable observable) {
-        Assert.notNull("observable", observable);
-        changed.set(observable.changed.get());
-        observers.addAll(observable.observers);
-    }
+	public Observable(Observable observable) {
+		Assert.notNull("observable", observable);
+		changed.set(observable.changed.get());
+		observers.addAll(observable.observers);
+	}
 
-    /**
-     * Adds an observer to the set of observers for this object. 
-     *
-     * @param observer the observer to be added.
-     */
-    public void addObserver(Observer observer) {
-        Assert.notNull("observer", observer);
-        observers.addIfAbsent(observer);
-    }
+	/**
+	 * Adds an observer to the set of observers for this object.
+	 *
+	 * @param observer the observer to be added.
+	 */
+	public void addObserver(Observer observer) {
+		Assert.notNull("observer", observer);
+		observers.addIfAbsent(observer);
+	}
 
-    /**
-     * Clears the changed flag. 
-     */
-    public void clearChanged() {
-        changed.set(false);
-    }
+	/**
+	 * Clears the changed flag.
+	 */
+	public void clearChanged() {
+		changed.set(false);
+	}
 
-    /**
-     * Deletes an observer from the set of observers of this object. 
-     * Passing <code>null</code> to this method will have no effect.
-     * 
-     * @param observer the observer to be deleted.
-     */
-    public void deleteObserver(Observer observer) {
-        observers.remove(observer);
-    }
+	/**
+	 * Deletes an observer from the set of observers of this object.
+	 * Passing <code>null</code> to this method will have no effect.
+	 *
+	 * @param observer the observer to be deleted.
+	 */
+	public void deleteObserver(Observer observer) {
+		observers.remove(observer);
+	}
 
-    /**
-     * Clears the observer list so that this object no longer has any observers.
-     */
-    public void deleteObservers() {
-        observers.clear();
-    }
+	/**
+	 * Clears the observer list so that this object no longer has any observers.
+	 */
+	public void deleteObservers() {
+		observers.clear();
+	}
 
-    /**
-     * Returns <code>true</code> if this object has changed. 
-     *
-     */
-    public boolean hasChanged() {
-        return changed.get();
-    }
+	/**
+	 * Returns <code>true</code> if this object has changed.
+	 */
+	public boolean hasChanged() {
+		return changed.get();
+	}
 
-    /**
-     * Notify all of the observers. 
-     * <p>Each <code>Observer</code> has its <code>update</code> method called with two
-     * arguments: this observable object and <code>null</code>. In other 
-     * words, this method is equivalent to:
-     * <blockquote><tt>
-     * notifyObservers(null)</tt></blockquote></p>
-     *
-     */
-    public void notifyObservers() {
-        notifyObservers(null);
-    }
+	/**
+	 * Notify all of the observers.
+	 * <p>Each <code>Observer</code> has its <code>update</code> method called with two
+	 * arguments: this observable object and <code>null</code>. In other
+	 * words, this method is equivalent to:
+	 * <blockquote><tt>
+	 * notifyObservers(null)</tt></blockquote></p>
+	 */
+	public void notifyObservers() {
+		notifyObservers(null);
+	}
 
-    /**
-     * Notify all of the observers. 
-     * <p>Each observer has its <code>update</code> method called with two
-     * arguments: this observable object and the <code>arg</code> argument.</p>
-     *
-     */
-    public void notifyObservers(Object arg) {
-        for (Observer observer : observers) {
-            observer.update(this, arg);
-        }
-    }
+	/**
+	 * Notify all of the observers.
+	 * <p>Each observer has its <code>update</code> method called with two
+	 * arguments: this observable object and the <code>arg</code> argument.</p>
+	 */
+	public void notifyObservers(Object arg) {
+		for (Observer observer : observers) {
+			observer.update(this, arg);
+		}
+	}
 
-    /**
-     * Sets the changed flag to <code>true</code>. 
-     */
-    public void setChanged() {
-        changed.set(true);
-    }
+	/**
+	 * Sets the changed flag to <code>true</code>.
+	 */
+	public void setChanged() {
+		changed.set(true);
+	}
 }

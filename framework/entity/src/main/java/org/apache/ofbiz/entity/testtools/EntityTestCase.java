@@ -20,22 +20,21 @@
 package org.apache.ofbiz.entity.testtools;
 
 import junit.framework.TestCase;
-
 import org.apache.ofbiz.entity.Delegator;
 
 public class EntityTestCase extends TestCase {
 
-    protected Delegator delegator = null;
+	protected Delegator delegator = null;
 
-    public EntityTestCase(String name) {
-        super(name);
-    }
+	public EntityTestCase(String name) {
+		super(name);
+	}
 
-    public void setDelegator(Delegator delegator) {
-        this.delegator = delegator;
-    }
+	public Delegator getDelegator() {
+		return delegator;
+	}
 
-    public Delegator getDelegator() {
-        return delegator;
-    }
+	public void setDelegator(Delegator delegator) {
+		this.delegator = delegator;
+	}
 }

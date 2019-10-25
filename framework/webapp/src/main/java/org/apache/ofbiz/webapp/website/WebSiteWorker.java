@@ -18,56 +18,56 @@
  *******************************************************************************/
 package org.apache.ofbiz.webapp.website;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRequest;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.util.EntityQuery;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletRequest;
+
 /**
  * WebSiteWorker - Worker class for web site related functionality
  */
 public final class WebSiteWorker {
 
-    public static final String module = WebSiteWorker.class.getName();
+	public static final String module = WebSiteWorker.class.getName();
 
-    private WebSiteWorker() {}
+	private WebSiteWorker() {
+	}
 
-    public static String getWebSiteId(ServletRequest request) {
-        ServletContext application = ((ServletContext) request.getAttribute("servletContext"));
+	public static String getWebSiteId(ServletRequest request) {
+		ServletContext application = ((ServletContext) request.getAttribute("servletContext"));
 
-        if (application == null) return null;
-        return application.getInitParameter("webSiteId");
-    }
+		if (application == null) return null;
+		return application.getInitParameter("webSiteId");
+	}
 
-    public static GenericValue getWebSite(ServletRequest request) {
-        String webSiteId = getWebSiteId(request);
-        if (webSiteId == null) {
-            return null;
-        }
+	public static GenericValue getWebSite(ServletRequest request) {
+		String webSiteId = getWebSiteId(request);
+		if (webSiteId == null) {
+			return null;
+		}
 
-        return findWebSite((Delegator) request.getAttribute("delegator"), webSiteId, true);
-    }
+		return findWebSite((Delegator) request.getAttribute("delegator"), webSiteId, true);
+	}
 
-    /**
-     * returns a WebSite-GenericValue
-     *
-     * @param delegator
-     * @param webSiteId
-     * @param useCache
-     * @return
-     */
-    private static GenericValue findWebSite(Delegator delegator, String webSiteId, boolean useCache) {
-        GenericValue result = null;
-        try {
-            result = EntityQuery.use(delegator).from("WebSite").where("webSiteId", webSiteId).cache(useCache).queryOne();
-        }
-        catch (GenericEntityException e) {
-            Debug.logError("Error looking up website with id " + webSiteId, module);
-        }
-        return result;
-    }
+	/**
+	 * returns a WebSite-GenericValue
+	 *
+	 * @param delegator
+	 * @param webSiteId
+	 * @param useCache
+	 * @return
+	 */
+	private static GenericValue findWebSite(Delegator delegator, String webSiteId, boolean useCache) {
+		GenericValue result = null;
+		try {
+			result = EntityQuery.use(delegator).from("WebSite").where("webSiteId", webSiteId).cache(useCache).queryOne();
+		} catch (GenericEntityException e) {
+			Debug.logError("Error looking up website with id " + webSiteId, module);
+		}
+		return result;
+	}
 }

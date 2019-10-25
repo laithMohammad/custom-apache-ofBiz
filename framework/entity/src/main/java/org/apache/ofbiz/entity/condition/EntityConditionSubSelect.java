@@ -18,9 +18,6 @@
  */
 package org.apache.ofbiz.entity.condition;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
@@ -31,124 +28,128 @@ import org.apache.ofbiz.entity.model.ModelEntity;
 import org.apache.ofbiz.entity.model.ModelField;
 import org.apache.ofbiz.entity.model.ModelViewEntity;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Sub-query action.
- *
  */
 @SuppressWarnings("serial")
 public class EntityConditionSubSelect extends EntityConditionValue {
-    public static final String module = EntityConditionSubSelect.class.getName();
+	public static final String module = EntityConditionSubSelect.class.getName();
 
-    protected ModelEntity localModelEntity = null;
-    protected String keyFieldName = null;
-    protected EntityCondition whereCond = null;
-    protected Boolean requireAll = null;
+	protected ModelEntity localModelEntity = null;
+	protected String keyFieldName = null;
+	protected EntityCondition whereCond = null;
+	protected Boolean requireAll = null;
 
-    protected EntityConditionSubSelect() { }
+	protected EntityConditionSubSelect() {
+	}
 
-    public EntityConditionSubSelect(String entityName, String keyFieldName, EntityCondition whereCond, boolean requireAll, Delegator delegator) {
-        this(delegator.getModelEntity(entityName), keyFieldName, whereCond, requireAll);
-    }
-    public EntityConditionSubSelect(ModelEntity localModelEntity, String keyFieldName, EntityCondition whereCond, boolean requireAll) {
-        this.localModelEntity = localModelEntity;
-        this.keyFieldName = keyFieldName;
-        this.whereCond = whereCond;
-        this.requireAll = requireAll;
-    }
+	public EntityConditionSubSelect(String entityName, String keyFieldName, EntityCondition whereCond, boolean requireAll, Delegator delegator) {
+		this(delegator.getModelEntity(entityName), keyFieldName, whereCond, requireAll);
+	}
 
-    @Override
-    public void addSqlValue(StringBuilder sql, Map<String, String> tableAliases, ModelEntity parentModelEntity, List<EntityConditionParam> entityConditionParams,
-            boolean includeTableNamePrefix, Datasource datasourceInfo) {
-        if (localModelEntity instanceof ModelViewEntity && datasourceInfo == null) {
-            throw new IllegalArgumentException("Call to EntityConditionSubSelect.addSqlValue with datasourceInfo=null which is not allowed because the local entity [" + this.localModelEntity.getEntityName() + "] is a view entity");
-        }
-        try {
-            // add select and where and such, based on local entity not on the main entity
-            ModelField localModelField = localModelEntity.getField(this.keyFieldName);
+	public EntityConditionSubSelect(ModelEntity localModelEntity, String keyFieldName, EntityCondition whereCond, boolean requireAll) {
+		this.localModelEntity = localModelEntity;
+		this.keyFieldName = keyFieldName;
+		this.whereCond = whereCond;
+		this.requireAll = requireAll;
+	}
 
-            if (this.requireAll) {
-                sql.append(" ALL(");
-            } else {
-                sql.append(" ANY(");
-            }
-            sql.append("SELECT ");
+	@Override
+	public void addSqlValue(StringBuilder sql, Map<String, String> tableAliases, ModelEntity parentModelEntity, List<EntityConditionParam> entityConditionParams,
+	                        boolean includeTableNamePrefix, Datasource datasourceInfo) {
+		if (localModelEntity instanceof ModelViewEntity && datasourceInfo == null) {
+			throw new IllegalArgumentException("Call to EntityConditionSubSelect.addSqlValue with datasourceInfo=null which is not allowed because the local entity [" + this.localModelEntity.getEntityName() + "] is a view entity");
+		}
+		try {
+			// add select and where and such, based on local entity not on the main entity
+			ModelField localModelField = localModelEntity.getField(this.keyFieldName);
 
-            sql.append(localModelField.getColName());
+			if (this.requireAll) {
+				sql.append(" ALL(");
+			} else {
+				sql.append(" ANY(");
+			}
+			sql.append("SELECT ");
 
-            // FROM clause and when necessary the JOIN or LEFT JOIN clause(s) as well
-            sql.append(SqlJdbcUtil.makeFromClause(localModelEntity, null, datasourceInfo));
+			sql.append(localModelField.getColName());
 
-            // WHERE clause
-            StringBuilder whereString = new StringBuilder();
-            String entityCondWhereString = "";
-            if (this.whereCond != null) {
-                entityCondWhereString = this.whereCond.makeWhereString(localModelEntity, entityConditionParams, datasourceInfo);
-            }
+			// FROM clause and when necessary the JOIN or LEFT JOIN clause(s) as well
+			sql.append(SqlJdbcUtil.makeFromClause(localModelEntity, null, datasourceInfo));
 
-            String viewClause = SqlJdbcUtil.makeViewWhereClause(localModelEntity, (datasourceInfo != null ? datasourceInfo.getJoinStyle() : null));
-            if (viewClause.length() > 0) {
-                if (entityCondWhereString.length() > 0) {
-                    whereString.append("(");
-                    whereString.append(entityCondWhereString);
-                    whereString.append(") AND ");
-                }
+			// WHERE clause
+			StringBuilder whereString = new StringBuilder();
+			String entityCondWhereString = "";
+			if (this.whereCond != null) {
+				entityCondWhereString = this.whereCond.makeWhereString(localModelEntity, entityConditionParams, datasourceInfo);
+			}
 
-                whereString.append(viewClause);
-            } else {
-                whereString.append(entityCondWhereString);
-            }
+			String viewClause = SqlJdbcUtil.makeViewWhereClause(localModelEntity, (datasourceInfo != null ? datasourceInfo.getJoinStyle() : null));
+			if (viewClause.length() > 0) {
+				if (entityCondWhereString.length() > 0) {
+					whereString.append("(");
+					whereString.append(entityCondWhereString);
+					whereString.append(") AND ");
+				}
 
-            if (whereString.length() > 0) {
-                sql.append(" WHERE ");
-                sql.append(whereString.toString());
-            }
+				whereString.append(viewClause);
+			} else {
+				whereString.append(entityCondWhereString);
+			}
 
-            sql.append(")");
-        } catch (GenericEntityException e) {
-            String errMsg = "Could not generate sub-select SQL: " + e.toString();
-            Debug.logError(e, errMsg, module);
+			if (whereString.length() > 0) {
+				sql.append(" WHERE ");
+				sql.append(whereString.toString());
+			}
 
-        }
-    }
+			sql.append(")");
+		} catch (GenericEntityException e) {
+			String errMsg = "Could not generate sub-select SQL: " + e.toString();
+			Debug.logError(e, errMsg, module);
+
+		}
+	}
 
 
-    @Override
-    public EntityConditionValue freeze() {
-        return new EntityConditionSubSelect(localModelEntity, keyFieldName, (whereCond != null ? whereCond.freeze() : null), requireAll);
-    }
+	@Override
+	public EntityConditionValue freeze() {
+		return new EntityConditionSubSelect(localModelEntity, keyFieldName, (whereCond != null ? whereCond.freeze() : null), requireAll);
+	}
 
-    public String getKeyFieldName() {
-        return this.keyFieldName;
-    }
+	public String getKeyFieldName() {
+		return this.keyFieldName;
+	}
 
-    public ModelEntity getModelEntity() {
-        return this.localModelEntity;
-    }
+	public ModelEntity getModelEntity() {
+		return this.localModelEntity;
+	}
 
-    @Override
-    public ModelField getModelField(ModelEntity modelEntity) {
-        // do nothing for now
-        return null;
-    }
+	@Override
+	public ModelField getModelField(ModelEntity modelEntity) {
+		// do nothing for now
+		return null;
+	}
 
-    @Override
-    public void setModelField(ModelField modelEntity) {
-        // do nothing for now
-    }
+	@Override
+	public void setModelField(ModelField modelEntity) {
+		// do nothing for now
+	}
 
-    @Override
-    public Comparable<?> getValue(Delegator delegator, Map<String, ? extends Object> map) {
-        // do nothing for now
-        return null;
-    }
+	@Override
+	public Comparable<?> getValue(Delegator delegator, Map<String, ? extends Object> map) {
+		// do nothing for now
+		return null;
+	}
 
-    @Override
-    public void validateSql(ModelEntity modelEntity) throws GenericModelException {
-        // do nothing for now
-    }
+	@Override
+	public void validateSql(ModelEntity modelEntity) throws GenericModelException {
+		// do nothing for now
+	}
 
-    @Override
-    public void visit(EntityConditionVisitor visitor) {
-        if (whereCond != null) whereCond.visit(visitor);
-    }
+	@Override
+	public void visit(EntityConditionVisitor visitor) {
+		if (whereCond != null) whereCond.visit(visitor);
+	}
 }

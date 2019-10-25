@@ -18,19 +18,19 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.model;
 
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.GeneralException;
+
+import java.util.Map;
 
 public interface ModelAction {
 
-    void accept(ModelActionVisitor visitor) throws Exception;
+	void accept(ModelActionVisitor visitor) throws Exception;
 
-    /**
-     * Executes this action.
-     * 
-     * @param context
-     * @throws GeneralException
-     */
-    void runAction(Map<String, Object> context) throws GeneralException;
+	/**
+	 * Executes this action.
+	 *
+	 * @param context
+	 * @throws GeneralException
+	 */
+	void runAction(Map<String, Object> context) throws GeneralException;
 }

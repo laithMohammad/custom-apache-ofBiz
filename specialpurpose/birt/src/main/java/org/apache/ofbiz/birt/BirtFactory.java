@@ -18,76 +18,78 @@
  *******************************************************************************/
 package org.apache.ofbiz.birt;
 
+import org.apache.ofbiz.base.location.FlexibleLocation;
+import org.apache.ofbiz.base.util.Debug;
+import org.apache.ofbiz.widget.model.ScreenFactory;
+import org.eclipse.birt.report.engine.api.IReportEngine;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.eclipse.birt.report.engine.api.IReportEngine;
-import org.apache.ofbiz.base.location.FlexibleLocation;
-import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.widget.model.ScreenFactory;
-import org.xml.sax.SAXException;
-
 /**
  * BIRT Factory
- * @author chatree
  *
+ * @author chatree
  */
 public class BirtFactory {
 
-    public final static String module = BirtFactory.class.getName();
+	public final static String module = BirtFactory.class.getName();
 
-    protected static IReportEngine engine;
-    
-    /**
-     * set report engine
-     * @param engine
-     */
-    public static void setReportEngine(IReportEngine engine) {
-        BirtFactory.engine = engine;
-    }
+	protected static IReportEngine engine;
 
-    /**
-     * get report engine
-     * @return
-     */
-    public static IReportEngine getReportEngine() {
-        return engine;
-    }
+	/**
+	 * get report engine
+	 *
+	 * @return
+	 */
+	public static IReportEngine getReportEngine() {
+		return engine;
+	}
 
-    /**
-     * get report input stream from location
-     * @param resourceName
-     * @return returns the input stream from location
-     * @throws IOException
-     * @throws SAXException
-     * @throws ParserConfigurationException
-     */
-    public static InputStream getReportInputStreamFromLocation(String resourceName)
-        throws IOException, SAXException, ParserConfigurationException{
+	/**
+	 * set report engine
+	 *
+	 * @param engine
+	 */
+	public static void setReportEngine(IReportEngine engine) {
+		BirtFactory.engine = engine;
+	}
 
-        InputStream reportInputStream = null;
-        synchronized (BirtFactory.class) {
-            long startTime = System.currentTimeMillis();
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            if (loader == null) {
-                loader = ScreenFactory.class.getClassLoader();
-            }
-            URL reportFileUrl = null;
-            reportFileUrl = FlexibleLocation.resolveLocation(resourceName, loader);
-            if (reportFileUrl == null) {
-                throw new IllegalArgumentException("Could not resolve location to URL: " + resourceName);
-            }
-            reportInputStream = reportFileUrl.openStream();
-            double totalSeconds = (System.currentTimeMillis() - startTime)/1000.0;
-            Debug.logInfo("Got report in " + totalSeconds + "s from: " + reportFileUrl.toExternalForm(), module);
-        }
+	/**
+	 * get report input stream from location
+	 *
+	 * @param resourceName
+	 * @return returns the input stream from location
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws ParserConfigurationException
+	 */
+	public static InputStream getReportInputStreamFromLocation(String resourceName)
+			throws IOException, SAXException, ParserConfigurationException {
 
-        if (reportInputStream == null) {
-            throw new IllegalArgumentException("Could not find report file with location [" + resourceName + "]");
-        }
-        return reportInputStream;
-    }
+		InputStream reportInputStream = null;
+		synchronized (BirtFactory.class) {
+			long startTime = System.currentTimeMillis();
+			ClassLoader loader = Thread.currentThread().getContextClassLoader();
+			if (loader == null) {
+				loader = ScreenFactory.class.getClassLoader();
+			}
+			URL reportFileUrl = null;
+			reportFileUrl = FlexibleLocation.resolveLocation(resourceName, loader);
+			if (reportFileUrl == null) {
+				throw new IllegalArgumentException("Could not resolve location to URL: " + resourceName);
+			}
+			reportInputStream = reportFileUrl.openStream();
+			double totalSeconds = (System.currentTimeMillis() - startTime) / 1000.0;
+			Debug.logInfo("Got report in " + totalSeconds + "s from: " + reportFileUrl.toExternalForm(), module);
+		}
+
+		if (reportInputStream == null) {
+			throw new IllegalArgumentException("Could not find report file with location [" + resourceName + "]");
+		}
+		return reportInputStream;
+	}
 }

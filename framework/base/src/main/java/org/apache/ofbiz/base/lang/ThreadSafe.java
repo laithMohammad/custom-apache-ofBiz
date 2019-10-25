@@ -18,14 +18,13 @@
  */
 package org.apache.ofbiz.base.lang;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
-/** Identifies thread safe classes. */
+/**
+ * Identifies thread safe classes.
+ */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
-public @interface ThreadSafe {}
+public @interface ThreadSafe {
+}

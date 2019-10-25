@@ -26,15 +26,15 @@ import org.apache.ofbiz.base.util.GeneralException;
 @SuppressWarnings("serial")
 public class SecurityConfigurationException extends GeneralException {
 
-    public SecurityConfigurationException(String str, Throwable t) {
-        super(str, t);
-    }
+	public SecurityConfigurationException(String str, Throwable t) {
+		super(str, t);
+	}
 
-    public SecurityConfigurationException(String str) {
-        super(str);
-    }
+	public SecurityConfigurationException(String str) {
+		super(str);
+	}
 
-    public SecurityConfigurationException() {
-        super();
-    }
+	public SecurityConfigurationException() {
+		super();
+	}
 }

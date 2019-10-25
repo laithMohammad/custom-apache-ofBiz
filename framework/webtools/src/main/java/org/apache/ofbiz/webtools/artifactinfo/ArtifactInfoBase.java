@@ -26,53 +26,53 @@ import java.net.URL;
  */
 public abstract class ArtifactInfoBase implements Comparable<ArtifactInfoBase> {
 
-    protected ArtifactInfoFactory aif;
-    private String fullName = null;
+	protected ArtifactInfoFactory aif;
+	private String fullName = null;
 
-    public ArtifactInfoBase(ArtifactInfoFactory aif) {
-        this.aif = aif;
-    }
+	public ArtifactInfoBase(ArtifactInfoFactory aif) {
+		this.aif = aif;
+	}
 
-    public int compareTo(ArtifactInfoBase that) {
-        if (that == null) {
-            return -1;
-        }
-        return this.toString().compareTo(that.toString());
-    }
+	public int compareTo(ArtifactInfoBase that) {
+		if (that == null) {
+			return -1;
+		}
+		return this.toString().compareTo(that.toString());
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        try {
-            ArtifactInfoBase that = (ArtifactInfoBase) obj;
-            return this.toString().equals(that.toString());
-        } catch (Exception e) {
-            return false;
-        }
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		try {
+			ArtifactInfoBase that = (ArtifactInfoBase) obj;
+			return this.toString().equals(that.toString());
+		} catch (Exception e) {
+			return false;
+		}
+	}
 
-    abstract public String getDisplayName();
+	abstract public String getDisplayName();
 
-    abstract public String getDisplayType();
+	abstract public String getDisplayType();
 
-    abstract public URL getLocationURL() throws MalformedURLException;
+	abstract public URL getLocationURL() throws MalformedURLException;
 
-    abstract public String getType();
+	abstract public String getType();
 
-    abstract public String getUniqueId();
+	abstract public String getUniqueId();
 
-    @Override
-    public int hashCode() {
-        return toString().hashCode();
-    }
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
 
-    @Override
-    public String toString() {
-        if (this.fullName == null) {
-            this.fullName = this.getDisplayType().concat(":").concat(this.getDisplayName());
-        }
-        return this.fullName;
-    }
+	@Override
+	public String toString() {
+		if (this.fullName == null) {
+			this.fullName = this.getDisplayType().concat(":").concat(this.getDisplayName());
+		}
+		return this.fullName;
+	}
 }

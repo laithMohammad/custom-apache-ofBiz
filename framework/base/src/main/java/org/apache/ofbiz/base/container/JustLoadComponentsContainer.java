@@ -18,12 +18,12 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.container;
 
-import java.util.List;
-
 import org.apache.ofbiz.base.component.AlreadyLoadedException;
 import org.apache.ofbiz.base.component.ComponentException;
 import org.apache.ofbiz.base.start.StartupCommand;
 import org.apache.ofbiz.base.util.Debug;
+
+import java.util.List;
 
 
 /**
@@ -31,31 +31,31 @@ import org.apache.ofbiz.base.util.Debug;
  */
 public class JustLoadComponentsContainer implements Container {
 
-    public static final String module = JustLoadComponentsContainer.class.getName();
+	public static final String module = JustLoadComponentsContainer.class.getName();
 
-    private String name;
+	private String name;
 
-    @Override
-    public void init(List<StartupCommand> ofbizCommands, String name, String configFile) {
-        this.name = name;
-        try {
-            ComponentContainer cc = new ComponentContainer();
-            cc.loadComponents(null);
-        } catch (AlreadyLoadedException e) {
-            Debug.logError(e, module);
-        } catch (ComponentException e) {
-            Debug.logError(e, module);
-        }
-    }
+	@Override
+	public void init(List<StartupCommand> ofbizCommands, String name, String configFile) {
+		this.name = name;
+		try {
+			ComponentContainer cc = new ComponentContainer();
+			cc.loadComponents(null);
+		} catch (AlreadyLoadedException e) {
+			Debug.logError(e, module);
+		} catch (ComponentException e) {
+			Debug.logError(e, module);
+		}
+	}
 
-    public boolean start() throws ContainerException {
-        return true;
-    }
+	public boolean start() throws ContainerException {
+		return true;
+	}
 
-    public void stop() throws ContainerException {
-    }
+	public void stop() throws ContainerException {
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 }

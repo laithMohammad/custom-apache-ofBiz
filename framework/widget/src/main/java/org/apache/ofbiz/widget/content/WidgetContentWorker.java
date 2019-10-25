@@ -24,26 +24,27 @@ import org.apache.ofbiz.base.util.Debug;
  * WidgetContentWorker Class
  */
 public final class WidgetContentWorker {
-    public static final String module = WidgetContentWorker.class.getName();
-    private static ContentWorkerInterface contentWorker = null;
+	public static final String module = WidgetContentWorker.class.getName();
+	private static ContentWorkerInterface contentWorker = null;
 
-    private WidgetContentWorker () {}
+	static {
+		try {
+			ClassLoader loader = Thread.currentThread().getContextClassLoader();
+			// note: loadClass is necessary for these since this class doesn't know anything about them at compile time
+			contentWorker = (ContentWorkerInterface) loader.loadClass("org.apache.ofbiz.content.content.ContentWorker").newInstance();
+		} catch (ClassNotFoundException e) {
+			Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
+		} catch (IllegalAccessException e) {
+			Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
+		} catch (InstantiationException e) {
+			Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
+		}
+	}
 
-    static {
-        try {
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            // note: loadClass is necessary for these since this class doesn't know anything about them at compile time
-            contentWorker = (ContentWorkerInterface) loader.loadClass("org.apache.ofbiz.content.content.ContentWorker").newInstance();
-        } catch (ClassNotFoundException e) {
-            Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
-        } catch (IllegalAccessException e) {
-            Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
-        } catch (InstantiationException e) {
-            Debug.logError(e, "Could not pre-initialize dynamically loaded class: ", module);
-        }
-    }
+	private WidgetContentWorker() {
+	}
 
-    public static ContentWorkerInterface getContentWorker() {
-        return contentWorker;
-    }
+	public static ContentWorkerInterface getContentWorker() {
+		return contentWorker;
+	}
 }

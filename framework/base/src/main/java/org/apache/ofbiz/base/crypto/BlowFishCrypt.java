@@ -18,155 +18,158 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.crypto;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.*;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Blowfish (Two-Way) Byte/String encryption
- *
  */
 public class BlowFishCrypt {
 
-    private SecretKeySpec secretKeySpec = null;
+	private SecretKeySpec secretKeySpec = null;
 
-    /**
-     * Creates a new BlowFishCrypt object.
-     * @param secretKeySpec A SecretKeySpec object.
-     */
-    public BlowFishCrypt(SecretKeySpec secretKeySpec) {
-        this.secretKeySpec = secretKeySpec;
-    }
+	/**
+	 * Creates a new BlowFishCrypt object.
+	 *
+	 * @param secretKeySpec A SecretKeySpec object.
+	 */
+	public BlowFishCrypt(SecretKeySpec secretKeySpec) {
+		this.secretKeySpec = secretKeySpec;
+	}
 
-    /**
-     * Creates a new BlowFishCrypt object.
-     * @param key An encoded secret key
-     */
-    public BlowFishCrypt(byte[] key) {
-        try {
-            secretKeySpec = new SecretKeySpec(key, "Blowfish");
-        } catch (Exception e) {}
-    }
+	/**
+	 * Creates a new BlowFishCrypt object.
+	 *
+	 * @param key An encoded secret key
+	 */
+	public BlowFishCrypt(byte[] key) {
+		try {
+			secretKeySpec = new SecretKeySpec(key, "Blowfish");
+		} catch (Exception e) {
+		}
+	}
 
-    /**
-     * Creates a new BlowFishCrypt object.
-     * @param keyFile A file object containing the secret key as a String object.
-     */
-    public BlowFishCrypt(File keyFile) {
-        try {
-            FileInputStream is = new FileInputStream(keyFile);
-            ObjectInputStream os = new ObjectInputStream(is);
-            String keyString = (String) os.readObject();
+	/**
+	 * Creates a new BlowFishCrypt object.
+	 *
+	 * @param keyFile A file object containing the secret key as a String object.
+	 */
+	public BlowFishCrypt(File keyFile) {
+		try {
+			FileInputStream is = new FileInputStream(keyFile);
+			ObjectInputStream os = new ObjectInputStream(is);
+			String keyString = (String) os.readObject();
 
-            is.close();
+			is.close();
 
-            byte[] keyBytes = keyString.getBytes();
+			byte[] keyBytes = keyString.getBytes();
 
-            secretKeySpec = new SecretKeySpec(keyBytes, "Blowfish");
-        } catch (Exception e) {}
-    }
+			secretKeySpec = new SecretKeySpec(keyBytes, "Blowfish");
+		} catch (Exception e) {
+		}
+	}
 
-    /**
-     * Encrypt the string with the secret key.
-     * @param string The string to encrypt.
-     */
-    public byte[] encrypt(String string) {
-        return encrypt(string.getBytes());
-    }
+	public static byte[] generateKey() throws NoSuchAlgorithmException {
+		KeyGenerator keyGen = KeyGenerator.getInstance("Blowfish");
+		keyGen.init(448);
 
-    /**
-     * Decrypt the string with the secret key.
-     * @param string The string to decrypt.
-     */
-    public byte[] decrypt(String string) {
-        return decrypt(string.getBytes());
-    }
+		SecretKey secretKey = keyGen.generateKey();
+		byte[] keyBytes = secretKey.getEncoded();
 
-    /**
-     * Encrypt the byte array with the secret key.
-     * @param bytes The array of bytes to encrypt.
-     */
-    public byte[] encrypt(byte[] bytes) {
-        byte[] resp = null;
+		return keyBytes;
+	}
 
-        try {
-            resp = crypt(bytes, Cipher.ENCRYPT_MODE);
-        } catch (Exception e) {
-            return null;
-        }
-        return resp;
-    }
+	public static boolean testKey(byte[] key) {
+		String testString = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstufwxyz";
+		BlowFishCrypt c = new BlowFishCrypt(key);
+		byte[] encryptedBytes = c.encrypt(testString);
+		String encryptedMessage = new String(encryptedBytes);
 
-    /**
-     * Decrypt the byte array with the secret key.
-     * @param bytes The array of bytes to decrypt.
-     */
-    public byte[] decrypt(byte[] bytes) {
-        byte[] resp = null;
+		byte[] decryptedBytes = c.decrypt(encryptedMessage);
+		String decryptedMessage = new String(decryptedBytes);
 
-        try {
-            resp = crypt(bytes, Cipher.DECRYPT_MODE);
-        } catch (Exception e) {
-            return null;
-        }
-        return resp;
-    }
+		if (testString.equals(decryptedMessage)) {
+			return true;
+		}
 
-    private byte[] crypt(byte[] bytes, int mode) throws Exception {
-        if (secretKeySpec == null)
-            throw new Exception("SecretKey cannot be null.");
-        Cipher cipher = Cipher.getInstance("Blowfish");
+		return false;
+	}
 
-        cipher.init(mode, secretKeySpec);
-        return cipher.doFinal(bytes);
-    }
+	public static void main(String args[]) throws Exception {
+		if (args[0] == null) {
+			args[0] = "ofbkey";
+		}
 
-    public static byte[] generateKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGen = KeyGenerator.getInstance("Blowfish");
-        keyGen.init(448);
+		byte[] key = generateKey();
+		if (testKey(key)) {
+			FileOutputStream fos = new FileOutputStream(args[0]);
+			ObjectOutputStream os = new ObjectOutputStream(fos);
+			String keyString = new String(key);
+			os.writeObject(keyString);
+			fos.close();
+		}
+	}
 
-        SecretKey secretKey = keyGen.generateKey();
-        byte[] keyBytes = secretKey.getEncoded();
+	/**
+	 * Encrypt the string with the secret key.
+	 *
+	 * @param string The string to encrypt.
+	 */
+	public byte[] encrypt(String string) {
+		return encrypt(string.getBytes());
+	}
 
-        return keyBytes;
-    }
+	/**
+	 * Decrypt the string with the secret key.
+	 *
+	 * @param string The string to decrypt.
+	 */
+	public byte[] decrypt(String string) {
+		return decrypt(string.getBytes());
+	}
 
-    public static boolean testKey(byte[] key) {
-        String testString = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstufwxyz";
-        BlowFishCrypt c = new BlowFishCrypt(key);
-        byte[] encryptedBytes = c.encrypt(testString);
-        String encryptedMessage = new String(encryptedBytes);
+	/**
+	 * Encrypt the byte array with the secret key.
+	 *
+	 * @param bytes The array of bytes to encrypt.
+	 */
+	public byte[] encrypt(byte[] bytes) {
+		byte[] resp = null;
 
-        byte[] decryptedBytes = c.decrypt(encryptedMessage);
-        String decryptedMessage = new String(decryptedBytes);
+		try {
+			resp = crypt(bytes, Cipher.ENCRYPT_MODE);
+		} catch (Exception e) {
+			return null;
+		}
+		return resp;
+	}
 
-        if (testString.equals(decryptedMessage)) {
-            return true;
-        }
+	/**
+	 * Decrypt the byte array with the secret key.
+	 *
+	 * @param bytes The array of bytes to decrypt.
+	 */
+	public byte[] decrypt(byte[] bytes) {
+		byte[] resp = null;
 
-        return false;
-    }
+		try {
+			resp = crypt(bytes, Cipher.DECRYPT_MODE);
+		} catch (Exception e) {
+			return null;
+		}
+		return resp;
+	}
 
-    public static void main(String args[]) throws Exception {
-        if (args[0] == null) {
-            args[0] = "ofbkey";
-        }
+	private byte[] crypt(byte[] bytes, int mode) throws Exception {
+		if (secretKeySpec == null)
+			throw new Exception("SecretKey cannot be null.");
+		Cipher cipher = Cipher.getInstance("Blowfish");
 
-        byte[] key = generateKey();
-        if (testKey(key)) {
-            FileOutputStream fos = new FileOutputStream(args[0]);
-            ObjectOutputStream os = new ObjectOutputStream(fos);
-            String keyString = new String(key);
-            os.writeObject(keyString);
-            fos.close();
-        }
-    }
+		cipher.init(mode, secretKeySpec);
+		return cipher.doFinal(bytes);
+	}
 }

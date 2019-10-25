@@ -19,15 +19,6 @@
 
 package org.apache.ofbiz.entity.condition;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.oro.text.perl.Perl5Util;
-import org.apache.oro.text.regex.MalformedPatternException;
-import org.apache.oro.text.regex.Pattern;
-import org.apache.oro.text.regex.PatternMatcher;
-import org.apache.oro.text.regex.Perl5Matcher;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.PatternFactory;
 import org.apache.ofbiz.base.util.UtilGenerics;
@@ -37,6 +28,15 @@ import org.apache.ofbiz.entity.GenericModelException;
 import org.apache.ofbiz.entity.config.model.Datasource;
 import org.apache.ofbiz.entity.model.ModelEntity;
 import org.apache.ofbiz.entity.model.ModelField;
+import org.apache.oro.text.perl.Perl5Util;
+import org.apache.oro.text.regex.MalformedPatternException;
+import org.apache.oro.text.regex.Pattern;
+import org.apache.oro.text.regex.PatternMatcher;
+import org.apache.oro.text.regex.Perl5Matcher;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for comparisons.
@@ -44,240 +44,240 @@ import org.apache.ofbiz.entity.model.ModelField;
 @SuppressWarnings("serial")
 public abstract class EntityComparisonOperator<L, R> extends EntityOperator<L, R, Boolean> {
 
-    public static final String module = EntityComparisonOperator.class.getName();
+	public static final String module = EntityComparisonOperator.class.getName();
 
-    public static Pattern makeOroPattern(String sqlLike) {
-        Perl5Util perl5Util = new Perl5Util();
-        try {
-            sqlLike = perl5Util.substitute("s/([$^.+*?])/\\\\$1/g", sqlLike);
-            sqlLike = perl5Util.substitute("s/%/.*/g", sqlLike);
-            sqlLike = perl5Util.substitute("s/_/./g", sqlLike);
-        } catch (Throwable t) {
-            String errMsg = "Error in ORO pattern substitution for SQL like clause [" + sqlLike + "]: " + t.toString();
-            Debug.logError(t, errMsg, module);
-            throw new IllegalArgumentException(errMsg);
-        }
-        try {
-            return PatternFactory.createOrGetPerl5CompiledPattern(sqlLike, true);
-        } catch (MalformedPatternException e) {
-            Debug.logError(e, module);
-        }
-        return null;
-    }
+	public EntityComparisonOperator(int id, String code) {
+		super(id, code);
+	}
 
-    @Override
-    public void validateSql(ModelEntity entity, L lhs, R rhs) throws GenericModelException {
-        if (lhs instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) lhs;
-            ecv.validateSql(entity);
-        }
-        if (rhs instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) rhs;
-            ecv.validateSql(entity);
-        }
-    }
+	public static Pattern makeOroPattern(String sqlLike) {
+		Perl5Util perl5Util = new Perl5Util();
+		try {
+			sqlLike = perl5Util.substitute("s/([$^.+*?])/\\\\$1/g", sqlLike);
+			sqlLike = perl5Util.substitute("s/%/.*/g", sqlLike);
+			sqlLike = perl5Util.substitute("s/_/./g", sqlLike);
+		} catch (Throwable t) {
+			String errMsg = "Error in ORO pattern substitution for SQL like clause [" + sqlLike + "]: " + t.toString();
+			Debug.logError(t, errMsg, module);
+			throw new IllegalArgumentException(errMsg);
+		}
+		try {
+			return PatternFactory.createOrGetPerl5CompiledPattern(sqlLike, true);
+		} catch (MalformedPatternException e) {
+			Debug.logError(e, module);
+		}
+		return null;
+	}
 
-    @Override
-    public void visit(EntityConditionVisitor visitor, L lhs, R rhs) {
-        visitor.accept(lhs);
-        visitor.accept(rhs);
-    }
+	public static final <T> boolean compareEqual(Comparable<T> lhs, T rhs) {
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			}
+		} else if (!lhs.equals(rhs)) {
+			return false;
+		}
+		return true;
+	}
 
-    @Override
-    public void addSqlValue(StringBuilder sql, ModelEntity entity, List<EntityConditionParam> entityConditionParams, boolean compat, L lhs, R rhs, Datasource datasourceInfo) {
-        //Debug.logInfo("EntityComparisonOperator.addSqlValue field=" + lhs + ", value=" + rhs + ", value type=" + (rhs == null ? "null object" : rhs.getClass().getName()), module);
+	public static final <T> boolean compareNotEqual(Comparable<T> lhs, T rhs) {
+		if (lhs == null) {
+			if (rhs == null) {
+				return false;
+			}
+		} else if (lhs.equals(rhs)) {
+			return false;
+		}
+		return true;
+	}
 
-        // if this is an IN operator and the rhs Object isEmpty, add "1=0" instead of the normal SQL.  Note that "FALSE" does not work with all databases.
-        if (this.idInt == EntityOperator.ID_IN && UtilValidate.isEmpty(rhs)) {
-            sql.append("1=0");
-            return;
-        }
+	public static final <T> boolean compareGreaterThan(Comparable<T> lhs, T rhs) {
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			}
+		} else if (lhs.compareTo(rhs) <= 0) {
+			return false;
+		}
+		return true;
+	}
 
-        ModelField field;
-        if (lhs instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) lhs;
-            ecv.addSqlValue(sql, entity, entityConditionParams, false, datasourceInfo);
-            field = ecv.getModelField(entity);
-        } else if (compat && lhs instanceof String) {
-            field = getField(entity, (String) lhs);
-            if (field == null) {
-                sql.append(lhs);
-            } else {
-                sql.append(field.getColName());
-            }
-        } else {
-            addValue(sql, null, lhs, entityConditionParams);
-            field = null;
-        }
+	public static final <T> boolean compareGreaterThanEqualTo(Comparable<T> lhs, T rhs) {
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			}
+		} else if (lhs.compareTo(rhs) < 0) {
+			return false;
+		}
+		return true;
+	}
 
-        makeRHSWhereString(entity, entityConditionParams, sql, field, rhs, datasourceInfo);
-    }
+	public static final <T> boolean compareLessThan(Comparable<T> lhs, T rhs) {
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			}
+		} else if (lhs.compareTo(rhs) >= 0) {
+			return false;
+		}
+		return true;
+	}
 
-    @Override
-    public boolean isEmpty(L lhs, R rhs) {
-        return false;
-    }
+	public static final <T> boolean compareLessThanEqualTo(Comparable<T> lhs, T rhs) {
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			}
+		} else if (lhs.compareTo(rhs) > 0) {
+			return false;
+		}
+		return true;
+	}
 
-    protected void makeRHSWhereString(ModelEntity entity, List<EntityConditionParam> entityConditionParams, StringBuilder sql, ModelField field, R rhs, Datasource datasourceInfo) {
-        sql.append(' ').append(getCode()).append(' ');
-        makeRHSWhereStringValue(entity, entityConditionParams, sql, field, rhs, datasourceInfo);
-    }
+	public static final <L, R> boolean compareIn(L lhs, R rhs) {
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			} else {
+				return true;
+			}
+		} else if (rhs instanceof Collection<?>) {
+			if (((Collection<?>) rhs).contains(lhs)) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (lhs.equals(rhs)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-    protected void makeRHSWhereStringValue(ModelEntity entity, List<EntityConditionParam> entityConditionParams, StringBuilder sql, ModelField field, R rhs, Datasource datasourceInfo) {
-        if (rhs instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) rhs;
-            if (ecv.getModelField(entity) == null) {
-                ecv.setModelField(field);
-            }
-            ecv.addSqlValue(sql, entity, entityConditionParams, false, datasourceInfo);
-        } else {
-            addValue(sql, field, rhs, entityConditionParams);
-        }
-    }
+	public static final <L, R> boolean compareLike(L lhs, R rhs) {
+		PatternMatcher matcher = new Perl5Matcher();
+		if (lhs == null) {
+			if (rhs != null) {
+				return false;
+			}
+		} else if (lhs instanceof String && rhs instanceof String) {
+			//see if the lhs value is like the rhs value, rhs will have the pattern characters in it...
+			return matcher.matches((String) lhs, makeOroPattern((String) rhs));
+		}
+		return true;
+	}
 
-    public abstract boolean compare(L lhs, R rhs);
+	@Override
+	public void validateSql(ModelEntity entity, L lhs, R rhs) throws GenericModelException {
+		if (lhs instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) lhs;
+			ecv.validateSql(entity);
+		}
+		if (rhs instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) rhs;
+			ecv.validateSql(entity);
+		}
+	}
 
-    public Boolean eval(Delegator delegator, Map<String, ? extends Object> map, L lhs, R rhs) {
-        return Boolean.valueOf(mapMatches(delegator, map, lhs, rhs));
-    }
+	@Override
+	public void visit(EntityConditionVisitor visitor, L lhs, R rhs) {
+		visitor.accept(lhs);
+		visitor.accept(rhs);
+	}
 
-    @Override
-     public boolean mapMatches(Delegator delegator, Map<String, ? extends Object> map, L lhs, R rhs) {
-        Object leftValue;
-        if (lhs instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) lhs;
-            leftValue = ecv.getValue(delegator, map);
-        } else if (lhs instanceof String) {
-            leftValue = map.get(lhs);
-        } else {
-            leftValue = lhs;
-        }
-        Object rightValue;
-        if (rhs instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) rhs;
-            rightValue = ecv.getValue(delegator, map);
-        } else {
-            rightValue = rhs;
-        }
+	@Override
+	public void addSqlValue(StringBuilder sql, ModelEntity entity, List<EntityConditionParam> entityConditionParams, boolean compat, L lhs, R rhs, Datasource datasourceInfo) {
+		//Debug.logInfo("EntityComparisonOperator.addSqlValue field=" + lhs + ", value=" + rhs + ", value type=" + (rhs == null ? "null object" : rhs.getClass().getName()), module);
 
-        if (leftValue == WILDCARD || rightValue == WILDCARD) return true;
-        return compare(UtilGenerics.<L>cast(leftValue), UtilGenerics.<R>cast(rightValue));
-    }
+		// if this is an IN operator and the rhs Object isEmpty, add "1=0" instead of the normal SQL.  Note that "FALSE" does not work with all databases.
+		if (this.idInt == EntityOperator.ID_IN && UtilValidate.isEmpty(rhs)) {
+			sql.append("1=0");
+			return;
+		}
 
-    @Override
-    public EntityCondition freeze(L lhs, R rhs) {
-        return EntityCondition.makeCondition(freeze(lhs), this, freeze(rhs));
-    }
+		ModelField field;
+		if (lhs instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) lhs;
+			ecv.addSqlValue(sql, entity, entityConditionParams, false, datasourceInfo);
+			field = ecv.getModelField(entity);
+		} else if (compat && lhs instanceof String) {
+			field = getField(entity, (String) lhs);
+			if (field == null) {
+				sql.append(lhs);
+			} else {
+				sql.append(field.getColName());
+			}
+		} else {
+			addValue(sql, null, lhs, entityConditionParams);
+			field = null;
+		}
 
-    protected Object freeze(Object item) {
-        if (item instanceof EntityConditionValue) {
-            EntityConditionValue ecv = (EntityConditionValue) item;
-            return ecv.freeze();
-        } else {
-            return item;
-        }
-    }
+		makeRHSWhereString(entity, entityConditionParams, sql, field, rhs, datasourceInfo);
+	}
 
-    public EntityComparisonOperator(int id, String code) {
-        super(id, code);
-    }
+	@Override
+	public boolean isEmpty(L lhs, R rhs) {
+		return false;
+	}
 
-    public static final <T> boolean compareEqual(Comparable<T> lhs, T rhs) {
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            }
-        } else if (!lhs.equals(rhs)) {
-            return false;
-        }
-        return true;
-    }
+	protected void makeRHSWhereString(ModelEntity entity, List<EntityConditionParam> entityConditionParams, StringBuilder sql, ModelField field, R rhs, Datasource datasourceInfo) {
+		sql.append(' ').append(getCode()).append(' ');
+		makeRHSWhereStringValue(entity, entityConditionParams, sql, field, rhs, datasourceInfo);
+	}
 
-    public static final <T> boolean compareNotEqual(Comparable<T> lhs, T rhs) {
-        if (lhs == null) {
-            if (rhs == null) {
-                return false;
-            }
-        } else if (lhs.equals(rhs)) {
-            return false;
-        }
-        return true;
-    }
+	protected void makeRHSWhereStringValue(ModelEntity entity, List<EntityConditionParam> entityConditionParams, StringBuilder sql, ModelField field, R rhs, Datasource datasourceInfo) {
+		if (rhs instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) rhs;
+			if (ecv.getModelField(entity) == null) {
+				ecv.setModelField(field);
+			}
+			ecv.addSqlValue(sql, entity, entityConditionParams, false, datasourceInfo);
+		} else {
+			addValue(sql, field, rhs, entityConditionParams);
+		}
+	}
 
-    public static final <T> boolean compareGreaterThan(Comparable<T> lhs, T rhs) {
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            }
-        } else if (lhs.compareTo(rhs) <= 0) {
-            return false;
-        }
-        return true;
-    }
+	public abstract boolean compare(L lhs, R rhs);
 
-    public static final <T> boolean compareGreaterThanEqualTo(Comparable<T> lhs, T rhs) {
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            }
-        } else if (lhs.compareTo(rhs) < 0) {
-            return false;
-        }
-        return true;
-    }
+	public Boolean eval(Delegator delegator, Map<String, ? extends Object> map, L lhs, R rhs) {
+		return Boolean.valueOf(mapMatches(delegator, map, lhs, rhs));
+	}
 
-    public static final <T> boolean compareLessThan(Comparable<T> lhs, T rhs) {
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            }
-        } else if (lhs.compareTo(rhs) >= 0) {
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public boolean mapMatches(Delegator delegator, Map<String, ? extends Object> map, L lhs, R rhs) {
+		Object leftValue;
+		if (lhs instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) lhs;
+			leftValue = ecv.getValue(delegator, map);
+		} else if (lhs instanceof String) {
+			leftValue = map.get(lhs);
+		} else {
+			leftValue = lhs;
+		}
+		Object rightValue;
+		if (rhs instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) rhs;
+			rightValue = ecv.getValue(delegator, map);
+		} else {
+			rightValue = rhs;
+		}
 
-    public static final <T> boolean compareLessThanEqualTo(Comparable<T> lhs, T rhs) {
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            }
-        } else if (lhs.compareTo(rhs) > 0) {
-            return false;
-        }
-        return true;
-    }
+		if (leftValue == WILDCARD || rightValue == WILDCARD) return true;
+		return compare(UtilGenerics.<L>cast(leftValue), UtilGenerics.<R>cast(rightValue));
+	}
 
-    public static final <L,R> boolean compareIn(L lhs, R rhs) {
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            } else {
-                return true;
-            }
-        } else if (rhs instanceof Collection<?>) {
-            if (((Collection<?>) rhs).contains(lhs)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else if (lhs.equals(rhs)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+	@Override
+	public EntityCondition freeze(L lhs, R rhs) {
+		return EntityCondition.makeCondition(freeze(lhs), this, freeze(rhs));
+	}
 
-    public static final <L,R> boolean compareLike(L lhs, R rhs) {
-        PatternMatcher matcher = new Perl5Matcher();
-        if (lhs == null) {
-            if (rhs != null) {
-                return false;
-            }
-        } else if (lhs instanceof String && rhs instanceof String) {
-            //see if the lhs value is like the rhs value, rhs will have the pattern characters in it...
-            return matcher.matches((String) lhs, makeOroPattern((String) rhs));
-        }
-        return true;
-    }
+	protected Object freeze(Object item) {
+		if (item instanceof EntityConditionValue) {
+			EntityConditionValue ecv = (EntityConditionValue) item;
+			return ecv.freeze();
+		} else {
+			return item;
+		}
+	}
 }

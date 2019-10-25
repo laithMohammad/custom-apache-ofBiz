@@ -18,14 +18,14 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.start;
 
+import org.apache.ofbiz.base.start.AdminServer.OfbizSocketCommand;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.Socket;
-
-import org.apache.ofbiz.base.start.AdminServer.OfbizSocketCommand;
 
 /**
  * The AdminClient communicates with a running OFBiz server instance
@@ -34,57 +34,57 @@ import org.apache.ofbiz.base.start.AdminServer.OfbizSocketCommand;
  */
 class AdminClient {
 
-    /**
-     * Send a command through network to OFBiz server 
-     * to show its status (running, stopping, ...)
-     *
-     * @param config: OFBiz configuration
-     * @return status: OFBiz server status
-     */
-    static String requestStatus(Config config) {
-        String status = null;
-        try {
-            status = sendSocketCommand(OfbizSocketCommand.STATUS, config);
-        } catch (ConnectException e) {
-            status = "Not Running";
-        } catch (IOException e) {
-            status = "IO Error when trying to connect to OFBiz: " + e.getMessage();
-        }
-        return status;
-    }
+	/**
+	 * Send a command through network to OFBiz server
+	 * to show its status (running, stopping, ...)
+	 *
+	 * @param config: OFBiz configuration
+	 * @return status: OFBiz server status
+	 */
+	static String requestStatus(Config config) {
+		String status = null;
+		try {
+			status = sendSocketCommand(OfbizSocketCommand.STATUS, config);
+		} catch (ConnectException e) {
+			status = "Not Running";
+		} catch (IOException e) {
+			status = "IO Error when trying to connect to OFBiz: " + e.getMessage();
+		}
+		return status;
+	}
 
-    /**
-     * Send a command through network to OFBiz server
-     * to shut itself down.
-     *
-     * @param config: OFBiz configuration
-     * @return shutdownMessage: message from server 
-     *   on receiving shutdown request
-     */
-    static String requestShutdown(Config config) {
-        String shutdownMessage = null;
-        try {
-            shutdownMessage = sendSocketCommand(OfbizSocketCommand.SHUTDOWN, config);
-        } catch (IOException e) {
-            shutdownMessage = "IO Error when trying to connect to OFBiz: " + e.getMessage();
-        }
-        return shutdownMessage;
-    }
+	/**
+	 * Send a command through network to OFBiz server
+	 * to shut itself down.
+	 *
+	 * @param config: OFBiz configuration
+	 * @return shutdownMessage: message from server
+	 * on receiving shutdown request
+	 */
+	static String requestShutdown(Config config) {
+		String shutdownMessage = null;
+		try {
+			shutdownMessage = sendSocketCommand(OfbizSocketCommand.SHUTDOWN, config);
+		} catch (IOException e) {
+			shutdownMessage = "IO Error when trying to connect to OFBiz: " + e.getMessage();
+		}
+		return shutdownMessage;
+	}
 
-    private static String sendSocketCommand(OfbizSocketCommand socketCommand, Config config) throws IOException {
-        String response = "OFBiz is Down";
-        try (Socket socket = new Socket(config.adminAddress, config.adminPort);
-                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+	private static String sendSocketCommand(OfbizSocketCommand socketCommand, Config config) throws IOException {
+		String response = "OFBiz is Down";
+		try (Socket socket = new Socket(config.adminAddress, config.adminPort);
+		     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+		     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-            // send the command
-            writer.println(config.adminKey + ":" + socketCommand);
-            writer.flush();
-            // read the reply
-            response = reader.readLine();
-        } catch (ConnectException e) {
-            System.out.println("Could not connect to " + config.adminAddress + ":" + config.adminPort);
-        }
-        return response;
-    }
+			// send the command
+			writer.println(config.adminKey + ":" + socketCommand);
+			writer.flush();
+			// read the reply
+			response = reader.readLine();
+		} catch (ConnectException e) {
+			System.out.println("Could not connect to " + config.adminAddress + ":" + config.adminPort);
+		}
+		return response;
+	}
 }

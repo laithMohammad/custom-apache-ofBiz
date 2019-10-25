@@ -30,19 +30,21 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class DebugXaResources {
 
-    private final boolean value; // type = xs:string
+	private final boolean value; // type = xs:string
 
-    DebugXaResources(Element element) throws GenericEntityConfException {
-        String lineNumberText = EntityConfig.createConfigFileLineNumberText(element);
-        String value = element.getAttribute("value").intern();
-        if (value.isEmpty()) {
-            throw new GenericEntityConfException("<debug-xa-resources> element value attribute is empty" + lineNumberText);
-        }
-        this.value = "true".equals(value);
-    }
+	DebugXaResources(Element element) throws GenericEntityConfException {
+		String lineNumberText = EntityConfig.createConfigFileLineNumberText(element);
+		String value = element.getAttribute("value").intern();
+		if (value.isEmpty()) {
+			throw new GenericEntityConfException("<debug-xa-resources> element value attribute is empty" + lineNumberText);
+		}
+		this.value = "true".equals(value);
+	}
 
-    /** Returns the value of the <code>value</code> attribute. */
-    public boolean getValue() {
-        return this.value;
-    }
+	/**
+	 * Returns the value of the <code>value</code> attribute.
+	 */
+	public boolean getValue() {
+		return this.value;
+	}
 }

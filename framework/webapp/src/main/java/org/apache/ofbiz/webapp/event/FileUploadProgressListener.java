@@ -28,35 +28,35 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class FileUploadProgressListener implements ProgressListener, Serializable {
 
-    public static final String module = FileUploadProgressListener.class.getName();
+	public static final String module = FileUploadProgressListener.class.getName();
 
-    protected long contentLength = -1;
-    protected long bytesRead = -1;
-    protected int items = -1;
-    protected boolean hasStarted = false;
+	protected long contentLength = -1;
+	protected long bytesRead = -1;
+	protected int items = -1;
+	protected boolean hasStarted = false;
 
-    public void update(long bytesRead, long contentLength, int items) {
-        this.contentLength = contentLength;
-        this.bytesRead = bytesRead;
-        this.items = items;
-        if (!hasStarted) {
-            hasStarted = true;
-        }
-    }
+	public void update(long bytesRead, long contentLength, int items) {
+		this.contentLength = contentLength;
+		this.bytesRead = bytesRead;
+		this.items = items;
+		if (!hasStarted) {
+			hasStarted = true;
+		}
+	}
 
-    public long getContentLength() {
-        return contentLength;
-    }
+	public long getContentLength() {
+		return contentLength;
+	}
 
-    public long getBytesRead() {
-        return bytesRead;
-    }
+	public long getBytesRead() {
+		return bytesRead;
+	}
 
-    public int getItems() {
-        return items;
-    }
+	public int getItems() {
+		return items;
+	}
 
-    public boolean hasStarted() {
-        return hasStarted;
-    }
+	public boolean hasStarted() {
+		return hasStarted;
+	}
 }

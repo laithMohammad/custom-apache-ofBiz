@@ -27,16 +27,16 @@ import org.apache.ofbiz.base.config.GenericConfigException;
 @SuppressWarnings("serial")
 public class ServiceConfigException extends GenericConfigException {
 
-    public ServiceConfigException() {
-        super();
-    }
+	public ServiceConfigException() {
+		super();
+	}
 
-    public ServiceConfigException(String str) {
-        super(str);
-    }
+	public ServiceConfigException(String str) {
+		super(str);
+	}
 
-    public ServiceConfigException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public ServiceConfigException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }
 

@@ -18,6 +18,8 @@
  *******************************************************************************/
 package org.apache.ofbiz.service.rmi;
 
+import org.apache.ofbiz.service.GenericServiceException;
+
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -25,52 +27,50 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ofbiz.service.GenericServiceException;
-
-/** An example of how to remotely access the Service Engine's RemoteDispatcher.
- *
+/**
+ * An example of how to remotely access the Service Engine's RemoteDispatcher.
+ * <p>
  * The following files from OFBiz need to be on the client's classpath:
  * cache.properties
  * debug.properties
  * jsse.properties
  * ofbiz-base.jar
  * ofbiz-service-rmi.jar (copied and renamed from "ofbiz/framework/service/build/lib/ofbiz-service-rmi.raj" from an OFBiz build)
- *
+ * <p>
  * The following third-party libraries (can be found in OFBiz) also need to be on the client's classpath:
  * commons-collections.jar
  * log4j.jar
- *
+ * <p>
  * Copy the truststore file framework/base/config/ofbizrmi-truststore.jks to the client
- *
+ * <p>
  * Run the client specifying the path to the client truststore: -Djavax.net.ssl.trustStore=ofbizrmi-truststore.jks
- *
  */
 public class ExampleRemoteClient {
 
-    protected final static String RMI_URL = "rmi://localhost:1099/RMIDispatcher"; // change to match the remote server
-    protected RemoteDispatcher rd = null;
+	protected final static String RMI_URL = "rmi://localhost:1099/RMIDispatcher"; // change to match the remote server
+	protected RemoteDispatcher rd = null;
 
-    public ExampleRemoteClient() {
-        try {
-            rd = (RemoteDispatcher) Naming.lookup(RMI_URL);
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
+	public ExampleRemoteClient() {
+		try {
+			rd = (RemoteDispatcher) Naming.lookup(RMI_URL);
+		} catch (NotBoundException e) {
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
 
-    public Map<String, Object> runTestService() throws RemoteException, GenericServiceException {
-        Map<String, Object> context = new HashMap<String, Object>();
-        context.put("message", "Remote Service Test");
-        return rd.runSync("testScv", context);
-    }
+	public static void main(String[] args) throws Exception {
+		ExampleRemoteClient rm = new ExampleRemoteClient();
+		Map<String, Object> result = rm.runTestService();
+		System.out.println("Service Result Map: " + result);
+	}
 
-    public static void main(String[] args) throws Exception {
-        ExampleRemoteClient rm = new ExampleRemoteClient();
-        Map<String, Object> result = rm.runTestService();
-        System.out.println("Service Result Map: " + result);
-    }
+	public Map<String, Object> runTestService() throws RemoteException, GenericServiceException {
+		Map<String, Object> context = new HashMap<String, Object>();
+		context.put("message", "Remote Service Test");
+		return rd.runSync("testScv", context);
+	}
 }

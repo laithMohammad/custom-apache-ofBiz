@@ -34,110 +34,110 @@ import java.util.concurrent.atomic.AtomicReference;
  * </p>
  * <p>
  * This class uses a singleton pattern to guarantee that only one server instance
- * is running in the VM. Client code retrieves the instance by using the 
+ * is running in the VM. Client code retrieves the instance by using the
  * <tt>getInstance()</tt> static method.
  * </p>
  */
 public final class Start {
 
-    private Config config = null;
-    private final AtomicReference<ServerState> serverState = new AtomicReference<ServerState>(ServerState.STARTING);
+	// Singleton, do not change
+	private static final Start instance = new Start();
+	private final AtomicReference<ServerState> serverState = new AtomicReference<ServerState>(ServerState.STARTING);
+	private Config config = null;
 
-    // Singleton, do not change
-    private static final Start instance = new Start();
-    private Start() {
-    }
+	private Start() {
+	}
 
-    /**
-     * main is the entry point to execute high level OFBiz commands 
-     * such as starting, stopping or checking the status of the server.
-     * 
-     * @param args: The commands for OFBiz
-     */
-    public static void main(String[] args) {
-        List<StartupCommand> ofbizCommands = null;
-        try {
-            ofbizCommands = StartupCommandUtil.parseOfbizCommands(args);
-        } catch (StartupException e) {
-            // incorrect arguments passed to the command line
-            StartupCommandUtil.highlightAndPrintErrorMessage(e.getMessage());
-            StartupCommandUtil.printOfbizStartupHelp(System.err);
-            System.exit(1);
-        }
+	/**
+	 * main is the entry point to execute high level OFBiz commands
+	 * such as starting, stopping or checking the status of the server.
+	 *
+	 * @param args: The commands for OFBiz
+	 */
+	public static void main(String[] args) {
+		List<StartupCommand> ofbizCommands = null;
+		try {
+			ofbizCommands = StartupCommandUtil.parseOfbizCommands(args);
+		} catch (StartupException e) {
+			// incorrect arguments passed to the command line
+			StartupCommandUtil.highlightAndPrintErrorMessage(e.getMessage());
+			StartupCommandUtil.printOfbizStartupHelp(System.err);
+			System.exit(1);
+		}
 
-        CommandType commandType = determineCommandType(ofbizCommands);
-        if(!commandType.equals(CommandType.HELP)) {
-            instance.config = StartupControlPanel.init(ofbizCommands);
-        }
-        switch (commandType) {
-            case HELP:
-                StartupCommandUtil.printOfbizStartupHelp(System.out);
-                break;
-            case STATUS:
-                System.out.println("Current Status : " + AdminClient.requestStatus(instance.config));
-                break;
-            case SHUTDOWN:
-                System.out.println("Shutting down server : " + AdminClient.requestShutdown(instance.config));
-                break;
-            case START:
-                try {
-                    StartupControlPanel.start(instance.config, instance.serverState, ofbizCommands);
-                } catch (StartupException e) {
-                    StartupControlPanel.fullyTerminateSystem(e);
-                }
-                break;
-        }
-    }
+		CommandType commandType = determineCommandType(ofbizCommands);
+		if (!commandType.equals(CommandType.HELP)) {
+			instance.config = StartupControlPanel.init(ofbizCommands);
+		}
+		switch (commandType) {
+			case HELP:
+				StartupCommandUtil.printOfbizStartupHelp(System.out);
+				break;
+			case STATUS:
+				System.out.println("Current Status : " + AdminClient.requestStatus(instance.config));
+				break;
+			case SHUTDOWN:
+				System.out.println("Shutting down server : " + AdminClient.requestShutdown(instance.config));
+				break;
+			case START:
+				try {
+					StartupControlPanel.start(instance.config, instance.serverState, ofbizCommands);
+				} catch (StartupException e) {
+					StartupControlPanel.fullyTerminateSystem(e);
+				}
+				break;
+		}
+	}
 
-    /**
-     * Returns the <code>Start</code> instance.
-     */
-    public static Start getInstance() {
-        return instance;
-    }
+	/**
+	 * Returns the <code>Start</code> instance.
+	 */
+	public static Start getInstance() {
+		return instance;
+	}
 
-    /**
-     * Returns the server's main configuration.
-     */
-    public Config getConfig() {
-        return this.config;
-    }
+	private static CommandType determineCommandType(List<StartupCommand> ofbizCommands) {
+		if (ofbizCommands.stream().anyMatch(
+				command -> command.getName().equals(StartupCommandUtil.StartupOption.HELP.getName()))) {
+			return CommandType.HELP;
+		} else if (ofbizCommands.stream().anyMatch(
+				command -> command.getName().equals(StartupCommandUtil.StartupOption.STATUS.getName()))) {
+			return CommandType.STATUS;
+		} else if (ofbizCommands.stream().anyMatch(
+				command -> command.getName().equals(StartupCommandUtil.StartupOption.SHUTDOWN.getName()))) {
+			return CommandType.SHUTDOWN;
+		} else {
+			return CommandType.START;
+		}
+	}
 
-    /**
-     * Returns the server's current state.
-     */
-    public ServerState getCurrentState() {
-        return serverState.get();
-    }
+	/**
+	 * Returns the server's main configuration.
+	 */
+	public Config getConfig() {
+		return this.config;
+	}
 
-    /**
-     * This enum contains the possible OFBiz server states.
-     */
-    public enum ServerState {
-        STARTING, RUNNING, STOPPING;
+	/**
+	 * Returns the server's current state.
+	 */
+	public ServerState getCurrentState() {
+		return serverState.get();
+	}
 
-        @Override
-        public String toString() {
-            return name().charAt(0) + name().substring(1).toLowerCase();
-        }
-    }
+	/**
+	 * This enum contains the possible OFBiz server states.
+	 */
+	public enum ServerState {
+		STARTING, RUNNING, STOPPING;
 
-    private static CommandType determineCommandType(List<StartupCommand> ofbizCommands) {
-        if (ofbizCommands.stream().anyMatch(
-                command -> command.getName().equals(StartupCommandUtil.StartupOption.HELP.getName()))) {
-            return CommandType.HELP;
-        } else if (ofbizCommands.stream().anyMatch(
-                command -> command.getName().equals(StartupCommandUtil.StartupOption.STATUS.getName()))) {
-            return CommandType.STATUS;
-        } else if (ofbizCommands.stream().anyMatch(
-                command -> command.getName().equals(StartupCommandUtil.StartupOption.SHUTDOWN.getName()))) {
-            return CommandType.SHUTDOWN;
-        } else {
-            return CommandType.START;
-        }
-    }
+		@Override
+		public String toString() {
+			return name().charAt(0) + name().substring(1).toLowerCase();
+		}
+	}
 
-    private enum CommandType {
-        HELP, STATUS, SHUTDOWN, START
-    }
+	private enum CommandType {
+		HELP, STATUS, SHUTDOWN, START
+	}
 }

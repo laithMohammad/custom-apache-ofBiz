@@ -26,19 +26,19 @@ import org.apache.ofbiz.base.util.GeneralException;
 @SuppressWarnings("serial")
 public class CartItemModifyException extends GeneralException {
 
-    public CartItemModifyException() {
-        super();
-    }
+	public CartItemModifyException() {
+		super();
+	}
 
-    public CartItemModifyException(String str) {
-        super(str);
-    }
+	public CartItemModifyException(String str) {
+		super(str);
+	}
 
-    public CartItemModifyException(Throwable nested) {
-        super(nested);
-    }
+	public CartItemModifyException(Throwable nested) {
+		super(nested);
+	}
 
-    public CartItemModifyException(String str, Throwable nested) {
-        super(str, nested);
-    }
+	public CartItemModifyException(String str, Throwable nested) {
+		super(str, nested);
+	}
 }

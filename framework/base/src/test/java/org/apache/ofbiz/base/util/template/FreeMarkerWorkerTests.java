@@ -18,26 +18,27 @@
  *******************************************************************************/
 package org.apache.ofbiz.base.util.template;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class FreeMarkerWorkerTests {
-    @Before
-    public void initialize() {
-        System.setProperty("ofbiz.home", System.getProperty("user.dir"));
-    }
+	@Before
+	public void initialize() {
+		System.setProperty("ofbiz.home", System.getProperty("user.dir"));
+	}
 
-    @Test
-    public void renderTemplateFromString() throws Exception {
-        StringWriter out = new StringWriter();
-        Map<String, Object> context = new HashMap<>();
-        context.put("name", "World!");
-        FreeMarkerWorker.renderTemplateFromString("template1", "Hello ${name}", context, out, 0, false);
-        assertEquals("Hello World!", out.toString());
-    }
+	@Test
+	public void renderTemplateFromString() throws Exception {
+		StringWriter out = new StringWriter();
+		Map<String, Object> context = new HashMap<>();
+		context.put("name", "World!");
+		FreeMarkerWorker.renderTemplateFromString("template1", "Hello ${name}", context, out, 0, false);
+		assertEquals("Hello World!", out.toString());
+	}
 }

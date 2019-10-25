@@ -28,17 +28,17 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class RunFromPool {
 
-    private final String name;
+	private final String name;
 
-    RunFromPool(Element runFromPoolElement) throws ServiceConfigException {
-        String name = runFromPoolElement.getAttribute("name").intern();
-        if (name.isEmpty()) {
-            throw new ServiceConfigException("<run-from-pool> element name attribute is empty");
-        }
-        this.name = name;
-    }
+	RunFromPool(Element runFromPoolElement) throws ServiceConfigException {
+		String name = runFromPoolElement.getAttribute("name").intern();
+		if (name.isEmpty()) {
+			throw new ServiceConfigException("<run-from-pool> element name attribute is empty");
+		}
+		this.name = name;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 }

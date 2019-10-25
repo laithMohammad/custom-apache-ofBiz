@@ -18,367 +18,412 @@
  *******************************************************************************/
 package org.apache.ofbiz.service.calendar;
 
-import java.util.ArrayList;
 import com.ibm.icu.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.StringUtil;
 import org.apache.ofbiz.base.util.UtilValidate;
-import org.apache.ofbiz.service.calendar.TemporalExpression;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
+
+import java.util.*;
 
 /**
  * Recurrence Info Object
  */
 public class RecurrenceInfo {
 
-    public static final String module = RecurrenceInfo.class.getName();
+	public static final String module = RecurrenceInfo.class.getName();
 
-    protected GenericValue info;
-    protected Date startDate;
-    protected List<RecurrenceRule> rRulesList;
-    protected List<RecurrenceRule> eRulesList;
-    protected List<Date> rDateList;
-    protected List<Date> eDateList;
+	protected GenericValue info;
+	protected Date startDate;
+	protected List<RecurrenceRule> rRulesList;
+	protected List<RecurrenceRule> eRulesList;
+	protected List<Date> rDateList;
+	protected List<Date> eDateList;
 
-    /** Creates new RecurrenceInfo */
-    public RecurrenceInfo(GenericValue info) throws RecurrenceInfoException {
-        this.info = info;
-        if (!info.getEntityName().equals("RecurrenceInfo"))
-            throw new RecurrenceInfoException("Invalid RecurrenceInfo Value object.");
-        init();
-    }
+	/**
+	 * Creates new RecurrenceInfo
+	 */
+	public RecurrenceInfo(GenericValue info) throws RecurrenceInfoException {
+		this.info = info;
+		if (!info.getEntityName().equals("RecurrenceInfo"))
+			throw new RecurrenceInfoException("Invalid RecurrenceInfo Value object.");
+		init();
+	}
 
-    /** Initializes the rules for this RecurrenceInfo object. */
-    public void init() throws RecurrenceInfoException {
+	public static RecurrenceInfo makeInfo(Delegator delegator, long startTime, int frequency,
+	                                      int interval, int count) throws RecurrenceInfoException {
+		return makeInfo(delegator, startTime, frequency, interval, count, 0);
+	}
 
-        if (info.get("startDateTime") == null)
-            throw new RecurrenceInfoException("Recurrence startDateTime cannot be null.");
+	public static RecurrenceInfo makeInfo(Delegator delegator, long startTime, int frequency,
+	                                      int interval, long endTime) throws RecurrenceInfoException {
+		return makeInfo(delegator, startTime, frequency, interval, -1, endTime);
+	}
 
-        // Get start date
-        long startTime = info.getTimestamp("startDateTime").getTime();
+	public static RecurrenceInfo makeInfo(Delegator delegator, long startTime, int frequency,
+	                                      int interval, int count, long endTime) throws RecurrenceInfoException {
+		try {
+			RecurrenceRule r = RecurrenceRule.makeRule(delegator, frequency, interval, count, endTime);
+			String ruleId = r.primaryKey();
+			GenericValue value = delegator.makeValue("RecurrenceInfo");
 
-        if (startTime > 0) {
-            int nanos = info.getTimestamp("startDateTime").getNanos();
+			value.set("recurrenceRuleId", ruleId);
+			value.set("startDateTime", new java.sql.Timestamp(startTime));
+			delegator.createSetNextSeqId(value);
+			RecurrenceInfo newInfo = new RecurrenceInfo(value);
 
-            startTime += (nanos / 1000000);
-        } else {
-            throw new RecurrenceInfoException("Recurrence startDateTime must have a value.");
-        }
-        startDate = new Date(startTime);
+			return newInfo;
+		} catch (RecurrenceRuleException re) {
+			throw new RecurrenceInfoException(re.getMessage(), re);
+		} catch (GenericEntityException ee) {
+			throw new RecurrenceInfoException(ee.getMessage(), ee);
+		} catch (RecurrenceInfoException rie) {
+			throw rie;
+		}
+	}
 
-        // Get the recurrence rules objects
-        try {
-            rRulesList = new ArrayList<RecurrenceRule>();
-            for (GenericValue value: info.getRelated("RecurrenceRule", null, null, false)) {
-                rRulesList.add(new RecurrenceRule(value));
-            }
-        } catch (GenericEntityException gee) {
-            rRulesList = null;
-        } catch (RecurrenceRuleException rre) {
-            throw new RecurrenceInfoException("Illegal rule format.", rre);
-        }
+	/**
+	 * Convert a RecurrenceInfo object to a TemporalExpression object.
+	 *
+	 * @param info A RecurrenceInfo instance
+	 * @return A TemporalExpression instance
+	 */
+	public static TemporalExpression toTemporalExpression(RecurrenceInfo info) {
+		if (info == null) {
+			throw new IllegalArgumentException("info argument cannot be null");
+		}
+		return new RecurrenceWrapper(info);
+	}
 
-        // Get the exception rules objects
-        try {
-            eRulesList = new ArrayList<RecurrenceRule>();
-            for (GenericValue value: info.getRelated("ExceptionRecurrenceRule", null, null, false)) {
-                eRulesList.add(new RecurrenceRule(value));
-            }
-        } catch (GenericEntityException gee) {
-            eRulesList = null;
-        } catch (RecurrenceRuleException rre) {
-            throw new RecurrenceInfoException("Illegal rule format", rre);
-        }
+	/**
+	 * Initializes the rules for this RecurrenceInfo object.
+	 */
+	public void init() throws RecurrenceInfoException {
 
-        // Get the recurrence date list
-        rDateList = RecurrenceUtil.parseDateList(StringUtil.split(info.getString("recurrenceDateTimes"), ","));
-        // Get the exception date list
-        eDateList = RecurrenceUtil.parseDateList(StringUtil.split(info.getString("exceptionDateTimes"), ","));
+		if (info.get("startDateTime") == null)
+			throw new RecurrenceInfoException("Recurrence startDateTime cannot be null.");
 
-        // Sort the lists.
-        Collections.sort(rDateList);
-        Collections.sort(eDateList);
-    }
+		// Get start date
+		long startTime = info.getTimestamp("startDateTime").getTime();
 
-    /** Returns the primary key for this value object */
-    public String getID() {
-        return info.getString("recurrenceInfoId");
-    }
+		if (startTime > 0) {
+			int nanos = info.getTimestamp("startDateTime").getNanos();
 
-    /** Returns the startDate Date object. */
-    public Date getStartDate() {
-        return this.startDate;
-    }
+			startTime += (nanos / 1000000);
+		} else {
+			throw new RecurrenceInfoException("Recurrence startDateTime must have a value.");
+		}
+		startDate = new Date(startTime);
 
-    /** Returns the long value of the startDate. */
-    public long getStartTime() {
-        return this.startDate.getTime();
-    }
+		// Get the recurrence rules objects
+		try {
+			rRulesList = new ArrayList<RecurrenceRule>();
+			for (GenericValue value : info.getRelated("RecurrenceRule", null, null, false)) {
+				rRulesList.add(new RecurrenceRule(value));
+			}
+		} catch (GenericEntityException gee) {
+			rRulesList = null;
+		} catch (RecurrenceRuleException rre) {
+			throw new RecurrenceInfoException("Illegal rule format.", rre);
+		}
 
-    /** Returns a recurrence rule iterator */
-    public Iterator<RecurrenceRule> getRecurrenceRuleIterator() {
-        return rRulesList.iterator();
-    }
+		// Get the exception rules objects
+		try {
+			eRulesList = new ArrayList<RecurrenceRule>();
+			for (GenericValue value : info.getRelated("ExceptionRecurrenceRule", null, null, false)) {
+				eRulesList.add(new RecurrenceRule(value));
+			}
+		} catch (GenericEntityException gee) {
+			eRulesList = null;
+		} catch (RecurrenceRuleException rre) {
+			throw new RecurrenceInfoException("Illegal rule format", rre);
+		}
 
-    /** Returns a sorted recurrence date iterator */
-    public Iterator<Date> getRecurrenceDateIterator() {
-        return rDateList.iterator();
-    }
+		// Get the recurrence date list
+		rDateList = RecurrenceUtil.parseDateList(StringUtil.split(info.getString("recurrenceDateTimes"), ","));
+		// Get the exception date list
+		eDateList = RecurrenceUtil.parseDateList(StringUtil.split(info.getString("exceptionDateTimes"), ","));
 
-    /** Returns a exception recurrence iterator */
-    public Iterator<RecurrenceRule> getExceptionRuleIterator() {
-        return eRulesList.iterator();
-    }
+		// Sort the lists.
+		Collections.sort(rDateList);
+		Collections.sort(eDateList);
+	}
 
-    /** Returns a sorted exception date iterator */
-    public Iterator<Date> getExceptionDateIterator() {
-        return eDateList.iterator();
-    }
+	/**
+	 * Returns the primary key for this value object
+	 */
+	public String getID() {
+		return info.getString("recurrenceInfoId");
+	}
 
-    /** Returns the current count of this recurrence. */
-    public long getCurrentCount() {
-        if (info.get("recurrenceCount") != null)
-            return info.getLong("recurrenceCount").longValue();
-        return 0;
-    }
+	/**
+	 * Returns the startDate Date object.
+	 */
+	public Date getStartDate() {
+		return this.startDate;
+	}
 
-    /** Increments the current count of this recurrence and updates the record. */
-    public void incrementCurrentCount() throws GenericEntityException {
-        incrementCurrentCount(true);
-    }
+	/**
+	 * Returns the long value of the startDate.
+	 */
+	public long getStartTime() {
+		return this.startDate.getTime();
+	}
 
-    /** Increments the current count of this recurrence. */
-    public void incrementCurrentCount(boolean store) throws GenericEntityException {
-        if (store) {
-            info.set("recurrenceCount", getCurrentCount() + 1);
-            info.store();
-        }
-    }
+	/**
+	 * Returns a recurrence rule iterator
+	 */
+	public Iterator<RecurrenceRule> getRecurrenceRuleIterator() {
+		return rRulesList.iterator();
+	}
 
-    /** Removes the recurrence from persistant store. */
-    public void remove() throws RecurrenceInfoException {
-        List<RecurrenceRule> rulesList = new ArrayList<RecurrenceRule>();
+	/**
+	 * Returns a sorted recurrence date iterator
+	 */
+	public Iterator<Date> getRecurrenceDateIterator() {
+		return rDateList.iterator();
+	}
 
-        rulesList.addAll(rRulesList);
-        rulesList.addAll(eRulesList);
+	/**
+	 * Returns a exception recurrence iterator
+	 */
+	public Iterator<RecurrenceRule> getExceptionRuleIterator() {
+		return eRulesList.iterator();
+	}
 
-        try {
-            for (RecurrenceRule rule: rulesList)
-                rule.remove();
-            info.remove();
-        } catch (RecurrenceRuleException rre) {
-            throw new RecurrenceInfoException(rre.getMessage(), rre);
-        } catch (GenericEntityException gee) {
-            throw new RecurrenceInfoException(gee.getMessage(), gee);
-        }
-    }
+	/**
+	 * Returns a sorted exception date iterator
+	 */
+	public Iterator<Date> getExceptionDateIterator() {
+		return eDateList.iterator();
+	}
 
-    /** Returns the first recurrence. */
-    public long first() {
-        return startDate.getTime();
-        // First recurrence is always the start time
-    }
+	/**
+	 * Returns the current count of this recurrence.
+	 */
+	public long getCurrentCount() {
+		if (info.get("recurrenceCount") != null)
+			return info.getLong("recurrenceCount").longValue();
+		return 0;
+	}
 
-    /** Returns the estimated last recurrence. */
-    public long last() {
-        // TODO: find the last recurrence.
-        return 0;
-    }
+	/**
+	 * Increments the current count of this recurrence and updates the record.
+	 */
+	public void incrementCurrentCount() throws GenericEntityException {
+		incrementCurrentCount(true);
+	}
 
-    /** Returns the next recurrence from now. */
-    public long next() {
-        return next(RecurrenceUtil.now());
-    }
+	/**
+	 * Increments the current count of this recurrence.
+	 */
+	public void incrementCurrentCount(boolean store) throws GenericEntityException {
+		if (store) {
+			info.set("recurrenceCount", getCurrentCount() + 1);
+			info.store();
+		}
+	}
 
-    /** Returns the next recurrence from the specified time. */
-    public long next(long fromTime) {
-        // Check for the first recurrence (StartTime is always the first recurrence)
-        if (getCurrentCount() == 0 || fromTime == 0 || fromTime == startDate.getTime()) {
-            return first();
-        }
+	/**
+	 * Removes the recurrence from persistant store.
+	 */
+	public void remove() throws RecurrenceInfoException {
+		List<RecurrenceRule> rulesList = new ArrayList<RecurrenceRule>();
 
-        if (Debug.verboseOn()) {
-            Debug.logVerbose("Date List Size: " + (rDateList == null ? 0 : rDateList.size()), module);
-            Debug.logVerbose("Rule List Size: " + (rRulesList == null ? 0 : rRulesList.size()), module);
-        }
+		rulesList.addAll(rRulesList);
+		rulesList.addAll(eRulesList);
 
-        // Check the rules and date list
-        if (rDateList == null && rRulesList == null) {
-            return 0;
-        }
+		try {
+			for (RecurrenceRule rule : rulesList)
+				rule.remove();
+			info.remove();
+		} catch (RecurrenceRuleException rre) {
+			throw new RecurrenceInfoException(rre.getMessage(), rre);
+		} catch (GenericEntityException gee) {
+			throw new RecurrenceInfoException(gee.getMessage(), gee);
+		}
+	}
 
-        long nextRuleTime = fromTime;
-        boolean hasNext = true;
+	/**
+	 * Returns the first recurrence.
+	 */
+	public long first() {
+		return startDate.getTime();
+		// First recurrence is always the start time
+	}
 
-        // Get the next recurrence from the rule(s).
-        Iterator<RecurrenceRule> rulesIterator = getRecurrenceRuleIterator();
-        while (rulesIterator.hasNext()) {
-            RecurrenceRule rule = rulesIterator.next();
-            while (hasNext) {
-                // Gets the next recurrence time from the rule.
-                nextRuleTime = getNextTime(rule, nextRuleTime);
-                // Tests the next recurrence against the rules.
-                if (nextRuleTime == 0 || isValid(nextRuleTime)) {
-                    hasNext = false;
-                }
-            }
-        }
-        return nextRuleTime;
-    }
+	/**
+	 * Returns the estimated last recurrence.
+	 */
+	public long last() {
+		// TODO: find the last recurrence.
+		return 0;
+	}
 
-    /** Checks the current recurrence validity at the moment. */
-    public boolean isValidCurrent() {
-        return isValidCurrent(RecurrenceUtil.now());
-    }
+	/**
+	 * Returns the next recurrence from now.
+	 */
+	public long next() {
+		return next(RecurrenceUtil.now());
+	}
 
-    /** Checks the current recurrence validity for checkTime. */
-    public boolean isValidCurrent(long checkTime) {
-        if (checkTime == 0 || (rDateList == null && rRulesList == null)) {
-            return false;
-        }
+	/**
+	 * Returns the next recurrence from the specified time.
+	 */
+	public long next(long fromTime) {
+		// Check for the first recurrence (StartTime is always the first recurrence)
+		if (getCurrentCount() == 0 || fromTime == 0 || fromTime == startDate.getTime()) {
+			return first();
+		}
 
-        boolean found = false;
-        Iterator<RecurrenceRule> rulesIterator = getRecurrenceRuleIterator();
-        while (rulesIterator.hasNext()) {
-            RecurrenceRule rule = rulesIterator.next();
-            long currentTime = rule.validCurrent(getStartTime(), checkTime, getCurrentCount());
-            currentTime = checkDateList(rDateList, currentTime, checkTime);
-            if ((currentTime > 0) && isValid(checkTime)) {
-                found = true;
-            } else {
-                return false;
-            }
-        }
+		if (Debug.verboseOn()) {
+			Debug.logVerbose("Date List Size: " + (rDateList == null ? 0 : rDateList.size()), module);
+			Debug.logVerbose("Rule List Size: " + (rRulesList == null ? 0 : rRulesList.size()), module);
+		}
 
-        return found;
-    }
+		// Check the rules and date list
+		if (rDateList == null && rRulesList == null) {
+			return 0;
+		}
 
-    private long getNextTime(RecurrenceRule rule, long fromTime) {
-        long nextTime = rule.next(getStartTime(), fromTime, getCurrentCount());
-        if (Debug.verboseOn()) Debug.logVerbose("Next Time Before Date Check: " + nextTime, module);
-        return checkDateList(rDateList, nextTime, fromTime);
-    }
+		long nextRuleTime = fromTime;
+		boolean hasNext = true;
 
-    private long checkDateList(List<Date> dateList, long time, long fromTime) {
-        long nextTime = time;
+		// Get the next recurrence from the rule(s).
+		Iterator<RecurrenceRule> rulesIterator = getRecurrenceRuleIterator();
+		while (rulesIterator.hasNext()) {
+			RecurrenceRule rule = rulesIterator.next();
+			while (hasNext) {
+				// Gets the next recurrence time from the rule.
+				nextRuleTime = getNextTime(rule, nextRuleTime);
+				// Tests the next recurrence against the rules.
+				if (nextRuleTime == 0 || isValid(nextRuleTime)) {
+					hasNext = false;
+				}
+			}
+		}
+		return nextRuleTime;
+	}
 
-        if (UtilValidate.isNotEmpty(dateList)) {
-            for (Date thisDate: dateList) {
-                if (nextTime > 0 && thisDate.getTime() < nextTime && thisDate.getTime() > fromTime)
-                    nextTime = thisDate.getTime();
-                else if (nextTime == 0 && thisDate.getTime() > fromTime)
-                    nextTime = thisDate.getTime();
-            }
-        }
-        return nextTime;
-    }
+	/**
+	 * Checks the current recurrence validity at the moment.
+	 */
+	public boolean isValidCurrent() {
+		return isValidCurrent(RecurrenceUtil.now());
+	}
 
-    private boolean isValid(long time) {
-        Iterator<RecurrenceRule> exceptRulesIterator = getExceptionRuleIterator();
+	/**
+	 * Checks the current recurrence validity for checkTime.
+	 */
+	public boolean isValidCurrent(long checkTime) {
+		if (checkTime == 0 || (rDateList == null && rRulesList == null)) {
+			return false;
+		}
 
-        while (exceptRulesIterator.hasNext()) {
-            RecurrenceRule except = exceptRulesIterator.next();
+		boolean found = false;
+		Iterator<RecurrenceRule> rulesIterator = getRecurrenceRuleIterator();
+		while (rulesIterator.hasNext()) {
+			RecurrenceRule rule = rulesIterator.next();
+			long currentTime = rule.validCurrent(getStartTime(), checkTime, getCurrentCount());
+			currentTime = checkDateList(rDateList, currentTime, checkTime);
+			if ((currentTime > 0) && isValid(checkTime)) {
+				found = true;
+			} else {
+				return false;
+			}
+		}
 
-            if (except.isValid(getStartTime(), time) || eDateList.contains(new Date(time)))
-                return false;
-        }
-        return true;
-    }
+		return found;
+	}
 
-    public String primaryKey() {
-        return info.getString("recurrenceInfoId");
-    }
+	private long getNextTime(RecurrenceRule rule, long fromTime) {
+		long nextTime = rule.next(getStartTime(), fromTime, getCurrentCount());
+		if (Debug.verboseOn()) Debug.logVerbose("Next Time Before Date Check: " + nextTime, module);
+		return checkDateList(rDateList, nextTime, fromTime);
+	}
 
-    public static RecurrenceInfo makeInfo(Delegator delegator, long startTime, int frequency,
-            int interval, int count) throws RecurrenceInfoException {
-        return makeInfo(delegator, startTime, frequency, interval, count, 0);
-    }
+	private long checkDateList(List<Date> dateList, long time, long fromTime) {
+		long nextTime = time;
 
-    public static RecurrenceInfo makeInfo(Delegator delegator, long startTime, int frequency,
-            int interval, long endTime) throws RecurrenceInfoException {
-        return makeInfo(delegator, startTime, frequency, interval, -1, endTime);
-    }
+		if (UtilValidate.isNotEmpty(dateList)) {
+			for (Date thisDate : dateList) {
+				if (nextTime > 0 && thisDate.getTime() < nextTime && thisDate.getTime() > fromTime)
+					nextTime = thisDate.getTime();
+				else if (nextTime == 0 && thisDate.getTime() > fromTime)
+					nextTime = thisDate.getTime();
+			}
+		}
+		return nextTime;
+	}
 
-    public static RecurrenceInfo makeInfo(Delegator delegator, long startTime, int frequency,
-            int interval, int count, long endTime) throws RecurrenceInfoException {
-        try {
-            RecurrenceRule r = RecurrenceRule.makeRule(delegator, frequency, interval, count, endTime);
-            String ruleId = r.primaryKey();
-            GenericValue value = delegator.makeValue("RecurrenceInfo");
+	private boolean isValid(long time) {
+		Iterator<RecurrenceRule> exceptRulesIterator = getExceptionRuleIterator();
 
-            value.set("recurrenceRuleId", ruleId);
-            value.set("startDateTime", new java.sql.Timestamp(startTime));
-            delegator.createSetNextSeqId(value);
-            RecurrenceInfo newInfo = new RecurrenceInfo(value);
+		while (exceptRulesIterator.hasNext()) {
+			RecurrenceRule except = exceptRulesIterator.next();
 
-            return newInfo;
-        } catch (RecurrenceRuleException re) {
-            throw new RecurrenceInfoException(re.getMessage(), re);
-        } catch (GenericEntityException ee) {
-            throw new RecurrenceInfoException(ee.getMessage(), ee);
-        } catch (RecurrenceInfoException rie) {
-            throw rie;
-        }
-    }
+			if (except.isValid(getStartTime(), time) || eDateList.contains(new Date(time)))
+				return false;
+		}
+		return true;
+	}
 
-    /** Convert a RecurrenceInfo object to a TemporalExpression object.
-     * @param info A RecurrenceInfo instance
-     * @return A TemporalExpression instance
-     */
-    public static TemporalExpression toTemporalExpression(RecurrenceInfo info) {
-        if (info == null) {
-            throw new IllegalArgumentException("info argument cannot be null");
-        }
-        return new RecurrenceWrapper(info);
-    }
+	public String primaryKey() {
+		return info.getString("recurrenceInfoId");
+	}
 
-    /** Wraps a RecurrenceInfo object with a TemporalExpression object. This
-     * class is intended to help with the transition from RecurrenceInfo/RecurrenceRule
-     * to TemporalExpression.
-     */
-    @SuppressWarnings("serial")
-    protected static class RecurrenceWrapper extends TemporalExpression {
-        protected RecurrenceInfo info;
-        protected RecurrenceWrapper() {}
-        public RecurrenceWrapper(RecurrenceInfo info) {
-            this.info = info;
-        }
-        @Override
-        public Calendar first(Calendar cal) {
-            long result = this.info.first();
-            if (result == 0) {
-                return null;
-            }
-            Calendar first = (Calendar) cal.clone();
-            first.setTimeInMillis(result);
-            return first;
-        }
-        @Override
-        public boolean includesDate(Calendar cal) {
-            return this.info.isValidCurrent(cal.getTimeInMillis());
-        }
-        @Override
-        public Calendar next(Calendar cal, ExpressionContext context) {
-            long result = this.info.next(cal.getTimeInMillis());
-            if (result == 0) {
-                return null;
-            }
-            Calendar next = (Calendar) cal.clone();
-            next.setTimeInMillis(result);
-            return next;
-        }
-        @Override
-        public void accept(TemporalExpressionVisitor visitor) {}
-        @Override
-        public boolean isSubstitutionCandidate(Calendar cal, TemporalExpression expressionToTest) {
-            return false;
-        }
-    }
+	/**
+	 * Wraps a RecurrenceInfo object with a TemporalExpression object. This
+	 * class is intended to help with the transition from RecurrenceInfo/RecurrenceRule
+	 * to TemporalExpression.
+	 */
+	@SuppressWarnings("serial")
+	protected static class RecurrenceWrapper extends TemporalExpression {
+		protected RecurrenceInfo info;
+
+		protected RecurrenceWrapper() {
+		}
+
+		public RecurrenceWrapper(RecurrenceInfo info) {
+			this.info = info;
+		}
+
+		@Override
+		public Calendar first(Calendar cal) {
+			long result = this.info.first();
+			if (result == 0) {
+				return null;
+			}
+			Calendar first = (Calendar) cal.clone();
+			first.setTimeInMillis(result);
+			return first;
+		}
+
+		@Override
+		public boolean includesDate(Calendar cal) {
+			return this.info.isValidCurrent(cal.getTimeInMillis());
+		}
+
+		@Override
+		public Calendar next(Calendar cal, ExpressionContext context) {
+			long result = this.info.next(cal.getTimeInMillis());
+			if (result == 0) {
+				return null;
+			}
+			Calendar next = (Calendar) cal.clone();
+			next.setTimeInMillis(result);
+			return next;
+		}
+
+		@Override
+		public void accept(TemporalExpressionVisitor visitor) {
+		}
+
+		@Override
+		public boolean isSubstitutionCandidate(Calendar cal, TemporalExpression expressionToTest) {
+			return false;
+		}
+	}
 }

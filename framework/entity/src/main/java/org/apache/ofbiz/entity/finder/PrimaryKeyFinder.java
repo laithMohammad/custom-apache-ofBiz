@@ -18,12 +18,6 @@
  */
 package org.apache.ofbiz.entity.finder;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.base.util.UtilValidate;
@@ -38,132 +32,133 @@ import org.apache.ofbiz.entity.model.ModelField;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.w3c.dom.Element;
 
+import java.util.*;
+
 /**
  * Uses the delegator to find entity values by a condition
- *
  */
 @SuppressWarnings("serial")
 public class PrimaryKeyFinder extends Finder {
-    public static final String module = PrimaryKeyFinder.class.getName();
+	public static final String module = PrimaryKeyFinder.class.getName();
 
-    protected FlexibleMapAccessor<Object> valueNameAcsr;
-    protected FlexibleStringExpander autoFieldMapExdr;
-    protected Map<FlexibleMapAccessor<Object>, Object> fieldMap;
-    protected List<FlexibleStringExpander> selectFieldExpanderList;
+	protected FlexibleMapAccessor<Object> valueNameAcsr;
+	protected FlexibleStringExpander autoFieldMapExdr;
+	protected Map<FlexibleMapAccessor<Object>, Object> fieldMap;
+	protected List<FlexibleStringExpander> selectFieldExpanderList;
 
-    public PrimaryKeyFinder(Element entityOneElement) {
-        super(entityOneElement);
-        if (UtilValidate.isNotEmpty(entityOneElement.getAttribute("value-field"))) {
-            this.valueNameAcsr = FlexibleMapAccessor.getInstance(entityOneElement.getAttribute("value-field"));
-        } else {
-            this.valueNameAcsr = FlexibleMapAccessor.getInstance(entityOneElement.getAttribute("value-name"));
-        }
-        this.autoFieldMapExdr = FlexibleStringExpander.getInstance(entityOneElement.getAttribute("auto-field-map"));
+	public PrimaryKeyFinder(Element entityOneElement) {
+		super(entityOneElement);
+		if (UtilValidate.isNotEmpty(entityOneElement.getAttribute("value-field"))) {
+			this.valueNameAcsr = FlexibleMapAccessor.getInstance(entityOneElement.getAttribute("value-field"));
+		} else {
+			this.valueNameAcsr = FlexibleMapAccessor.getInstance(entityOneElement.getAttribute("value-name"));
+		}
+		this.autoFieldMapExdr = FlexibleStringExpander.getInstance(entityOneElement.getAttribute("auto-field-map"));
 
-        // process field-map
-        this.fieldMap = EntityFinderUtil.makeFieldMap(entityOneElement);
+		// process field-map
+		this.fieldMap = EntityFinderUtil.makeFieldMap(entityOneElement);
 
-        // process select-field
-        selectFieldExpanderList = EntityFinderUtil.makeSelectFieldExpanderList(entityOneElement);
-    }
+		// process select-field
+		selectFieldExpanderList = EntityFinderUtil.makeSelectFieldExpanderList(entityOneElement);
+	}
 
-    @Override
-    public void runFind(Map<String, Object> context, Delegator delegator) throws GeneralException {
-        String entityName = this.entityNameExdr.expandString(context);
+	public static GenericValue runFind(ModelEntity modelEntity, Map<String, Object> context, Delegator delegator, boolean useCache, boolean autoFieldMap,
+	                                   Map<FlexibleMapAccessor<Object>, Object> fieldMap, List<FlexibleStringExpander> selectFieldExpanderList) throws GeneralException {
 
-        String useCacheString = this.useCacheStrExdr.expandString(context);
-        // default to false
-        boolean useCacheBool = "true".equals(useCacheString);
+		// assemble the field map
+		Map<String, Object> entityContext = new HashMap<String, Object>();
+		if (autoFieldMap) {
+			// try a map called "parameters", try it first so values from here are overridden by values in the main context
+			Object parametersObj = context.get("parameters");
+			Boolean parametersObjExists = parametersObj != null && parametersObj instanceof Map<?, ?>;
+			// only need PK fields
+			Iterator<ModelField> iter = modelEntity.getPksIterator();
+			while (iter.hasNext()) {
+				ModelField curField = iter.next();
+				String fieldName = curField.getName();
+				Object fieldValue = null;
+				if (parametersObjExists) {
+					fieldValue = ((Map<?, ?>) parametersObj).get(fieldName);
+				}
+				if (context.containsKey(fieldName)) {
+					fieldValue = context.get(fieldName);
+				}
+				entityContext.put(fieldName, fieldValue);
+			}
+		}
+		EntityFinderUtil.expandFieldMapToContext(fieldMap, context, entityContext);
+		//Debug.logInfo("PrimaryKeyFinder: entityContext=" + entityContext, module);
+		// then convert the types...
 
-        String autoFieldMapString = this.autoFieldMapExdr.expandString(context);
-        // default to true
-        boolean autoFieldMapBool = !"false".equals(autoFieldMapString);
+		// need the timeZone and locale for conversion, so add here and remove after
+		entityContext.put("locale", context.get("locale"));
+		entityContext.put("timeZone", context.get("timeZone"));
+		modelEntity.convertFieldMapInPlace(entityContext, delegator);
+		entityContext.remove("locale");
+		entityContext.remove("timeZone");
 
-        ModelEntity modelEntity = delegator.getModelEntity(entityName);
-        if (modelEntity == null) {
-            throw new IllegalArgumentException("No entity definition found for entity name [" + entityName + "]");
-        }
+		// get the list of fieldsToSelect from selectFieldExpanderList
+		Set<String> fieldsToSelect = EntityFinderUtil.makeFieldsToSelect(selectFieldExpanderList, context);
 
-        GenericValue valueOut = runFind(modelEntity, context, delegator, useCacheBool, autoFieldMapBool, this.fieldMap, this.selectFieldExpanderList);
+		//if fieldsToSelect != null and useCacheBool is true, throw an error
+		if (fieldsToSelect != null && useCache) {
+			throw new IllegalArgumentException("Error in entity-one definition, cannot specify select-field elements when use-cache is set to true");
+		}
 
-        //Debug.logInfo("PrimaryKeyFinder: valueOut=" + valueOut, module);
-        //Debug.logInfo("PrimaryKeyFinder: going into=" + this.valueNameAcsr.getOriginalName(), module);
-        if (!valueNameAcsr.isEmpty()) {
-           this.valueNameAcsr.put(context, valueOut);
-        } else {
-           if (valueOut != null) {
-               context.putAll(valueOut);
-           }
-        }
-    }
+		try {
+			GenericValue valueOut = null;
+			GenericPK entityPK = delegator.makePK(modelEntity.getEntityName(), entityContext);
 
-    public static GenericValue runFind(ModelEntity modelEntity, Map<String, Object> context, Delegator delegator, boolean useCache, boolean autoFieldMap,
-            Map<FlexibleMapAccessor<Object>, Object> fieldMap, List<FlexibleStringExpander> selectFieldExpanderList) throws GeneralException {
+			// make sure we have a full primary key, if any field is null then just log a warning and return null instead of blowing up
+			if (entityPK.containsPrimaryKey(true)) {
+				if (useCache) {
+					valueOut = EntityQuery.use(delegator).from(entityPK.getEntityName()).where(entityPK).cache(true).queryOne();
+				} else {
+					if (fieldsToSelect != null) {
+						valueOut = delegator.findByPrimaryKeyPartial(entityPK, fieldsToSelect);
+					} else {
+						valueOut = EntityQuery.use(delegator).from(entityPK.getEntityName()).where(entityPK).cache(false).queryOne();
+					}
+				}
+			} else {
+				if (Debug.infoOn()) Debug.logInfo("Returning null because found incomplete primary key in find: " + entityPK, module);
+			}
 
-        // assemble the field map
-        Map<String, Object> entityContext = new HashMap<String, Object>();
-        if (autoFieldMap) {
-            // try a map called "parameters", try it first so values from here are overridden by values in the main context
-            Object parametersObj = context.get("parameters");
-            Boolean parametersObjExists = parametersObj != null && parametersObj instanceof Map<?, ?>;
-            // only need PK fields
-            Iterator<ModelField> iter = modelEntity.getPksIterator();
-            while (iter.hasNext()) {
-                ModelField curField = iter.next();
-                String fieldName = curField.getName();
-                Object fieldValue = null;
-                if (parametersObjExists) {
-                    fieldValue = ((Map<?, ?>) parametersObj).get(fieldName);
-                }
-                if (context.containsKey(fieldName)) {
-                    fieldValue = context.get(fieldName);
-                }
-                entityContext.put(fieldName, fieldValue);
-            }
-        }
-        EntityFinderUtil.expandFieldMapToContext(fieldMap, context, entityContext);
-        //Debug.logInfo("PrimaryKeyFinder: entityContext=" + entityContext, module);
-        // then convert the types...
+			return valueOut;
+		} catch (GenericEntityException e) {
+			String errMsg = "Error finding entity value by primary key with entity-one: " + e.toString();
+			Debug.logError(e, errMsg, module);
+			throw new GeneralException(errMsg, e);
+		}
+	}
 
-        // need the timeZone and locale for conversion, so add here and remove after
-        entityContext.put("locale", context.get("locale"));
-        entityContext.put("timeZone", context.get("timeZone"));
-        modelEntity.convertFieldMapInPlace(entityContext, delegator);
-        entityContext.remove("locale");
-        entityContext.remove("timeZone");
+	@Override
+	public void runFind(Map<String, Object> context, Delegator delegator) throws GeneralException {
+		String entityName = this.entityNameExdr.expandString(context);
 
-        // get the list of fieldsToSelect from selectFieldExpanderList
-        Set<String> fieldsToSelect = EntityFinderUtil.makeFieldsToSelect(selectFieldExpanderList, context);
+		String useCacheString = this.useCacheStrExdr.expandString(context);
+		// default to false
+		boolean useCacheBool = "true".equals(useCacheString);
 
-        //if fieldsToSelect != null and useCacheBool is true, throw an error
-        if (fieldsToSelect != null && useCache) {
-            throw new IllegalArgumentException("Error in entity-one definition, cannot specify select-field elements when use-cache is set to true");
-        }
+		String autoFieldMapString = this.autoFieldMapExdr.expandString(context);
+		// default to true
+		boolean autoFieldMapBool = !"false".equals(autoFieldMapString);
 
-        try {
-            GenericValue valueOut = null;
-            GenericPK entityPK = delegator.makePK(modelEntity.getEntityName(), entityContext);
+		ModelEntity modelEntity = delegator.getModelEntity(entityName);
+		if (modelEntity == null) {
+			throw new IllegalArgumentException("No entity definition found for entity name [" + entityName + "]");
+		}
 
-            // make sure we have a full primary key, if any field is null then just log a warning and return null instead of blowing up
-            if (entityPK.containsPrimaryKey(true)) {
-                if (useCache) {
-                    valueOut = EntityQuery.use(delegator).from(entityPK.getEntityName()).where(entityPK).cache(true).queryOne();
-                } else {
-                    if (fieldsToSelect != null) {
-                        valueOut = delegator.findByPrimaryKeyPartial(entityPK, fieldsToSelect);
-                    } else {
-                        valueOut = EntityQuery.use(delegator).from(entityPK.getEntityName()).where(entityPK).cache(false).queryOne();
-                    }
-                }
-            } else {
-                if (Debug.infoOn()) Debug.logInfo("Returning null because found incomplete primary key in find: " + entityPK, module);
-            }
+		GenericValue valueOut = runFind(modelEntity, context, delegator, useCacheBool, autoFieldMapBool, this.fieldMap, this.selectFieldExpanderList);
 
-            return valueOut;
-        } catch (GenericEntityException e) {
-            String errMsg = "Error finding entity value by primary key with entity-one: " + e.toString();
-            Debug.logError(e, errMsg, module);
-            throw new GeneralException(errMsg, e);
-        }
-    }
+		//Debug.logInfo("PrimaryKeyFinder: valueOut=" + valueOut, module);
+		//Debug.logInfo("PrimaryKeyFinder: going into=" + this.valueNameAcsr.getOriginalName(), module);
+		if (!valueNameAcsr.isEmpty()) {
+			this.valueNameAcsr.put(context, valueOut);
+		} else {
+			if (valueOut != null) {
+				context.putAll(valueOut);
+			}
+		}
+	}
 }

@@ -18,20 +18,20 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.content;
 
+import org.apache.ofbiz.base.util.GeneralException;
+import org.apache.ofbiz.entity.Delegator;
+
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
-
-import org.apache.ofbiz.base.util.GeneralException;
-import org.apache.ofbiz.entity.Delegator;
 
 /**
  * ContentWorkerInterface
  */
 public interface DataResourceWorkerInterface {
-    public String renderDataResourceAsTextExt(Delegator delegator, String dataResourceId, Map<String, Object> templateContext,
-            Locale locale, String targetMimeTypeId, boolean cache) throws GeneralException, IOException;
+	public String renderDataResourceAsTextExt(Delegator delegator, String dataResourceId, Map<String, Object> templateContext,
+	                                          Locale locale, String targetMimeTypeId, boolean cache) throws GeneralException, IOException;
 
-    public void renderDataResourceAsTextExt(Delegator delegator, String dataResourceId, Appendable out, Map<String, Object> templateContext,
-            Locale locale, String targetMimeTypeId, boolean cache) throws GeneralException, IOException;
+	public void renderDataResourceAsTextExt(Delegator delegator, String dataResourceId, Appendable out, Map<String, Object> templateContext,
+	                                        Locale locale, String targetMimeTypeId, boolean cache) throws GeneralException, IOException;
 }

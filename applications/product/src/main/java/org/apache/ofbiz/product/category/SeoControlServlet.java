@@ -18,19 +18,18 @@
  *******************************************************************************/
 package org.apache.ofbiz.product.category;
 
-import java.io.IOException;
-import java.net.URLEncoder;
+import org.apache.catalina.servlets.DefaultServlet;
+import org.apache.jasper.servlet.JspServlet;
+import org.apache.ofbiz.base.util.UtilValidate;
+import org.apache.ofbiz.webapp.control.ControlServlet;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.catalina.servlets.DefaultServlet;
-import org.apache.jasper.servlet.JspServlet;
-import org.apache.ofbiz.base.util.UtilValidate;
-import org.apache.ofbiz.webapp.control.ControlServlet;
+import java.io.IOException;
+import java.net.URLEncoder;
 
 /**
  * SeoControlServlet.java - SEO Master servlet for the web application.
@@ -38,53 +37,51 @@ import org.apache.ofbiz.webapp.control.ControlServlet;
 @SuppressWarnings("serial")
 public class SeoControlServlet extends ControlServlet {
 
-    public static final String module = SeoControlServlet.class.getName();
+	public static final String module = SeoControlServlet.class.getName();
+	public static final String REQUEST_IN_ALLOW_LIST = "_REQUEST_IN_ALLOW_LIST_";
+	protected static String defaultPage = null;
+	protected static String controlServlet = null;
 
-    protected static String defaultPage = null;
-    protected static String controlServlet = null;
-    
-    public static final String REQUEST_IN_ALLOW_LIST = "_REQUEST_IN_ALLOW_LIST_";
+	public SeoControlServlet() {
+		super();
+	}
 
-    public SeoControlServlet() {
-        super();
-    }
+	/**
+	 * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
+	 */
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
 
-    /**
-     * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
-     */
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
+		ServletContext context = this.getServletContext();
+		if (UtilValidate.isEmpty(defaultPage)) {
+			defaultPage = context.getInitParameter("defaultPage");
+		}
+		if (UtilValidate.isEmpty(defaultPage)) {
+			defaultPage = "/main";
+		}
 
-        ServletContext context = this.getServletContext();
-        if (UtilValidate.isEmpty(defaultPage)) {
-            defaultPage = context.getInitParameter("defaultPage");
-        }
-        if (UtilValidate.isEmpty(defaultPage)) {
-            defaultPage = "/main";
-        }
+		if (defaultPage.startsWith("/") && defaultPage.lastIndexOf("/") > 0) {
+			controlServlet = defaultPage.substring(1);
+			controlServlet = controlServlet.substring(0, controlServlet.indexOf("/"));
+		}
 
-        if (defaultPage.startsWith("/") && defaultPage.lastIndexOf("/") > 0) {
-            controlServlet = defaultPage.substring(1);
-            controlServlet = controlServlet.substring(0, controlServlet.indexOf("/"));
-        }
+		SeoConfigUtil.init();
+	}
 
-        SeoConfigUtil.init();
-    }
-    
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String uri = URLEncoder.encode(request.getRequestURI(), "UTF-8");
-        if (request.getAttribute(REQUEST_IN_ALLOW_LIST) != null || request.getAttribute("_jsp_" + uri) != null) {
-            if (request.getRequestURI().toLowerCase().endsWith(".jsp") || request.getRequestURI().toLowerCase().endsWith(".jspx") ) {
-                JspServlet jspServlet = new JspServlet();
-                jspServlet.init(this.getServletConfig());
-                jspServlet.service(request, response);
-            } else {
-                DefaultServlet defaultServlet = new DefaultServlet();
-                defaultServlet.init(this.getServletConfig());
-                defaultServlet.service(request, response);
-            }
-            return;
-        }
-        super.doGet(request, response);
-    }
+		if (request.getAttribute(REQUEST_IN_ALLOW_LIST) != null || request.getAttribute("_jsp_" + uri) != null) {
+			if (request.getRequestURI().toLowerCase().endsWith(".jsp") || request.getRequestURI().toLowerCase().endsWith(".jspx")) {
+				JspServlet jspServlet = new JspServlet();
+				jspServlet.init(this.getServletConfig());
+				jspServlet.service(request, response);
+			} else {
+				DefaultServlet defaultServlet = new DefaultServlet();
+				defaultServlet.init(this.getServletConfig());
+				defaultServlet.service(request, response);
+			}
+			return;
+		}
+		super.doGet(request, response);
+	}
 }

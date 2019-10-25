@@ -18,10 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.entity.condition;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntity;
 import org.apache.ofbiz.entity.GenericModelException;
@@ -29,100 +25,106 @@ import org.apache.ofbiz.entity.config.model.Datasource;
 import org.apache.ofbiz.entity.model.ModelEntity;
 import org.apache.ofbiz.entity.model.ModelField;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Base class for condition expression values.
- *
  */
 @SuppressWarnings("serial")
 public abstract class EntityConditionValue extends EntityConditionBase {
 
-    public static EntityConditionValue CONSTANT_NUMBER(Number value) { return new ConstantNumberValue(value); }
-    public static final class ConstantNumberValue extends EntityConditionValue {
-        private Number value;
+	public static EntityConditionValue CONSTANT_NUMBER(Number value) {
+		return new ConstantNumberValue(value);
+	}
 
-        private ConstantNumberValue(Number value) {
-            this.value = value;
-        }
+	public abstract ModelField getModelField(ModelEntity modelEntity);
 
-        @Override
-        public void accept(EntityConditionVisitor visitor) {
-            visitor.acceptEntityConditionValue(this);
-        }
+	public abstract void setModelField(ModelField modelEntity);
 
-        @Override
-        public void addSqlValue(StringBuilder sql, Map<String, String> tableAliases, ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams, boolean includeTableNamePrefix, Datasource datasourceinfo) {
-            sql.append(value);
-        }
+	public void addSqlValue(StringBuilder sql, ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams, boolean includeTableNamePrefix,
+	                        Datasource datasourceinfo) {
+		addSqlValue(sql, emptyAliases, modelEntity, entityConditionParams, includeTableNamePrefix, datasourceinfo);
+	}
 
-        @Override
-        public EntityConditionValue freeze() {
-            return this;
-        }
+	public abstract void addSqlValue(StringBuilder sql, Map<String, String> tableAliases, ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams,
+	                                 boolean includeTableNamePrefix, Datasource datasourceinfo);
 
-        @Override
-        public ModelField getModelField(ModelEntity modelEntity) {
-            return null;
-        }
+	public abstract void validateSql(ModelEntity modelEntity) throws GenericModelException;
 
-        @Override
-        public void setModelField(ModelField field) {
-            // Do nothing;
-        }
+	public Object getValue(GenericEntity entity) {
+		if (entity == null) {
+			return null;
+		}
+		return getValue(entity.getDelegator(), entity);
+	}
 
-        @Override
-        public Object getValue(Delegator delegator, Map<String, ? extends Object> map) {
-            return value;
-        }
+	public abstract Object getValue(Delegator delegator, Map<String, ? extends Object> map);
 
-        @Override
-        public void validateSql(org.apache.ofbiz.entity.model.ModelEntity modelEntity) {
-        }
+	public abstract EntityConditionValue freeze();
 
-        @Override
-        public void visit(EntityConditionVisitor visitor) {
-            visitor.acceptObject(value);
-        }
-    }
+	public abstract void visit(EntityConditionVisitor visitor);
 
-    public abstract ModelField getModelField(ModelEntity modelEntity);
+	public void accept(EntityConditionVisitor visitor) {
+		throw new IllegalArgumentException("accept not implemented");
+	}
 
-    public abstract void setModelField(ModelField modelEntity);
+	public void toString(StringBuilder sb) {
+		addSqlValue(sb, null, new ArrayList<EntityConditionParam>(), false, null);
+	}
 
-    public void addSqlValue(StringBuilder sql, ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams, boolean includeTableNamePrefix,
-            Datasource datasourceinfo) {
-        addSqlValue(sql, emptyAliases, modelEntity, entityConditionParams, includeTableNamePrefix, datasourceinfo);
-    }
+	@Override
+	public String toString() {
+		StringBuilder sql = new StringBuilder();
+		toString(sql);
+		return sql.toString();
+	}
 
-    public abstract void addSqlValue(StringBuilder sql, Map<String, String> tableAliases, ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams,
-            boolean includeTableNamePrefix, Datasource datasourceinfo);
+	public static final class ConstantNumberValue extends EntityConditionValue {
+		private Number value;
 
-    public abstract void validateSql(ModelEntity modelEntity) throws GenericModelException;
+		private ConstantNumberValue(Number value) {
+			this.value = value;
+		}
 
-    public Object getValue(GenericEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        return getValue(entity.getDelegator(), entity);
-    }
+		@Override
+		public void accept(EntityConditionVisitor visitor) {
+			visitor.acceptEntityConditionValue(this);
+		}
 
-    public abstract Object getValue(Delegator delegator, Map<String, ? extends Object> map);
+		@Override
+		public void addSqlValue(StringBuilder sql, Map<String, String> tableAliases, ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams, boolean includeTableNamePrefix, Datasource datasourceinfo) {
+			sql.append(value);
+		}
 
-    public abstract EntityConditionValue freeze();
+		@Override
+		public EntityConditionValue freeze() {
+			return this;
+		}
 
-    public abstract void visit(EntityConditionVisitor visitor);
+		@Override
+		public ModelField getModelField(ModelEntity modelEntity) {
+			return null;
+		}
 
-    public void accept(EntityConditionVisitor visitor) {
-        throw new IllegalArgumentException("accept not implemented");
-    }
+		@Override
+		public void setModelField(ModelField field) {
+			// Do nothing;
+		}
 
-    public void toString(StringBuilder sb) {
-        addSqlValue(sb, null, new ArrayList<EntityConditionParam>(), false, null);
-    }
+		@Override
+		public Object getValue(Delegator delegator, Map<String, ? extends Object> map) {
+			return value;
+		}
 
-    @Override
-    public String toString() {
-        StringBuilder sql = new StringBuilder();
-        toString(sql);
-        return sql.toString();
-    }
+		@Override
+		public void validateSql(org.apache.ofbiz.entity.model.ModelEntity modelEntity) {
+		}
+
+		@Override
+		public void visit(EntityConditionVisitor visitor) {
+			visitor.acceptObject(value);
+		}
+	}
 }

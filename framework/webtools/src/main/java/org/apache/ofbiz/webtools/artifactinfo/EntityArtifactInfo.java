@@ -18,13 +18,6 @@
  */
 package org.apache.ofbiz.webtools.artifactinfo;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.ofbiz.base.location.FlexibleLocation;
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.entity.GenericEntityException;
@@ -32,101 +25,112 @@ import org.apache.ofbiz.entity.model.ModelEntity;
 import org.apache.ofbiz.entity.model.ModelRelation;
 import org.apache.ofbiz.entityext.eca.EntityEcaRule;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  *
  */
 public class EntityArtifactInfo extends ArtifactInfoBase {
-    protected ModelEntity modelEntity;
+	protected ModelEntity modelEntity;
 
-    protected Set<EntityArtifactInfo> entitiesRelatedOne = new TreeSet<EntityArtifactInfo>();
-    protected Set<EntityArtifactInfo> entitiesRelatedMany = new TreeSet<EntityArtifactInfo>();
+	protected Set<EntityArtifactInfo> entitiesRelatedOne = new TreeSet<EntityArtifactInfo>();
+	protected Set<EntityArtifactInfo> entitiesRelatedMany = new TreeSet<EntityArtifactInfo>();
 
-    public EntityArtifactInfo(String entityName, ArtifactInfoFactory aif) throws GenericEntityException {
-        super(aif);
-        this.modelEntity = this.aif.getModelEntity(entityName);
-    }
+	public EntityArtifactInfo(String entityName, ArtifactInfoFactory aif) throws GenericEntityException {
+		super(aif);
+		this.modelEntity = this.aif.getModelEntity(entityName);
+	}
 
-    public void populateAll() throws GeneralException {
-        List<ModelRelation> relationOneList = modelEntity.getRelationsOneList();
-        for (ModelRelation relationOne: relationOneList) {
-            this.entitiesRelatedOne.add(this.aif.getEntityArtifactInfo(relationOne.getRelEntityName()));
-        }
+	public void populateAll() throws GeneralException {
+		List<ModelRelation> relationOneList = modelEntity.getRelationsOneList();
+		for (ModelRelation relationOne : relationOneList) {
+			this.entitiesRelatedOne.add(this.aif.getEntityArtifactInfo(relationOne.getRelEntityName()));
+		}
 
-        List<ModelRelation> relationManyList = modelEntity.getRelationsManyList();
-        for (ModelRelation relationMany: relationManyList) {
-            this.entitiesRelatedMany.add(this.aif.getEntityArtifactInfo(relationMany.getRelEntityName()));
-        }
-    }
+		List<ModelRelation> relationManyList = modelEntity.getRelationsManyList();
+		for (ModelRelation relationMany : relationManyList) {
+			this.entitiesRelatedMany.add(this.aif.getEntityArtifactInfo(relationMany.getRelEntityName()));
+		}
+	}
 
-    public ModelEntity getModelEntity() {
-        return this.modelEntity;
-    }
+	public ModelEntity getModelEntity() {
+		return this.modelEntity;
+	}
 
-    @Override
-    public String getDisplayName() {
-        return this.getUniqueId();
-    }
+	@Override
+	public String getDisplayName() {
+		return this.getUniqueId();
+	}
 
-    @Override
-    public String getDisplayType() {
-        return "Entity";
-    }
+	@Override
+	public String getDisplayType() {
+		return "Entity";
+	}
 
-    @Override
-    public String getType() {
-        return ArtifactInfoFactory.EntityInfoTypeId;
-    }
+	@Override
+	public String getType() {
+		return ArtifactInfoFactory.EntityInfoTypeId;
+	}
 
-    @Override
-    public String getUniqueId() {
-        return this.modelEntity.getEntityName();
-    }
+	@Override
+	public String getUniqueId() {
+		return this.modelEntity.getEntityName();
+	}
 
-    @Override
-    public URL getLocationURL() throws MalformedURLException {
-        return FlexibleLocation.resolveLocation(this.modelEntity.getLocation(), null);
-    }
+	@Override
+	public URL getLocationURL() throws MalformedURLException {
+		return FlexibleLocation.resolveLocation(this.modelEntity.getLocation(), null);
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof EntityArtifactInfo) {
-            return this.modelEntity.getEntityName().equals(((EntityArtifactInfo) obj).modelEntity.getEntityName());
-        } else {
-            return false;
-        }
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof EntityArtifactInfo) {
+			return this.modelEntity.getEntityName().equals(((EntityArtifactInfo) obj).modelEntity.getEntityName());
+		} else {
+			return false;
+		}
+	}
 
-    public Set<EntityArtifactInfo> getEntitiesRelatedOne() {
-        return this.entitiesRelatedOne;
-    }
+	public Set<EntityArtifactInfo> getEntitiesRelatedOne() {
+		return this.entitiesRelatedOne;
+	}
 
-    public Set<EntityArtifactInfo> getEntitiesRelatedMany() {
-        return this.entitiesRelatedMany;
-    }
+	public Set<EntityArtifactInfo> getEntitiesRelatedMany() {
+		return this.entitiesRelatedMany;
+	}
 
-    /** Get the Services that use this Entity */
-    public Set<ServiceArtifactInfo> getServicesUsingEntity() {
-        return this.aif.allServiceInfosReferringToEntityName.get(this.modelEntity.getEntityName());
-    }
+	/**
+	 * Get the Services that use this Entity
+	 */
+	public Set<ServiceArtifactInfo> getServicesUsingEntity() {
+		return this.aif.allServiceInfosReferringToEntityName.get(this.modelEntity.getEntityName());
+	}
 
-    /** Get the Services called by Entity ECA */
-    public Set<ServiceArtifactInfo> getServicesCalledByEntityEca() {
-        Set<ServiceArtifactInfo> serviceSet = new HashSet<ServiceArtifactInfo>();
-        // TODO: implement this
-        return serviceSet;
-    }
+	/**
+	 * Get the Services called by Entity ECA
+	 */
+	public Set<ServiceArtifactInfo> getServicesCalledByEntityEca() {
+		Set<ServiceArtifactInfo> serviceSet = new HashSet<ServiceArtifactInfo>();
+		// TODO: implement this
+		return serviceSet;
+	}
 
-    public Set<EntityEcaRule> getEntityEcaRules() {
-        Set<EntityEcaRule> eecaSet = new HashSet<EntityEcaRule>();
-        // TODO: implement this
-        return eecaSet;
-    }
+	public Set<EntityEcaRule> getEntityEcaRules() {
+		Set<EntityEcaRule> eecaSet = new HashSet<EntityEcaRule>();
+		// TODO: implement this
+		return eecaSet;
+	}
 
-    public Set<FormWidgetArtifactInfo> getFormsUsingEntity() {
-        return this.aif.allFormInfosReferringToEntityName.get(this.modelEntity.getEntityName());
-    }
+	public Set<FormWidgetArtifactInfo> getFormsUsingEntity() {
+		return this.aif.allFormInfosReferringToEntityName.get(this.modelEntity.getEntityName());
+	}
 
-    public Set<ScreenWidgetArtifactInfo> getScreensUsingEntity() {
-        return this.aif.allScreenInfosReferringToEntityName.get(this.modelEntity.getEntityName());
-    }
+	public Set<ScreenWidgetArtifactInfo> getScreensUsingEntity() {
+		return this.aif.allScreenInfosReferringToEntityName.get(this.modelEntity.getEntityName());
+	}
 }

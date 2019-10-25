@@ -24,19 +24,19 @@ package org.apache.ofbiz.webapp.view;
 @SuppressWarnings("serial")
 public class ViewHandlerException extends org.apache.ofbiz.base.util.GeneralException {
 
-    public ViewHandlerException() {
-        super();
-    }
+	public ViewHandlerException() {
+		super();
+	}
 
-    public ViewHandlerException(String msg) {
-        super(msg);
-    }
+	public ViewHandlerException(String msg) {
+		super(msg);
+	}
 
-    public ViewHandlerException(Throwable t) {
-        super(t);
-    }
+	public ViewHandlerException(Throwable t) {
+		super(t);
+	}
 
-    public ViewHandlerException(String msg, Throwable t) {
-        super(msg, t);
-    }
+	public ViewHandlerException(String msg, Throwable t) {
+		super(msg, t);
+	}
 }

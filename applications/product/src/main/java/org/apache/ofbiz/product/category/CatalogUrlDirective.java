@@ -18,14 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.product.category;
 
-import java.io.IOException;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.ofbiz.base.util.UtilGenerics;
-
-
 import freemarker.core.Environment;
 import freemarker.ext.beans.BeanModel;
 import freemarker.template.TemplateDirectiveBody;
@@ -33,32 +25,36 @@ import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 import freemarker.template.utility.DeepUnwrap;
+import org.apache.ofbiz.base.util.UtilGenerics;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * CatalogUrlDirective - Freemarker Template Directive for generating URLs suitable for use by the CatalogUrlServlet
- * 
+ * <p>
  * Accepts the following arguments (see CatalogUrlServlet for their definition):
  * productId
  * currentCategoryId
  * previousCategoryId
- * 
  */
 public class CatalogUrlDirective implements TemplateDirectiveModel {
 
-    public final static String module = CatalogUrlDirective.class.getName();
+	public final static String module = CatalogUrlDirective.class.getName();
 
-    @Override
-    public void execute(Environment env, Map args, TemplateModel[] loopVars, TemplateDirectiveBody body) throws TemplateException, IOException {
-        Map<String, TemplateModel> params = UtilGenerics.checkMap(args);
-        String productId = (String) DeepUnwrap.unwrap(params.get("productId"));
-        String currentCategoryId = (String) DeepUnwrap.unwrap(params.get("currentCategoryId"));
-        String previousCategoryId = (String) DeepUnwrap.unwrap(params.get("previousCategoryId"));
+	@Override
+	public void execute(Environment env, Map args, TemplateModel[] loopVars, TemplateDirectiveBody body) throws TemplateException, IOException {
+		Map<String, TemplateModel> params = UtilGenerics.checkMap(args);
+		String productId = (String) DeepUnwrap.unwrap(params.get("productId"));
+		String currentCategoryId = (String) DeepUnwrap.unwrap(params.get("currentCategoryId"));
+		String previousCategoryId = (String) DeepUnwrap.unwrap(params.get("previousCategoryId"));
 
-        BeanModel req = (BeanModel) env.getVariable("request");
+		BeanModel req = (BeanModel) env.getVariable("request");
 
-        if (req != null) {
-            HttpServletRequest request = (HttpServletRequest) req.getWrappedObject();
-            env.getOut().write(CatalogUrlServlet.makeCatalogUrl(request, productId, currentCategoryId, previousCategoryId));
-        }
-    }
+		if (req != null) {
+			HttpServletRequest request = (HttpServletRequest) req.getWrappedObject();
+			env.getOut().write(CatalogUrlServlet.makeCatalogUrl(request, productId, currentCategoryId, previousCategoryId));
+		}
+	}
 }

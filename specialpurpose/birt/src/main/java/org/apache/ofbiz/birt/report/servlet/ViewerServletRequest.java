@@ -18,51 +18,50 @@
  *******************************************************************************/
 package org.apache.ofbiz.birt.report.servlet;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import org.apache.ofbiz.base.location.FlexibleLocation;
+import org.apache.ofbiz.base.util.Debug;
+import org.eclipse.birt.report.utility.DataUtil;
+import org.eclipse.birt.report.utility.ParameterAccessor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-
-import org.eclipse.birt.report.utility.DataUtil;
-import org.eclipse.birt.report.utility.ParameterAccessor;
-import org.apache.ofbiz.base.location.FlexibleLocation;
-import org.apache.ofbiz.base.util.Debug;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class ViewerServletRequest extends HttpServletRequestWrapper {
-    
-    public final static String module = ViewerServletRequest.class.getName();
 
-    protected String originalReportParam = null;
+	public final static String module = ViewerServletRequest.class.getName();
 
-    public ViewerServletRequest(String originalReportParam, HttpServletRequest request) {
-        super(request);
-        this.originalReportParam = originalReportParam;
-    }
-    
-    @Override
-    public String getParameter(String name) {
-        if (ParameterAccessor.PARAM_REPORT.equals(name)) {
-            String reportParam = DataUtil.trimString(originalReportParam);
-            if (reportParam.startsWith("component://")) {
-                ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                if (loader == null) {
-                    loader = ViewerServletRequest.class.getClassLoader();
-                }
-                URL reportFileUrl = null;
-                try {
-                    reportFileUrl = FlexibleLocation.resolveLocation(reportParam, loader);
-                } catch (MalformedURLException e) {
-                    Debug.logError(e, module);
-                }
-                if (reportFileUrl == null) {
-                    throw new IllegalArgumentException("Could not resolve location to URL: " + reportParam);
-                }
-                return reportFileUrl.getPath();
-            } else {
-                return originalReportParam;
-            }
-        }
-        return super.getParameter(name);
-    }
+	protected String originalReportParam = null;
+
+	public ViewerServletRequest(String originalReportParam, HttpServletRequest request) {
+		super(request);
+		this.originalReportParam = originalReportParam;
+	}
+
+	@Override
+	public String getParameter(String name) {
+		if (ParameterAccessor.PARAM_REPORT.equals(name)) {
+			String reportParam = DataUtil.trimString(originalReportParam);
+			if (reportParam.startsWith("component://")) {
+				ClassLoader loader = Thread.currentThread().getContextClassLoader();
+				if (loader == null) {
+					loader = ViewerServletRequest.class.getClassLoader();
+				}
+				URL reportFileUrl = null;
+				try {
+					reportFileUrl = FlexibleLocation.resolveLocation(reportParam, loader);
+				} catch (MalformedURLException e) {
+					Debug.logError(e, module);
+				}
+				if (reportFileUrl == null) {
+					throw new IllegalArgumentException("Could not resolve location to URL: " + reportParam);
+				}
+				return reportFileUrl.getPath();
+			} else {
+				return originalReportParam;
+			}
+		}
+		return super.getParameter(name);
+	}
 }

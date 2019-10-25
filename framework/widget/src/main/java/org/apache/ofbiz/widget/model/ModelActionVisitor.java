@@ -19,41 +19,41 @@
 package org.apache.ofbiz.widget.model;
 
 /**
- *  A <code>ModelAction</code> visitor.
+ * A <code>ModelAction</code> visitor.
  */
 public interface ModelActionVisitor {
 
-    void visit(ModelFormAction.CallParentActions callParentActions) throws Exception;
+	void visit(ModelFormAction.CallParentActions callParentActions) throws Exception;
 
-    void visit(AbstractModelAction.EntityAnd entityAnd) throws Exception;
+	void visit(AbstractModelAction.EntityAnd entityAnd) throws Exception;
 
-    void visit(AbstractModelAction.EntityCondition entityCondition) throws Exception;
+	void visit(AbstractModelAction.EntityCondition entityCondition) throws Exception;
 
-    void visit(AbstractModelAction.EntityOne entityOne) throws Exception;
+	void visit(AbstractModelAction.EntityOne entityOne) throws Exception;
 
-    void visit(AbstractModelAction.GetRelated getRelated) throws Exception;
+	void visit(AbstractModelAction.GetRelated getRelated) throws Exception;
 
-    void visit(AbstractModelAction.GetRelatedOne getRelatedOne) throws Exception;
+	void visit(AbstractModelAction.GetRelatedOne getRelatedOne) throws Exception;
 
-    void visit(AbstractModelAction.PropertyMap propertyMap) throws Exception;
+	void visit(AbstractModelAction.PropertyMap propertyMap) throws Exception;
 
-    void visit(AbstractModelAction.PropertyToField propertyToField) throws Exception;
+	void visit(AbstractModelAction.PropertyToField propertyToField) throws Exception;
 
-    void visit(AbstractModelAction.Script script) throws Exception;
+	void visit(AbstractModelAction.Script script) throws Exception;
 
-    void visit(AbstractModelAction.Service service) throws Exception;
+	void visit(AbstractModelAction.Service service) throws Exception;
 
-    void visit(AbstractModelAction.SetField setField) throws Exception;
+	void visit(AbstractModelAction.SetField setField) throws Exception;
 
-    void visit(ModelFormAction.Service service) throws Exception;
+	void visit(ModelFormAction.Service service) throws Exception;
 
-    void visit(ModelMenuAction.SetField setField) throws Exception;
+	void visit(ModelMenuAction.SetField setField) throws Exception;
 
-    void visit(ModelTreeAction.Script script) throws Exception;
+	void visit(ModelTreeAction.Script script) throws Exception;
 
-    void visit(ModelTreeAction.Service service) throws Exception;
+	void visit(ModelTreeAction.Service service) throws Exception;
 
-    void visit(ModelTreeAction.EntityAnd entityAnd) throws Exception;
+	void visit(ModelTreeAction.EntityAnd entityAnd) throws Exception;
 
-    void visit(ModelTreeAction.EntityCondition entityCondition) throws Exception;
+	void visit(ModelTreeAction.EntityCondition entityCondition) throws Exception;
 }

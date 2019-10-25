@@ -20,16 +20,16 @@ package org.apache.ofbiz.shipment.packing;
 
 public interface PackingEvent extends java.io.Serializable {
 
-    public static final int EVENT_CODE_ADD = 1;
-    public static final int EVENT_CODE_EREG = 5;
-    public static final int EVENT_CODE_CLEAR = 20;
-    public static final int EVENT_CODE_COMPLETE = 100;
+	public static final int EVENT_CODE_ADD = 1;
+	public static final int EVENT_CODE_EREG = 5;
+	public static final int EVENT_CODE_CLEAR = 20;
+	public static final int EVENT_CODE_COMPLETE = 100;
 
-    public void runEvent(PackingSession session, int eventCode);
+	public void runEvent(PackingSession session, int eventCode);
 
-    public String receiveMessage();
+	public String receiveMessage();
 
-    public int getEventStatus();
+	public int getEventStatus();
 
-    public int getEventCode();
+	public int getEventCode();
 }

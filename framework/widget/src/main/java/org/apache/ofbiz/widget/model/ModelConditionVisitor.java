@@ -18,52 +18,41 @@
  *******************************************************************************/
 package org.apache.ofbiz.widget.model;
 
-import org.apache.ofbiz.widget.model.AbstractModelCondition.And;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfCompare;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfCompareField;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfEmpty;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfEntityPermission;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfHasPermission;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfRegexp;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfServicePermission;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.IfValidateMethod;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.Not;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.Or;
-import org.apache.ofbiz.widget.model.AbstractModelCondition.Xor;
+import org.apache.ofbiz.widget.model.AbstractModelCondition.*;
 import org.apache.ofbiz.widget.model.ModelScreenCondition.IfEmptySection;
 
 /**
- *  A <code>ModelCondition</code> visitor.
+ * A <code>ModelCondition</code> visitor.
  */
 public interface ModelConditionVisitor {
 
-    void visit(And and) throws Exception;
+	void visit(And and) throws Exception;
 
-    void visit(IfCompare ifCompare) throws Exception;
+	void visit(IfCompare ifCompare) throws Exception;
 
-    void visit(IfCompareField ifCompareField) throws Exception;
+	void visit(IfCompareField ifCompareField) throws Exception;
 
-    void visit(IfEmpty ifEmpty) throws Exception;
+	void visit(IfEmpty ifEmpty) throws Exception;
 
-    void visit(IfEntityPermission ifEntityPermission) throws Exception;
+	void visit(IfEntityPermission ifEntityPermission) throws Exception;
 
-    void visit(IfHasPermission ifHasPermission) throws Exception;
+	void visit(IfHasPermission ifHasPermission) throws Exception;
 
-    void visit(IfRegexp ifRegexp) throws Exception;
+	void visit(IfRegexp ifRegexp) throws Exception;
 
-    void visit(IfServicePermission ifServicePermission) throws Exception;
+	void visit(IfServicePermission ifServicePermission) throws Exception;
 
-    void visit(IfValidateMethod ifValidateMethod) throws Exception;
+	void visit(IfValidateMethod ifValidateMethod) throws Exception;
 
-    void visit(Not not) throws Exception;
+	void visit(Not not) throws Exception;
 
-    void visit(Or or) throws Exception;
+	void visit(Or or) throws Exception;
 
-    void visit(Xor xor) throws Exception;
+	void visit(Xor xor) throws Exception;
 
-    void visit(ModelMenuCondition modelMenuCondition) throws Exception;
+	void visit(ModelMenuCondition modelMenuCondition) throws Exception;
 
-    void visit(ModelTreeCondition modelTreeCondition) throws Exception;
+	void visit(ModelTreeCondition modelTreeCondition) throws Exception;
 
-    void visit(IfEmptySection ifEmptySection) throws Exception;
+	void visit(IfEmptySection ifEmptySection) throws Exception;
 }

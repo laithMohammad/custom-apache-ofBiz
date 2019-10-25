@@ -18,14 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.content.search;
 
-import java.lang.Object;
-import java.lang.String;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilHttp;
 import org.apache.ofbiz.base.util.UtilValidate;
@@ -34,38 +26,44 @@ import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ServiceUtil;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * SearchEvents Class
  */
 public class SearchEvents {
 
-    public static final String module = SearchEvents.class.getName();
+	public static final String module = SearchEvents.class.getName();
 
-    public static String indexContentTree(HttpServletRequest request, HttpServletResponse response) {
+	public static String indexContentTree(HttpServletRequest request, HttpServletResponse response) {
 
-        Map<String, Object> result;
-        Map<String, Object> serviceInMap = new HashMap<String, Object>();
-        HttpSession session = request.getSession();
-        GenericValue userLogin = (GenericValue)session.getAttribute("userLogin");
-        serviceInMap.put("userLogin", userLogin);
-        LocalDispatcher dispatcher = (LocalDispatcher) request.getAttribute("dispatcher");
-        Map<String, Object> paramMap = UtilHttp.getParameterMap(request);
-        String siteId = (String)paramMap.get("contentId");
-        serviceInMap.put("contentId", siteId);
-        try {
-            result = dispatcher.runSync("indexContentTree", serviceInMap);
-        } catch (GenericServiceException e) {
-            String errorMsg = "Error calling the indexContentTree service." + e.toString();
-            Debug.logError(e, errorMsg, module);
-            request.setAttribute("_ERROR_MESSAGE_", errorMsg + e.toString());
-            return "error";
-        }
-        String errMsg = ServiceUtil.getErrorMessage(result);
-        if (UtilValidate.isEmpty(errMsg)) {
-            return "success";
-        } else {
-            ServiceUtil.setMessages(request, errMsg, null, null);
-            return "error";
-        }
-    }
+		Map<String, Object> result;
+		Map<String, Object> serviceInMap = new HashMap<String, Object>();
+		HttpSession session = request.getSession();
+		GenericValue userLogin = (GenericValue) session.getAttribute("userLogin");
+		serviceInMap.put("userLogin", userLogin);
+		LocalDispatcher dispatcher = (LocalDispatcher) request.getAttribute("dispatcher");
+		Map<String, Object> paramMap = UtilHttp.getParameterMap(request);
+		String siteId = (String) paramMap.get("contentId");
+		serviceInMap.put("contentId", siteId);
+		try {
+			result = dispatcher.runSync("indexContentTree", serviceInMap);
+		} catch (GenericServiceException e) {
+			String errorMsg = "Error calling the indexContentTree service." + e.toString();
+			Debug.logError(e, errorMsg, module);
+			request.setAttribute("_ERROR_MESSAGE_", errorMsg + e.toString());
+			return "error";
+		}
+		String errMsg = ServiceUtil.getErrorMessage(result);
+		if (UtilValidate.isEmpty(errMsg)) {
+			return "success";
+		} else {
+			ServiceUtil.setMessages(request, errMsg, null, null);
+			return "error";
+		}
+	}
 }

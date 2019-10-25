@@ -18,42 +18,42 @@
  *******************************************************************************/
 package org.apache.ofbiz.minilang.operation;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.base.util.ObjectType;
 import org.w3c.dom.Element;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * A MakeInStringOperation that inserts the value of an in-field
  */
 public class InFieldOper extends MakeInStringOperation {
 
-    public static final String module = InFieldOper.class.getName();
+	public static final String module = InFieldOper.class.getName();
 
-    String fieldName;
+	String fieldName;
 
-    public InFieldOper(Element element) {
-        super(element);
-        fieldName = element.getAttribute("field");
-    }
+	public InFieldOper(Element element) {
+		super(element);
+		fieldName = element.getAttribute("field");
+	}
 
-    @Override
-    public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
-        Object obj = inMap.get(fieldName);
-        if (obj == null) {
-            Debug.logWarning("[SimpleMapProcessor.InFieldOper.exec] In field " + fieldName + " not found, not appending anything", module);
-            return null;
-        }
-        try {
-            return (String) ObjectType.simpleTypeConvert(obj, "String", null, locale);
-        } catch (GeneralException e) {
-            Debug.logWarning(e, module);
-            messages.add("Error converting incoming field \"" + fieldName + "\" in map processor: " + e.getMessage());
-            return null;
-        }
-    }
+	@Override
+	public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
+		Object obj = inMap.get(fieldName);
+		if (obj == null) {
+			Debug.logWarning("[SimpleMapProcessor.InFieldOper.exec] In field " + fieldName + " not found, not appending anything", module);
+			return null;
+		}
+		try {
+			return (String) ObjectType.simpleTypeConvert(obj, "String", null, locale);
+		} catch (GeneralException e) {
+			Debug.logWarning(e, module);
+			messages.add("Error converting incoming field \"" + fieldName + "\" in map processor: " + e.getMessage());
+			return null;
+		}
+	}
 }

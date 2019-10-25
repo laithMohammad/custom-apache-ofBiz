@@ -30,19 +30,21 @@ import org.w3c.dom.Element;
 @ThreadSafe
 public final class ConnectionFactory {
 
-    private final String className; // type = xs:string
+	private final String className; // type = xs:string
 
-    ConnectionFactory(Element element) throws GenericEntityConfException {
-        String lineNumberText = EntityConfig.createConfigFileLineNumberText(element);
-        String className = element.getAttribute("class").intern();
-        if (className.isEmpty()) {
-            throw new GenericEntityConfException("<connection-factory> element class attribute is empty" + lineNumberText);
-        }
-        this.className = className;
-    }
+	ConnectionFactory(Element element) throws GenericEntityConfException {
+		String lineNumberText = EntityConfig.createConfigFileLineNumberText(element);
+		String className = element.getAttribute("class").intern();
+		if (className.isEmpty()) {
+			throw new GenericEntityConfException("<connection-factory> element class attribute is empty" + lineNumberText);
+		}
+		this.className = className;
+	}
 
-    /** Returns the value of the <code>class</code> attribute. */
-    public String getClassName() {
-        return this.className;
-    }
+	/**
+	 * Returns the value of the <code>class</code> attribute.
+	 */
+	public String getClassName() {
+		return this.className;
+	}
 }

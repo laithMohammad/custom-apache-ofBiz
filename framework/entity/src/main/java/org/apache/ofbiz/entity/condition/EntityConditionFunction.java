@@ -19,99 +19,100 @@
 
 package org.apache.ofbiz.entity.condition;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericModelException;
 import org.apache.ofbiz.entity.config.model.Datasource;
 import org.apache.ofbiz.entity.model.ModelEntity;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Base class for entity condition functions.
- *
  */
 @SuppressWarnings("serial")
 public abstract class EntityConditionFunction extends EntityCondition {
 
-    public static final int ID_NOT = 1;
+	public static final int ID_NOT = 1;
+	protected Integer idInt = null;
+	protected String codeString = null;
+	protected EntityCondition condition = null;
+	protected EntityConditionFunction(int id, String code, EntityCondition condition) {
+		init(id, code, condition);
+	}
 
-    public static class NOT extends EntityConditionFunction {
-        public NOT(EntityCondition nested) { super(ID_NOT, "NOT", nested); }
-        @Override
-        public boolean mapMatches(Delegator delegator, Map<String, ? extends Object> map) {
-            return !condition.mapMatches(delegator, map);
-        }
-        @Override
-        public EntityCondition freeze() {
-            return new NOT(condition.freeze());
-        }
-    }
+	public void init(int id, String code, EntityCondition condition) {
+		idInt = id;
+		codeString = code;
+		this.condition = condition;
+	}
 
-    protected Integer idInt = null;
-    protected String codeString = null;
-    protected EntityCondition condition = null;
+	public void reset() {
+		idInt = null;
+		codeString = null;
+		this.condition = null;
+	}
 
-    protected EntityConditionFunction(int id, String code, EntityCondition condition) {
-        init(id, code, condition);
-    }
+	public String getCode() {
+		if (codeString == null)
+			return "null";
+		else
+			return codeString;
+	}
 
-    public void init(int id, String code, EntityCondition condition) {
-        idInt = id;
-        codeString = code;
-        this.condition = condition;
-    }
+	public int getId() {
+		return idInt;
+	}
 
-    public void reset() {
-        idInt = null;
-        codeString = null;
-        this.condition = null;
-    }
+	@Override
+	public void visit(EntityConditionVisitor visitor) {
+		visitor.acceptEntityConditionFunction(this, condition);
+	}
 
-    public String getCode() {
-        if (codeString == null)
-            return "null";
-        else
-            return codeString;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof EntityConditionFunction)) return false;
+		EntityConditionFunction otherFunc = (EntityConditionFunction) obj;
+		return this.idInt == otherFunc.idInt && (this.condition != null ? condition.equals(otherFunc.condition) : otherFunc.condition != null);
+	}
 
-    public int getId() {
-        return idInt;
-    }
+	@Override
+	public int hashCode() {
+		return idInt.hashCode() ^ condition.hashCode();
+	}
 
-    @Override
-    public void visit(EntityConditionVisitor visitor) {
-        visitor.acceptEntityConditionFunction(this, condition);
-    }
+	@Override
+	public boolean isEmpty() {
+		return false;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof EntityConditionFunction)) return false;
-        EntityConditionFunction otherFunc = (EntityConditionFunction) obj;
-        return this.idInt == otherFunc.idInt && (this.condition != null ? condition.equals(otherFunc.condition) : otherFunc.condition != null);
-    }
+	@Override
+	public String makeWhereString(ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams, Datasource datasourceInfo) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(codeString).append('(');
+		sb.append(condition.makeWhereString(modelEntity, entityConditionParams, datasourceInfo));
+		sb.append(')');
+		return sb.toString();
+	}
 
-    @Override
-    public int hashCode() {
-        return idInt.hashCode() ^ condition.hashCode();
-    }
+	@Override
+	public void checkCondition(ModelEntity modelEntity) throws GenericModelException {
+		condition.checkCondition(modelEntity);
+	}
 
-    @Override
-    public boolean isEmpty() {
-        return false;
-    }
+	public static class NOT extends EntityConditionFunction {
+		public NOT(EntityCondition nested) {
+			super(ID_NOT, "NOT", nested);
+		}
 
-    @Override
-    public String makeWhereString(ModelEntity modelEntity, List<EntityConditionParam> entityConditionParams, Datasource datasourceInfo) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(codeString).append('(');
-        sb.append(condition.makeWhereString(modelEntity, entityConditionParams, datasourceInfo));
-        sb.append(')');
-        return sb.toString();
-    }
+		@Override
+		public boolean mapMatches(Delegator delegator, Map<String, ? extends Object> map) {
+			return !condition.mapMatches(delegator, map);
+		}
 
-    @Override
-    public void checkCondition(ModelEntity modelEntity) throws GenericModelException {
-        condition.checkCondition(modelEntity);
-    }
+		@Override
+		public EntityCondition freeze() {
+			return new NOT(condition.freeze());
+		}
+	}
 }
