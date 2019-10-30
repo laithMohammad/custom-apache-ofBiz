@@ -53,6 +53,7 @@ public class CommonEvents {
 
 	private static final String[] ignoreAttrs = new String[]{ // Attributes removed for security reason; _ERROR_MESSAGE_ is kept
 			"javax.servlet.request.key_size",
+			"org.apache.tomcat.util.net.secure_protocol_version",
 			"_CONTEXT_ROOT_",
 			"_FORWARDED_FROM_SERVLET_",
 			"javax.servlet.request.ssl_session",
@@ -271,14 +272,9 @@ public class CommonEvents {
 		// pull out the service response from the request attribute
 
 		Map<String, Object> attrMap = UtilHttp.getJSONAttributeMap(request);
-
-		for (String ignoreAttr : ignoreAttrs) {
-			if (attrMap.containsKey(ignoreAttr)) {
-				attrMap.remove(ignoreAttr);
-			}
-		}
+		Object dataMap = attrMap.get("data");
 		try {
-			JSON json = JSON.from(attrMap);
+			JSON json = JSON.from(dataMap);
 			writeJSONtoResponse(json, request.getMethod(), response);
 		} catch (Exception e) {
 			return "error";
@@ -300,7 +296,7 @@ public class CommonEvents {
 					+ "Normally you simply have to access the data you want, so should not be annoyed by the '//' prefix."
 					+ "You might need to remove it if you use Ajax GET responses (not recommended)."
 					+ "In case, the util.js scrpt is there to help you", module);
-			jsonStr = "//" + jsonStr;
+			jsonStr = jsonStr;
 		}
 
 		// set the JSON content type

@@ -84,7 +84,8 @@ public class ControlServlet extends HttpServlet {
 	 */
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		long requestStartTime = System.currentTimeMillis();
+  		long requestStartTime = System.currentTimeMillis();
+		setAccessControlHeaders(response);
 		RequestHandler requestHandler = this.getRequestHandler();
 		HttpSession session = request.getSession();
 
@@ -369,5 +370,10 @@ public class ControlServlet extends HttpServlet {
 			Debug.logVerbose(attName + ":" + servletContext.getAttribute(attName), module);
 		}
 		Debug.logVerbose("--- End ServletContext Attributes ---", module);
+	}
+
+	private void setAccessControlHeaders(HttpServletResponse resp) {
+		resp.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+		resp.setHeader("Access-Control-Allow-Methods", "GET");
 	}
 }
